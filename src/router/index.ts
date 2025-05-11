@@ -90,7 +90,8 @@ const router = createRouter({
         {
           path: "/requisitions/dispatch",
           name: "Dispatch Requisitions",
-          component: () => import("@/views/requisition/AllRequisition.vue"), // Placeholder, would be a real page in production
+          component: () =>
+            import("@/views/requisition/DispatchedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/delivered",
@@ -98,9 +99,14 @@ const router = createRouter({
           component: () => import("@/views/requisition/AllRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
-          path: "/reports",
-          name: "Reports",
-          component: () => import("@/views/DashboardPage.vue"), // Placeholder, would be a real page in production
+          path: "/reports/make-challan",
+          name: "Make A Challan",
+          component: () => import("@/views/reports/MakeChallan.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/challan-list",
+          name: "Challan List",
+          component: () => import("@/views/reports/AllChallans.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/settings",
