@@ -150,7 +150,7 @@
       </a-table>
     </div>
 
-    <!-- Requisition Detail Modal -->
+    <!-- Redesigned Requisition Detail Modal -->
     <a-modal
       v-model:visible="modalVisible"
       :title="`Requisition Details: ${
@@ -196,68 +196,231 @@
 
               <a-button
                 v-else-if="
-                  !allItemsDownloaded &&
-                  selectedRequisition.status === 'Ordered'
+                  !allItemsCompleted && selectedRequisition.status === 'Ordered'
                 "
                 type="default"
                 disabled
               >
                 <template #icon><InfoCircleOutlined /></template>
-                Waiting for Downloads
+                Waiting for Completion
               </a-button>
             </div>
           </div>
         </div>
 
-        <!-- Requisition Items Table -->
-        <div class="p-6 overflow-auto">
-          <h3 class="text-lg font-semibold mb-4">Requisition Items</h3>
+        <!-- Cheque Type Tabs -->
+        <div class="p-6">
+          <h3 class="text-lg font-semibold mb-4">Cheque Types</h3>
+          <a-tabs v-model:activeKey="activeTabKey" @change="handleTabChange">
+            <a-tab-pane key="All" tab="All">
+              <!-- Cheque Items Table with Checkboxes -->
+              <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                  <a-checkbox
+                    :checked="allChecked"
+                    :indeterminate="indeterminate"
+                    @change="onCheckAllChange"
+                  >
+                    Select All
+                  </a-checkbox>
+                </div>
+                <div class="flex gap-2">
+                  <a-button
+                    type="primary"
+                    :disabled="!hasSelectedDownloadedItems"
+                    @click="markAsWorking"
+                    class="bg-blue-600 hover:bg-blue-700 border-0"
+                  >
+                    Is Working
+                  </a-button>
+                  <a-button
+                    type="primary"
+                    :disabled="!hasSelectedWorkingItems"
+                    @click="markAsComplete"
+                    class="bg-green-600 hover:bg-green-700 border-0"
+                  >
+                    Working Complete
+                  </a-button>
+                </div>
+              </div>
 
-          <a-table
-            :dataSource="requisitionItems"
-            :columns="requisitionItemColumns"
-            :pagination="{ pageSize: 5 }"
-            rowKey="id"
-            class="mb-2 custom-table"
-            :scroll="{ x: 1500 }"
-          >
-            <template #bodyCell="{ column, text, record }">
-              <template v-if="column.key === 'severity'">
-                <a-tag
-                  :color="getSeverityColor(text)"
-                  class="px-2 py-0.5 rounded-full"
-                >
-                  {{ text }}
-                </a-tag>
-              </template>
+              <a-table
+                :dataSource="filteredItemsByType"
+                :columns="requisitionItemColumnsWithCheckbox"
+                :pagination="{ pageSize: 5 }"
+                rowKey="id"
+                class="mb-2 custom-table"
+                :scroll="{ x: 1500 }"
+              >
+                <template #bodyCell="{ column, text, record }">
+                  <template v-if="column.key === 'checkbox'">
+                    <a-checkbox
+                      v-model:checked="checkedItems[record.id]"
+                      @change="() => onItemCheckChange(record)"
+                    />
+                  </template>
+                  <template v-if="column.key === 'severity'">
+                    <a-tag
+                      :color="getSeverityColor(text)"
+                      class="px-2 py-0.5 rounded-full"
+                    >
+                      {{ text }}
+                    </a-tag>
+                  </template>
 
-              <template v-if="column.key === 'status'">
-                <a-tag
-                  :color="getItemStatusColor(text)"
-                  class="px-2 py-0.5 rounded-full"
-                >
-                  {{ text }}
-                </a-tag>
-              </template>
+                  <template v-if="column.key === 'status'">
+                    <a-tag
+                      :color="getItemStatusColor(text)"
+                      class="px-2 py-0.5 rounded-full"
+                    >
+                      {{ text }}
+                    </a-tag>
+                  </template>
 
-              <template v-if="column.key === 'itemActions'">
-                <a-button
-                  v-if="record.status === 'Pending'"
-                  type="primary"
-                  size="small"
-                  @click="downloadItem(record)"
-                >
-                  Download
-                </a-button>
-                <a-tag
-                  v-else-if="record.status === 'Downloaded'"
-                  color="success"
-                >
-                  Downloaded
-                </a-tag>
-              </template>
-            </template>
-          </a-table>
+                  <template v-if="column.key === 'itemActions'">
+                    <a-button
+                      v-if="record.status === 'Pending'"
+                      type="primary"
+                      size="small"
+                      @click="downloadItem(record)"
+                    >
+                      Download
+                    </a-button>
+                    <a-button
+                      v-else-if="record.status === 'Downloaded'"
+                      type="primary"
+                      size="small"
+                      class="bg-blue-600 hover:bg-blue-700 border-0"
+                      @click="markItemAsWorking(record)"
+                    >
+                      Is Working
+                    </a-button>
+                    <a-button
+                      v-else-if="record.status === 'Is Working'"
+                      type="primary"
+                      size="small"
+                      class="bg-green-600 hover:bg-green-700 border-0"
+                      @click="markItemAsComplete(record)"
+                    >
+                      Working Complete
+                    </a-button>
+                    <a-tag
+                      v-else-if="record.status === 'Complete Working'"
+                      color="success"
+                    >
+                      Completed
+                    </a-tag>
+                  </template>
+                </template>
+              </a-table>
+            </a-tab-pane>
+            <a-tab-pane
+              v-for="type in selectedRequisition.chequeTypes"
+              :key="type"
+              :tab="type"
+            >
+              <!-- Cheque Items Table with Checkboxes -->
+              <div class="flex justify-between items-center mb-4">
+                <div class="flex items-center">
+                  <a-checkbox
+                    :checked="allChecked"
+                    :indeterminate="indeterminate"
+                    @change="onCheckAllChange"
+                  >
+                    Select All
+                  </a-checkbox>
+                </div>
+                <div class="flex gap-2">
+                  <a-button
+                    type="primary"
+                    :disabled="!hasSelectedDownloadedItems"
+                    @click="markAsWorking"
+                    class="bg-blue-600 hover:bg-blue-700 border-0"
+                  >
+                    Is Working
+                  </a-button>
+                  <a-button
+                    type="primary"
+                    :disabled="!hasSelectedWorkingItems"
+                    @click="markAsComplete"
+                    class="bg-green-600 hover:bg-green-700 border-0"
+                  >
+                    Working Complete
+                  </a-button>
+                </div>
+              </div>
+
+              <a-table
+                :dataSource="filteredItemsByType"
+                :columns="requisitionItemColumnsWithCheckbox"
+                :pagination="{ pageSize: 5 }"
+                rowKey="id"
+                class="mb-2 custom-table"
+                :scroll="{ x: 1500 }"
+              >
+                <template #bodyCell="{ column, text, record }">
+                  <template v-if="column.key === 'checkbox'">
+                    <a-checkbox
+                      v-model:checked="checkedItems[record.id]"
+                      @change="() => onItemCheckChange(record)"
+                    />
+                  </template>
+                  <template v-if="column.key === 'severity'">
+                    <a-tag
+                      :color="getSeverityColor(text)"
+                      class="px-2 py-0.5 rounded-full"
+                    >
+                      {{ text }}
+                    </a-tag>
+                  </template>
+
+                  <template v-if="column.key === 'status'">
+                    <a-tag
+                      :color="getItemStatusColor(text)"
+                      class="px-2 py-0.5 rounded-full"
+                    >
+                      {{ text }}
+                    </a-tag>
+                  </template>
+
+                  <template v-if="column.key === 'itemActions'">
+                    <a-button
+                      v-if="record.status === 'Pending'"
+                      type="primary"
+                      size="small"
+                      @click="downloadItem(record)"
+                    >
+                      Download
+                    </a-button>
+                    <a-button
+                      v-else-if="record.status === 'Downloaded'"
+                      type="primary"
+                      size="small"
+                      class="bg-blue-600 hover:bg-blue-700 border-0"
+                      @click="markItemAsWorking(record)"
+                    >
+                      Is Working
+                    </a-button>
+                    <a-button
+                      v-else-if="record.status === 'Is Working'"
+                      type="primary"
+                      size="small"
+                      class="bg-green-600 hover:bg-green-700 border-0"
+                      @click="markItemAsComplete(record)"
+                    >
+                      Working Complete
+                    </a-button>
+                    <a-tag
+                      v-else-if="record.status === 'Complete Working'"
+                      color="success"
+                    >
+                      Completed
+                    </a-tag>
+                  </template>
+                </template>
+              </a-table>
+            </a-tab-pane>
+          </a-tabs>
         </div>
 
         <div
@@ -329,7 +492,14 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted, watch } from "vue";
+import {
+  defineComponent,
+  ref,
+  computed,
+  onMounted,
+  watch,
+  reactive,
+} from "vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import {
@@ -360,8 +530,8 @@ interface RequisitionItem {
   bookQuantity: number;
   routingNo: string;
   transactionCode: number;
-  chequeType: string; // Added cheque type
-  status: "Pending" | "Downloaded"; // Added status
+  chequeType: string;
+  status: "Pending" | "Downloaded" | "Is Working" | "Complete Working";
 }
 
 interface Requisition {
@@ -372,8 +542,8 @@ interface Requisition {
   branchName: string;
   requestDate: string;
   severity: "High" | "Medium" | "Low";
-  status: "Ordered" | "Dispatch" | "Delivered";
-  chequeTypes: string[]; // Array of cheque types in this requisition
+  status: "Ordered" | "Working Complete" | "Dispatch" | "Delivered";
+  chequeTypes: string[];
 }
 
 export default defineComponent({
@@ -410,7 +580,14 @@ export default defineComponent({
     const requisitionItems = ref<RequisitionItem[]>([]);
     const allRequisitionItems = ref<RequisitionItem[]>([]);
     const allItemsDownloaded = ref(false);
+    const allItemsCompleted = ref(false);
     const itemToAction = ref<RequisitionItem | null>(null);
+
+    // New properties for the redesigned modal
+    const activeTabKey = ref<string>("");
+    const checkedItems = reactive<Record<number, boolean>>({});
+    const allChecked = ref(false);
+    const indeterminate = ref(false);
 
     // Table columns definition for requisitions
     const columns = [
@@ -467,6 +644,7 @@ export default defineComponent({
         key: "status",
         filters: [
           { text: "Ordered", value: "Ordered" },
+          { text: "Working Complete", value: "Working Complete" },
           { text: "Dispatch", value: "Dispatch" },
           { text: "Delivered", value: "Delivered" },
         ],
@@ -481,7 +659,112 @@ export default defineComponent({
       },
     ];
 
-    // Requisition item columns for the modal view
+    // Requisition item columns with checkbox for the modal view
+    const requisitionItemColumnsWithCheckbox = [
+      {
+        title: "",
+        key: "checkbox",
+        width: 50,
+      },
+      {
+        title: "SL.",
+        dataIndex: "sl",
+        key: "sl",
+        width: 70,
+      },
+      {
+        title: "Requisition No",
+        dataIndex: "requisitionNo",
+        key: "requisitionNo",
+        width: 150,
+      },
+      {
+        title: "Bank Name",
+        dataIndex: "bankName",
+        key: "bankName",
+        width: 150,
+      },
+      {
+        title: "Branch Name/Address",
+        dataIndex: "branchNameAddress",
+        key: "branchNameAddress",
+        width: 200,
+      },
+      {
+        title: "Account Name",
+        dataIndex: "accountName",
+        key: "accountName",
+        width: 180,
+      },
+      {
+        title: "Customer Address",
+        dataIndex: "customerAddress",
+        key: "customerAddress",
+        width: 250,
+      },
+      {
+        title: "Cheque Type",
+        dataIndex: "chequeType",
+        key: "chequeType",
+        width: 140,
+      },
+      {
+        title: "Cheque Prefix",
+        dataIndex: "chequePrefix",
+        key: "chequePrefix",
+        width: 140,
+      },
+      {
+        title: "Account No",
+        dataIndex: "accountNo",
+        key: "accountNo",
+        width: 150,
+      },
+      {
+        title: "Cheque Serial No",
+        dataIndex: "chequeSerialNo",
+        key: "chequeSerialNo",
+        width: 160,
+      },
+      {
+        title: "Leaves Quantity",
+        dataIndex: "leavesQuantity",
+        key: "leavesQuantity",
+        width: 150,
+      },
+      {
+        title: "Book Quantity",
+        dataIndex: "bookQuantity",
+        key: "bookQuantity",
+        width: 140,
+      },
+      {
+        title: "Routing No",
+        dataIndex: "routingNo",
+        key: "routingNo",
+        width: 150,
+      },
+      {
+        title: "Transaction Code",
+        dataIndex: "transactionCode",
+        key: "transactionCode",
+        width: 160,
+      },
+      {
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        width: 120,
+      },
+      {
+        title: "Actions",
+        key: "itemActions",
+        width: 150,
+        align: "center",
+      },
+    ];
+
+    // Original requisition item columns (without checkbox)
     const requisitionItemColumns = [
       {
         title: "SL.",
@@ -715,6 +998,31 @@ export default defineComponent({
       return result;
     });
 
+    // Computed property for filtered requisition items by selected cheque type
+    const filteredItemsByType = computed(() => {
+      if (!activeTabKey.value || activeTabKey.value === "All") {
+        return requisitionItems.value;
+      }
+
+      return requisitionItems.value.filter(
+        (item) => item.chequeType === activeTabKey.value
+      );
+    });
+
+    // Computed property to check if there are selected items with "Downloaded" status
+    const hasSelectedDownloadedItems = computed(() => {
+      return filteredItemsByType.value.some(
+        (item) => checkedItems[item.id] && item.status === "Downloaded"
+      );
+    });
+
+    // Computed property to check if there are selected items with "Is Working" status
+    const hasSelectedWorkingItems = computed(() => {
+      return filteredItemsByType.value.some(
+        (item) => checkedItems[item.id] && item.status === "Is Working"
+      );
+    });
+
     // Computed property for filtered requisition items (for export)
     const filteredRequisitionItems = computed(() => {
       if (!chequeTypeFilter.value) {
@@ -854,6 +1162,7 @@ export default defineComponent({
     const getStatusColor = (status: string) => {
       const colorMap: Record<string, string> = {
         Ordered: "blue",
+        "Working Complete": "orange",
         Dispatch: "purple",
         Delivered: "green",
       };
@@ -865,7 +1174,9 @@ export default defineComponent({
     const getItemStatusColor = (status: string) => {
       const colorMap: Record<string, string> = {
         Pending: "warning",
-        Downloaded: "success",
+        Downloaded: "blue",
+        "Is Working": "orange",
+        "Complete Working": "green",
       };
 
       return colorMap[status] || "default";
@@ -907,15 +1218,76 @@ export default defineComponent({
       dateRange.value = dates;
     };
 
-    // Check if all items are downloaded to enable dispatch
+    // Handle tab change
+    const handleTabChange = (key: string) => {
+      activeTabKey.value = key;
+      // Reset checkboxes when changing tabs
+      Object.keys(checkedItems).forEach((key) => {
+        checkedItems[parseInt(key)] = false;
+      });
+      updateCheckStatus();
+    };
+
+    // Handle "Select All" checkbox change
+    const onCheckAllChange = (e: Event) => {
+      const target = e.target as HTMLInputElement;
+      const checked = target.checked;
+
+      filteredItemsByType.value.forEach((item) => {
+        checkedItems[item.id] = checked;
+      });
+
+      indeterminate.value = false;
+      allChecked.value = checked;
+    };
+
+    // Handle individual item checkbox change
+    const onItemCheckChange = (record: RequisitionItem) => {
+      updateCheckStatus();
+    };
+
+    // Update the status of the "Select All" checkbox
+    const updateCheckStatus = () => {
+      const items = filteredItemsByType.value;
+      if (!items.length) {
+        allChecked.value = false;
+        indeterminate.value = false;
+        return;
+      }
+
+      const checkedCount = items.filter((item) => checkedItems[item.id]).length;
+      allChecked.value = checkedCount === items.length;
+      indeterminate.value = checkedCount > 0 && checkedCount < items.length;
+    };
+
+    // Check if all items are completed to enable dispatch
     const canDispatch = (record: Requisition) => {
-      if (record.status !== "Ordered") return false;
+      if (record.status === "Working Complete") return true;
+      return false;
+    };
 
-      // Generate items for this requisition
-      const items = generateRequisitionItems(record);
+    // Check if all items under a requisition are completed
+    const checkAllItemsCompleted = () => {
+      const allCompleted = requisitionItems.value.every(
+        (item) => item.status === "Complete Working"
+      );
 
-      // Check if all items have status "Downloaded"
-      return items.every((item) => item.status === "Downloaded");
+      if (allCompleted && selectedRequisition.value) {
+        // Update requisition status to "Working Complete"
+        const index = requisitions.value.findIndex(
+          (r) => r.id === selectedRequisition.value?.id
+        );
+
+        if (index !== -1) {
+          requisitions.value[index].status = "Working Complete";
+          selectedRequisition.value.status = "Working Complete";
+          message.success(
+            `All items completed. Requisition ${selectedRequisition.value.requisitionNo} is ready for dispatch.`
+          );
+        }
+      }
+
+      allItemsCompleted.value = allCompleted;
     };
 
     // View requisition details
@@ -924,10 +1296,23 @@ export default defineComponent({
       // Generate requisition items for this requisition
       requisitionItems.value = generateRequisitionItems(record);
 
-      // Check if all items are downloaded
-      allItemsDownloaded.value = requisitionItems.value.every(
-        (item) => item.status === "Downloaded"
-      );
+      // Set "All" as the default active tab
+      activeTabKey.value = "All";
+
+      // Reset checkboxes
+      Object.keys(checkedItems).forEach((key) => {
+        delete checkedItems[parseInt(key)];
+      });
+
+      // Initialize checkboxes for all items
+      requisitionItems.value.forEach((item) => {
+        checkedItems[item.id] = false;
+      });
+
+      updateCheckStatus();
+
+      // Check if all items are completed
+      checkAllItemsCompleted();
 
       modalVisible.value = true;
     };
@@ -942,11 +1327,94 @@ export default defineComponent({
         // Update the status to "Downloaded"
         requisitionItems.value[index].status = "Downloaded";
         message.success(`Item ${record.chequeSerialNo} has been downloaded`);
+      }
+    };
 
-        // Check if all items are now downloaded
-        allItemsDownloaded.value = requisitionItems.value.every(
-          (item) => item.status === "Downloaded"
+    // Mark an item as "Is Working"
+    const markItemAsWorking = (record: RequisitionItem) => {
+      const index = requisitionItems.value.findIndex(
+        (item) => item.id === record.id
+      );
+      if (
+        index !== -1 &&
+        requisitionItems.value[index].status === "Downloaded"
+      ) {
+        requisitionItems.value[index].status = "Is Working";
+        message.success(`Item ${record.chequeSerialNo} is now being worked on`);
+      }
+    };
+
+    // Mark an item as "Complete Working"
+    const markItemAsComplete = (record: RequisitionItem) => {
+      const index = requisitionItems.value.findIndex(
+        (item) => item.id === record.id
+      );
+      if (
+        index !== -1 &&
+        requisitionItems.value[index].status === "Is Working"
+      ) {
+        requisitionItems.value[index].status = "Complete Working";
+        message.success(
+          `Item ${record.chequeSerialNo} work has been completed`
         );
+
+        // Check if all items are now completed
+        checkAllItemsCompleted();
+      }
+    };
+
+    // Mark selected items as "Is Working"
+    const markAsWorking = () => {
+      let updatedCount = 0;
+
+      filteredItemsByType.value.forEach((item) => {
+        if (checkedItems[item.id] && item.status === "Downloaded") {
+          const index = requisitionItems.value.findIndex(
+            (i) => i.id === item.id
+          );
+          if (index !== -1) {
+            requisitionItems.value[index].status = "Is Working";
+            updatedCount++;
+          }
+        }
+      });
+
+      if (updatedCount > 0) {
+        message.success(`${updatedCount} items are now being worked on`);
+        // Reset checkboxes
+        Object.keys(checkedItems).forEach((key) => {
+          checkedItems[parseInt(key)] = false;
+        });
+        updateCheckStatus();
+      }
+    };
+
+    // Mark selected items as "Complete Working"
+    const markAsComplete = () => {
+      let updatedCount = 0;
+
+      filteredItemsByType.value.forEach((item) => {
+        if (checkedItems[item.id] && item.status === "Is Working") {
+          const index = requisitionItems.value.findIndex(
+            (i) => i.id === item.id
+          );
+          if (index !== -1) {
+            requisitionItems.value[index].status = "Complete Working";
+            updatedCount++;
+          }
+        }
+      });
+
+      if (updatedCount > 0) {
+        message.success(`${updatedCount} items have been completed`);
+        // Reset checkboxes
+        Object.keys(checkedItems).forEach((key) => {
+          checkedItems[parseInt(key)] = false;
+        });
+        updateCheckStatus();
+
+        // Check if all items are now completed
+        checkAllItemsCompleted();
       }
     };
 
@@ -1015,13 +1483,6 @@ export default defineComponent({
       requisitionToAction.value = null;
     };
 
-    // Watch for changes in requisitionItems to update allItemsDownloaded
-    watch(requisitionItems, (newItems) => {
-      allItemsDownloaded.value = newItems.every(
-        (item) => item.status === "Downloaded"
-      );
-    });
-
     // Fetch data on component mount
     onMounted(() => {
       fetchRequisitions();
@@ -1037,11 +1498,13 @@ export default defineComponent({
       dateRange,
       columns,
       requisitionItemColumns,
+      requisitionItemColumnsWithCheckbox,
       exportColumns,
       requisitionItems,
       allRequisitionItems,
       filteredRequisitionItems,
       filteredRequisitions,
+      filteredItemsByType,
       modalVisible,
       exportModalVisible,
       selectedRequisition,
@@ -1051,13 +1514,27 @@ export default defineComponent({
       confirmModalOkText,
       confirmModalAction,
       allItemsDownloaded,
+      allItemsCompleted,
+      activeTabKey,
+      checkedItems,
+      allChecked,
+      indeterminate,
+      hasSelectedDownloadedItems,
+      hasSelectedWorkingItems,
       handleSearch,
       handleBranchFilterChange,
       handleBankFilterChange,
       handleChequeTypeFilterChange,
       handleDateRangeChange,
+      handleTabChange,
       viewRequisition,
       downloadItem,
+      markItemAsWorking,
+      markItemAsComplete,
+      markAsWorking,
+      markAsComplete,
+      onCheckAllChange,
+      onItemCheckChange,
       showExportPreview,
       exportAsExcel,
       exportAsCSV,
@@ -1126,5 +1603,23 @@ export default defineComponent({
 .custom-modal :deep(.ant-modal-body) {
   max-height: 80vh;
   overflow-y: auto;
+}
+
+/* Tab styles */
+.ant-tabs-tab {
+  transition: all 0.2s ease;
+}
+
+.ant-tabs-tab:hover {
+  color: #10b981;
+}
+
+.ant-tabs-tab.ant-tabs-tab-active .ant-tabs-tab-btn {
+  color: #10b981;
+  font-weight: 500;
+}
+
+.ant-tabs-ink-bar {
+  background-color: #10b981;
 }
 </style>
