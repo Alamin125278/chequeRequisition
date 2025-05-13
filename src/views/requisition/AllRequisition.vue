@@ -1,9 +1,7 @@
 <template>
   <div class="p-6 bg-gray-50 min-h-screen">
     <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-      <div
-        class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
-      >
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
           <span class="text-emerald-600">Cheque</span> Requisition Management
         </h1>
@@ -14,7 +12,7 @@
         <div class="flex flex-wrap gap-4">
           <a-input-search
             v-model:value="searchText"
-            placeholder="Search by requisition number"
+            placeholder="Search by account number or name"
             enter-button
             @search="handleSearch"
             class="w-full md:w-64"
@@ -31,8 +29,21 @@
             <a-select-option value="Pending">Pending</a-select-option>
             <a-select-option value="Approved">Approved</a-select-option>
             <a-select-option value="Ordered">Ordered</a-select-option>
+            <a-select-option value="Download">Download</a-select-option>
             <a-select-option value="Dispatch">Dispatch</a-select-option>
-            <a-select-option value="Delivered">Delivered</a-select-option>
+            <a-select-option value="Delivery Receive">Delivery Receive</a-select-option>
+          </a-select>
+
+          <a-select
+            v-model:value="severityFilter"
+            placeholder="Filter by severity"
+            class="w-full md:w-48"
+            @change="handleSeverityFilterChange"
+          >
+            <a-select-option value="">All Severities</a-select-option>
+            <a-select-option value="High">High</a-select-option>
+            <a-select-option value="Medium">Medium</a-select-option>
+            <a-select-option value="Low">Low</a-select-option>
           </a-select>
 
           <a-select
@@ -58,171 +69,210 @@
         </div>
       </div>
 
-      <!-- Requisition Table -->
+      <!-- Bulk Actions -->
+      <div class="mb-4 flex flex-wrap gap-3 items-center">
+        <a-button
+          v-if="hasSelectedItems && !hasMixedStatuses"
+          type="primary"
+          @click="handleBulkAction"
+          :class="getBulkActionButtonClass()"
+        >
+          <template #icon>
+            <component :is="getBulkActionIcon()" />
+          </template>
+          {{ getBulkActionText() }}
+        </a-button>
+        
+        <a-alert
+          v-if="hasSelectedItems && hasMixedStatuses"
+          message="Cannot perform bulk actions on mixed statuses"
+          type="warning"
+          show-icon
+          class="mb-2"
+        />
+        
+        <span v-if="selectedRowKeys.length > 0" class="text-sm text-gray-500 ml-2">
+          {{ selectedRowKeys.length }} item(s) selected
+        </span>
+      </div>
+
+      <!-- Requisition Items Table (Main Table) -->
       <a-table
-        :dataSource="filteredRequisitions"
-        :columns="columns"
+        :dataSource="filteredChequeItems"
+        :columns="chequeItemColumns"
         :loading="loading"
         :pagination="{
           pageSize: 10,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
-          showTotal: (total:number) => `Total ${total} items`,
+          showTotal: (total) => `Total ${total} items`,
         }"
+        :rowSelection="rowSelection"
         rowKey="id"
         class="mb-6 custom-table"
-        :rowClassName="
-          (record:any) =>
-            record.id === selectedRequisition?.id ? 'bg-emerald-50' : ''
-        "
+        :scroll="{ x: 1200 }"
       >
-        <!-- Status Column -->
         <template #bodyCell="{ column, record }">
+          <!-- Severity Column -->
+          <template v-if="column.key === 'severity'">
+            <a-tag
+              :color="getSeverityColor(record.severity)"
+              class="px-2 py-0.5 rounded-full"
+            >
+              {{ record.severity }}
+            </a-tag>
+          </template>
+          
+          <!-- Status Column -->
           <template v-if="column.key === 'status'">
             <a-tag
-              :color="getStatusColor(record.status)"
+              :color="getStatusColor(record.status || 'Pending')"
               class="px-3 py-1 rounded-full"
             >
-              {{ record.status }}
+              {{ record.status || 'Pending' }}
             </a-tag>
           </template>
 
           <!-- Actions Column -->
           <template v-if="column.key === 'actions'">
-            <div class="flex gap-2">
-              <a-tooltip title="View Details">
+            <div class="flex flex-wrap justify-center gap-2">
+              <!-- Dynamic Action Button based on status -->
+              <a-button 
+                v-if="!record.status || record.status === 'Pending'"
+                type="primary" 
+                class="action-button approve-button"
+                @click="updateItemStatus(record, 'Approved')"
+              >
+                <template #icon><CheckOutlined /></template>
+                Approve
+              </a-button>
+              
+              <a-button 
+                v-else-if="record.status === 'Approved'"
+                type="primary" 
+                class="action-button order-button"
+                @click="updateItemStatus(record, 'Ordered')"
+              >
+                <template #icon><ShoppingCartOutlined /></template>
+                Order
+              </a-button>
+              
+              <a-button 
+                v-else-if="record.status === 'Ordered'"
+                type="primary" 
+                class="action-button download-button"
+                @click="updateItemStatus(record, 'Download')"
+              >
+                <template #icon><DownloadOutlined /></template>
+                Download
+              </a-button>
+              
+              <a-button 
+                v-else-if="record.status === 'Download'"
+                type="primary" 
+                class="action-button dispatch-button"
+                @click="updateItemStatus(record, 'Dispatch')"
+              >
+                <template #icon><CarOutlined /></template>
+                Dispatch
+              </a-button>
+              
+              <a-button 
+                v-else-if="record.status === 'Dispatch'"
+                type="primary" 
+                class="action-button delivery-button"
+                @click="updateItemStatus(record, 'Delivery Receive')"
+              >
+                <template #icon><InboxOutlined /></template>
+                Receive
+              </a-button>
+              
+              <a-button 
+                v-else
+                type="default" 
+                disabled
+                class="action-button completed-button"
+              >
+                <template #icon><CheckCircleOutlined /></template>
+                Completed
+              </a-button>
+              
+              <!-- Edit and Delete buttons -->
+              <div class="flex gap-1 ml-1">
                 <a-button
-                  type="primary"
-                  size="small"
-                  @click="viewRequisition(record)"
+                  type="default"
+                  size="middle"
+                  class="edit-button"
+                  :disabled="isEditDeleteDisabled(record)"
+                  @click="editItem(record)"
                 >
-                  View
+                  <template #icon><EditOutlined /></template>
                 </a-button>
-              </a-tooltip>
-
-              <a-tooltip v-if="record.status === 'Pending'" title="Approve">
+                
                 <a-button
-                  type="primary"
-                  size="small"
-                  class="bg-green-600 hover:bg-green-700 border-0"
-                  style="background-color: #309898"
-                  @click="approveRequisition(record)"
+                  type="default"
+                  danger
+                  size="middle"
+                  class="delete-button"
+                  :disabled="isEditDeleteDisabled(record)"
+                  @click="deleteItem(record)"
                 >
-                  Approve
+                  <template #icon><DeleteOutlined /></template>
                 </a-button>
-              </a-tooltip>
-
-              <a-tooltip v-if="record.status === 'Approved'" title="Order">
-                <a-button
-                  type="primary"
-                  size="small"
-                  class="bg-blue-600 hover:bg-blue-700 border-0"
-                  style="background-color: #d98324"
-                  @click="OrderRequisition(record)"
-                >
-                  Order
-                </a-button>
-              </a-tooltip>
+              </div>
             </div>
           </template>
         </template>
       </a-table>
     </div>
 
-    <!-- Redesigned Requisition Detail Modal -->
+    <!-- Edit Item Modal -->
     <a-modal
-      v-model:visible="modalVisible"
-      :title="`Requisition Details: ${
-        selectedRequisition?.requisitionNo || ''
-      }`"
-      width="75%"
-      :footer="null"
-      :bodyStyle="{ padding: '0' }"
-      style="top: 20px"
-      class="custom-modal"
+      v-model:visible="editModalVisible"
+      title="Edit Item"
+      @ok="handleEditSave"
+      :confirmLoading="editLoading"
     >
-      <div v-if="selectedRequisition" class="p-0">
-        <!-- Header with basic info -->
-        <div class="p-6 bg-gray-50 border-b border-gray-200">
-          <div class="flex flex-wrap justify-between items-center">
-            <div>
-              <p class="text-lg font-medium text-gray-800">
-                {{ selectedRequisition.requisitionNo }}
-                <a-tag
-                  :color="getStatusColor(selectedRequisition.status)"
-                  class="ml-2 px-3 py-1 rounded-full"
-                >
-                  {{ selectedRequisition.status }}
-                </a-tag>
-              </p>
-              <p class="text-sm text-gray-500">
-                Requested by {{ selectedRequisition.requestedBy }} on
-                {{ formatDate(selectedRequisition.requestDate) }}
-              </p>
-            </div>
-
-            <div class="flex gap-2 mt-4 md:mt-0">
-              <a-button
-                v-if="selectedRequisition.status === 'Pending'"
-                type="primary"
-                class="bg-green-600 hover:bg-green-700 border-0"
-                @click="approveRequisition(selectedRequisition)"
-              >
-                <template #icon><CheckOutlined /></template>
-                Approve
-              </a-button>
-
-              <a-button
-                v-if="selectedRequisition.status === 'Approved'"
-                type="primary"
-                @click="OrderRequisition(selectedRequisition)"
-              >
-                <template #icon><SendOutlined /></template>
-                Order
-              </a-button>
-
-              <a-button
-                v-if="selectedRequisition.status === 'Ordered'"
-                type="default"
-                disabled
-              >
-                <template #icon><CheckCircleOutlined /></template>
-                Sent
-              </a-button>
-            </div>
-          </div>
-        </div>
-
-        <!-- Cheque Items Table -->
-        <div class="p-6 overflow-auto">
-          <h3 class="text-lg font-semibold mb-4">Requisition Items</h3>
-
-          <a-table
-            :dataSource="chequeItems"
-            :columns="chequeItemColumns"
-            :pagination="{ pageSize: 5 }"
-            rowKey="id"
-            class="mb-2 custom-table"
-            :scroll="{ x: 500 }"
-          >
-            <template #bodyCell="{ column, text }">
-              <template v-if="column.key === 'severity'">
-                <a-tag
-                  :color="getSeverityColor(text)"
-                  class="px-2 py-0.5 rounded-full"
-                >
-                  {{ text }}
-                </a-tag>
-              </template>
-            </template>
-          </a-table>
-        </div>
-
-        <div
-          class="flex justify-end gap-3 p-2 bg-gray-50 border-t border-gray-200"
-        >
-          <a-button @click="modalVisible = false">Close</a-button>
-        </div>
+      <div v-if="editingItem" class="space-y-4">
+        <a-form :model="editingItem" layout="vertical">
+          <a-form-item label="Account Number">
+            <a-input v-model:value="editingItem.accountNo" />
+          </a-form-item>
+          
+          <a-form-item label="Account Name">
+            <a-input v-model:value="editingItem.accountName" />
+          </a-form-item>
+          
+          <a-form-item label="Start Number">
+            <a-input-number v-model:value="editingItem.startNo" style="width: 100%" />
+          </a-form-item>
+          
+          <a-form-item label="End Number">
+            <a-input-number v-model:value="editingItem.endNo" style="width: 100%" />
+          </a-form-item>
+          
+          <a-form-item label="Book Quantity">
+            <a-input-number v-model:value="editingItem.bookQuantity" style="width: 100%" />
+          </a-form-item>
+          
+          <a-form-item label="Severity">
+            <a-select v-model:value="editingItem.severity">
+              <a-select-option value="High">High</a-select-option>
+              <a-select-option value="Medium">Medium</a-select-option>
+              <a-select-option value="Low">Low</a-select-option>
+            </a-select>
+          </a-form-item>
+          
+          <a-form-item label="Branch">
+            <a-select v-model:value="editingItem.branchName">
+              <a-select-option value="Main Branch">Main Branch</a-select-option>
+              <a-select-option value="North Branch">North Branch</a-select-option>
+              <a-select-option value="South Branch">South Branch</a-select-option>
+              <a-select-option value="East Branch">East Branch</a-select-option>
+              <a-select-option value="West Branch">West Branch</a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-form>
       </div>
     </a-modal>
 
@@ -235,10 +285,7 @@
       :okButtonProps="{
         type: 'primary',
         danger: confirmModalAction === 'delete',
-        class:
-          confirmModalAction === 'approve'
-            ? 'bg-green-600 hover:bg-green-700 border-0'
-            : '',
+        class: confirmModalButtonClass,
       }"
     >
       <p>{{ confirmModalMessage }}</p>
@@ -247,21 +294,23 @@
 </template>
 
 <script lang="ts">
-import { defineComponent, ref, computed, onMounted } from "vue";
+import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import {
-  PlusOutlined,
-  EyeOutlined,
   CheckOutlined,
-  SendOutlined,
   CheckCircleOutlined,
-  ReloadOutlined,
+  CarOutlined,
+  DownloadOutlined,
+  InboxOutlined,
+  EditOutlined,
+  DeleteOutlined,
+  ShoppingCartOutlined
 } from "@ant-design/icons-vue";
 
 interface ChequeItem {
   id: number;
-  requisitionNo: string;
+  requisitionNo?: string;
   accountNo: string;
   routingNo: string;
   startNo: number;
@@ -278,141 +327,147 @@ interface ChequeItem {
   courierCode: string;
   distributionPointName: string;
   receivingBranch: string;
-}
-
-interface RequisitionDetail {
-  accountNo: string;
-  routetingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  serverity: string;
-  branchName: string;
-  accountName: string;
-  cusAddress: string;
-  bookQty: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receiviningBranch: string;
-  requestDate: string;
-}
-
-interface Requisition {
-  id: number;
-  branchId: number;
-  branchName: string;
-  requestedBy: string;
-  requisitionNo: string;
-  requestDate: string;
-  status: "Pending" | "Approved" | "Ordered" | "Dispatch" | "Delivered";
-  details: RequisitionDetail;
+  status?: string;
 }
 
 export default defineComponent({
   name: "RequisitionList",
   components: {
-    PlusOutlined,
-    EyeOutlined,
     CheckOutlined,
-    SendOutlined,
     CheckCircleOutlined,
-    ReloadOutlined,
+    CarOutlined,
+    DownloadOutlined,
+    InboxOutlined,
+    EditOutlined,
+    DeleteOutlined,
+    ShoppingCartOutlined
   },
   setup() {
-    const requisitions = ref<Requisition[]>([]);
     const loading = ref(true);
     const searchText = ref("");
     const statusFilter = ref("");
+    const severityFilter = ref("");
     const branchFilter = ref("");
     const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-    const modalVisible = ref(false);
-    const selectedRequisition = ref<Requisition | null>(null);
+    const chequeItems = ref<ChequeItem[]>([]);
+    const selectedRowKeys = ref<number[]>([]);
     const confirmModalVisible = ref(false);
     const confirmModalTitle = ref("");
     const confirmModalMessage = ref("");
     const confirmModalOkText = ref("");
     const confirmModalAction = ref("");
-    const requisitionToAction = ref<Requisition | null>(null);
-    const chequeItems = ref<ChequeItem[]>([]);
+    const confirmModalButtonClass = ref("");
+    const itemToAction = ref<ChequeItem | null>(null);
+    const bulkActionStatus = ref("");
+    const editModalVisible = ref(false);
+    const editingItem = ref<ChequeItem | null>(null);
+    const editLoading = ref(false);
 
-    // Table columns definition
-    const columns = [
+    // Computed property to check if any items are selected
+    const hasSelectedItems = computed(() => selectedRowKeys.value.length > 0);
+
+    // Computed property to check if selected items have mixed statuses
+    const hasMixedStatuses = computed(() => {
+      if (selectedRowKeys.value.length <= 1) return false;
+      
+      const selectedItems = chequeItems.value.filter(item => 
+        selectedRowKeys.value.includes(item.id)
+      );
+      
+      if (selectedItems.length === 0) return false;
+      
+      const firstStatus = selectedItems[0].status || 'Pending';
+      return selectedItems.some(item => (item.status || 'Pending') !== firstStatus);
+    });
+
+    // Get the common status of selected items
+    const selectedItemsStatus = computed(() => {
+      if (selectedRowKeys.value.length === 0) return '';
+      
+      const selectedItems = chequeItems.value.filter(item => 
+        selectedRowKeys.value.includes(item.id)
+      );
+      
+      if (selectedItems.length === 0) return '';
+      
+      return selectedItems[0].status || 'Pending';
+    });
+
+    // Check if Edit/Delete should be disabled based on status
+    const isEditDeleteDisabled = (record: ChequeItem) => {
+      const status = record.status || 'Pending';
+      // Disable if status is Download or later
+      return ['Download', 'Dispatch', 'Delivery Receive'].includes(status);
+    };
+
+    // Get the next status based on current status
+    const getNextStatus = (currentStatus: string) => {
+      const statusFlow: Record<string, string> = {
+        'Pending': 'Approved',
+        'Approved': 'Ordered',
+        'Ordered': 'Download',
+        'Download': 'Dispatch',
+        'Dispatch': 'Delivery Receive'
+      };
+      
+      return statusFlow[currentStatus] || '';
+    };
+
+    // Custom row selection configuration
+    const rowSelection = computed(() => ({
+      selectedRowKeys: selectedRowKeys.value,
+      onChange: onSelectChange,
+      getCheckboxProps: (record: ChequeItem) => {
+        // If there are selected items with a different status, disable this checkbox
+        if (selectedRowKeys.value.length > 0 && !hasMixedStatuses.value) {
+          const currentSelectedStatus = selectedItemsStatus.value;
+          const recordStatus = record.status || 'Pending';
+          
+          return {
+            disabled: recordStatus !== currentSelectedStatus
+          };
+        }
+        
+        return {};
+      }
+    }));
+
+    // Cheque item columns for the main table
+    const chequeItemColumns = [
       {
-        title: "Requisition No",
-        dataIndex: "requisitionNo",
-        key: "requisitionNo",
-        sorter: (a: Requisition, b: Requisition) =>
-          a.requisitionNo.localeCompare(b.requisitionNo),
+        title: "Account No",
+        dataIndex: "accountNo",
+        key: "accountNo",
+        sorter: (a: ChequeItem, b: ChequeItem) => a.accountNo.localeCompare(b.accountNo),
+        width: 150,
+      },
+      {
+        title: "Account Name",
+        dataIndex: "accountName",
+        key: "accountName",
+        sorter: (a: ChequeItem, b: ChequeItem) => a.accountName.localeCompare(b.accountName),
+        width: 180,
       },
       {
         title: "Branch",
         dataIndex: "branchName",
         key: "branchName",
-      },
-      {
-        title: "Requested By",
-        dataIndex: "requestedBy",
-        key: "requestedBy",
-      },
-      {
-        title: "Request Date",
-        dataIndex: "requestDate",
-        key: "requestDate",
-        render: (text: string) => formatDate(text),
-        sorter: (a: Requisition, b: Requisition) =>
-          new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
-      },
-      {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
+        width: 150,
         filters: [
-          { text: "Pending", value: "Pending" },
-          { text: "Approved", value: "Approved" },
-          { text: "Ordered", value: "Ordered" },
-          { text: "Dispatch", value: "Dispatch" },
-          { text: "Delivered", value: "Delivered" },
+          { text: "Main Branch", value: "Main Branch" },
+          { text: "North Branch", value: "North Branch" },
+          { text: "South Branch", value: "South Branch" },
+          { text: "East Branch", value: "East Branch" },
+          { text: "West Branch", value: "West Branch" },
         ],
-        onFilter: (value: string, record: Requisition) =>
-          record.status === value,
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        width: 120,
-        align: "center",
-      },
-    ];
-
-    // Cheque item columns for the modal view
-    const chequeItemColumns = [
-      {
-        title: "Requisition No",
-        dataIndex: "requisitionNo",
-        key: "requisitionNo",
-        fixed: "left",
-        width: 150,
-      },
-      {
-        title: "Account No",
-        dataIndex: "accountNo",
-        key: "accountNo",
-        width: 150,
-      },
-      {
-        title: "Routing No",
-        dataIndex: "routingNo",
-        key: "routingNo",
-        width: 150,
+        onFilter: (value: string, record: ChequeItem) => record.branchName === value,
       },
       {
         title: "Start No",
         dataIndex: "startNo",
         key: "startNo",
         width: 120,
+        sorter: (a: ChequeItem, b: ChequeItem) => a.startNo - b.startNo,
       },
       {
         title: "End No",
@@ -421,212 +476,124 @@ export default defineComponent({
         width: 120,
       },
       {
-        title: "Prefix",
-        dataIndex: "prefix",
-        key: "prefix",
+        title: "Book Qty",
+        dataIndex: "bookQuantity",
+        key: "bookQuantity",
         width: 120,
-      },
-      {
-        title: "Series",
-        dataIndex: "series",
-        key: "series",
-        width: 120,
+        sorter: (a: ChequeItem, b: ChequeItem) => a.bookQuantity - b.bookQuantity,
       },
       {
         title: "Severity",
         dataIndex: "severity",
         key: "severity",
         width: 120,
+        filters: [
+          { text: "High", value: "High" },
+          { text: "Medium", value: "Medium" },
+          { text: "Low", value: "Low" },
+        ],
+        onFilter: (value: string, record: ChequeItem) => record.severity === value,
       },
       {
-        title: "Branch Name",
-        dataIndex: "branchName",
-        key: "branchName",
-        width: 150,
+        title: "Status",
+        dataIndex: "status",
+        key: "status",
+        width: 120,
+        filters: [
+          { text: "Pending", value: "Pending" },
+          { text: "Approved", value: "Approved" },
+          { text: "Ordered", value: "Ordered" },
+          { text: "Download", value: "Download" },
+          { text: "Dispatch", value: "Dispatch" },
+          { text: "Delivery Receive", value: "Delivery Receive" },
+        ],
+        onFilter: (value: string, record: ChequeItem) => 
+          (record.status || "Pending") === value,
       },
       {
-        title: "Account Name",
-        dataIndex: "accountName",
-        key: "accountName",
-        width: 180,
-      },
-      {
-        title: "Customer Address",
-        dataIndex: "customerAddress",
-        key: "customerAddress",
-        width: 250,
-      },
-      {
-        title: "Book Quantity",
-        dataIndex: "bookQuantity",
-        key: "bookQuantity",
-        width: 140,
-      },
-      {
-        title: "Transaction Code",
-        dataIndex: "transactionCode",
-        key: "transactionCode",
-        width: 160,
-      },
-      {
-        title: "Leaf Count",
-        dataIndex: "leafCount",
-        key: "leafCount",
-        width: 130,
-      },
-      {
-        title: "Courier Code",
-        dataIndex: "courierCode",
-        key: "courierCode",
-        width: 140,
-      },
-      {
-        title: "Distribution Point",
-        dataIndex: "distributionPointName",
-        key: "distributionPointName",
-        width: 180,
-      },
-      {
-        title: "Receiving Branch",
-        dataIndex: "receivingBranch",
-        key: "receivingBranch",
-        width: 160,
+        title: "Actions",
+        key: "actions",
+        fixed: "right",
+        width: 220,
+        align: "center",
       },
     ];
 
-    // Computed property for filtered requisitions
-    const filteredRequisitions = computed(() => {
-      let result = [...requisitions.value];
+    // Computed property for filtered cheque items
+    const filteredChequeItems = computed(() => {
+      let result = [...chequeItems.value];
 
       // Apply search filter
       if (searchText.value) {
         const searchLower = searchText.value.toLowerCase();
         result = result.filter(
-          (req) =>
-            req.requisitionNo.toLowerCase().includes(searchLower) ||
-            req.branchName.toLowerCase().includes(searchLower) ||
-            req.requestedBy.toLowerCase().includes(searchLower)
+          (item) =>
+            item.accountNo.toLowerCase().includes(searchLower) ||
+            item.accountName.toLowerCase().includes(searchLower) ||
+            item.branchName.toLowerCase().includes(searchLower)
         );
       }
 
       // Apply status filter
       if (statusFilter.value) {
-        result = result.filter((req) => req.status === statusFilter.value);
+        result = result.filter((item) => (item.status || "Pending") === statusFilter.value);
       }
+      
+      // Apply severity filter
+      if (severityFilter.value) {
+        result = result.filter((item) => item.severity === severityFilter.value);
+      }
+      
       // Apply branch filter
       if (branchFilter.value) {
-        result = result.filter((req) => req.branchName === branchFilter.value);
-      }
-
-      // Apply date range filter
-      if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-        const startDate = dateRange.value[0].valueOf();
-        const endDate = dateRange.value[1].valueOf();
-
-        result = result.filter((req) => {
-          const reqDate = new Date(req.requestDate).getTime();
-          return reqDate >= startDate && reqDate <= endDate;
-        });
+        result = result.filter((item) => item.branchName.includes(branchFilter.value));
       }
 
       return result;
     });
 
-    // Fetch requisition data
-    const fetchRequisitions = async () => {
+    // Fetch cheque items data
+    const fetchChequeItems = async () => {
       loading.value = true;
       try {
         // In a real application, this would be an API call
         // For demo purposes, we'll use mock data
         setTimeout(() => {
-          requisitions.value = generateMockData();
+          chequeItems.value = generateMockChequeItems();
           loading.value = false;
         }, 1000);
       } catch (error) {
-        message.error("Failed to fetch requisitions");
+        message.error("Failed to fetch requisition items");
         loading.value = false;
       }
     };
 
     // Generate mock data for demonstration
-    const generateMockData = (): Requisition[] => {
-      const statuses: Array<
-        "Pending" | "Approved" | "Ordered" | "Dispatch" | "Delivered"
-      > = ["Pending", "Approved", "Ordered", "Dispatch", "Delivered"];
+    const generateMockChequeItems = (): ChequeItem[] => {
+      const statuses = ["Pending", "Approved", "Ordered", "Download", "Dispatch", "Delivery Receive"];
+      const branches = ["Main Branch", "North Branch", "South Branch", "East Branch", "West Branch"];
+      const severities = ["High", "Medium", "Low"];
 
-      return Array.from({ length: 20 }, (_, i) => ({
+      return Array.from({ length: 50 }, (_, i) => ({
         id: i + 1,
-        branchId: Math.floor(Math.random() * 10) + 1,
-        branchName: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-        requestedBy: `User ${Math.floor(Math.random() * 5) + 1}`,
-        requisitionNo: `REQ-${2023}-${1000 + i}`,
-        requestDate: new Date(
-          2023,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ).toISOString(),
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        details: {
-          accountNo: `AC-${100000 + i}`,
-          routetingNo: `RT-${200000 + i}`,
-          startNo: 1000 + i * 100,
-          endNo: 1099 + i * 100,
-          prefix: `PFX-${i % 5}`,
-          series: `S-${i % 3}`,
-          serverity: ["High", "Medium", "Low"][i % 3],
-          branchName: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-          accountName: `Account Holder ${i + 1}`,
-          cusAddress: `123 Main St, City ${i + 1}, Country`,
-          bookQty: Math.floor(Math.random() * 5) + 1,
-          transactionCode: 1000 + i,
-          leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-          courierCode: `CR-${1000 + i}`,
-          distributionPointName: `Distribution Point ${(i % 5) + 1}`,
-          receiviningBranch: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-          requestDate: new Date(
-            2023,
-            Math.floor(Math.random() * 12),
-            Math.floor(Math.random() * 28) + 1
-          ).toISOString(),
-        },
-      }));
-    };
-
-    // Generate mock cheque items for a requisition
-    const generateChequeItems = (requisition: Requisition): ChequeItem[] => {
-      // For demo purposes, generate 5-10 cheque items per requisition
-      const itemCount = Math.floor(Math.random() * 6) + 5;
-
-      return Array.from({ length: itemCount }, (_, i) => ({
-        id: i + 1,
-        requisitionNo: requisition.requisitionNo,
-        accountNo: `AC-${100000 + i}-${requisition.id}`,
-        routingNo: `RT-${200000 + i}-${requisition.id}`,
-        startNo: requisition.details.startNo + i * 100,
-        endNo: requisition.details.startNo + i * 100 + 99,
-        prefix: requisition.details.prefix,
-        series: requisition.details.series,
-        severity: ["High", "Medium", "Low"][i % 3],
-        branchName: requisition.branchName,
-        accountName: `Account ${i + 1} for ${requisition.requisitionNo}`,
-        customerAddress: `${123 + i} Main St, City ${requisition.id}, Country`,
+        accountNo: `AC-${100000 + i}`,
+        routingNo: `RT-${200000 + i}`,
+        startNo: 1000 + i * 100,
+        endNo: 1099 + i * 100,
+        prefix: `PFX-${i % 5}`,
+        series: `S-${i % 3}`,
+        severity: severities[i % 3],
+        branchName: branches[i % 5],
+        accountName: `Account Holder ${i + 1}`,
+        customerAddress: `123 Main St, City ${i + 1}, Country`,
         bookQuantity: Math.floor(Math.random() * 5) + 1,
-        transactionCode: 1000 + i + requisition.id,
+        transactionCode: 1000 + i,
         leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-        courierCode: requisition.details.courierCode,
-        distributionPointName: requisition.details.distributionPointName,
-        receivingBranch: requisition.details.receiviningBranch,
+        courierCode: `CR-${1000 + i}`,
+        distributionPointName: `Distribution Point ${(i % 5) + 1}`,
+        receivingBranch: branches[(i + 2) % 5],
+        status: i % 10 === 0 ? undefined : statuses[i % 6],
       }));
-    };
-
-    // Format date for display
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
     };
 
     // Get color for status tag
@@ -634,9 +601,10 @@ export default defineComponent({
       const colorMap: Record<string, string> = {
         Pending: "orange",
         Approved: "green",
-        Ordered: "blue",
+        Ordered: "geekblue",
+        Download: "blue",
         Dispatch: "purple",
-        Delivered: "cyan",
+        "Delivery Receive": "cyan",
       };
 
       return colorMap[status] || "default";
@@ -662,6 +630,11 @@ export default defineComponent({
     const handleStatusFilterChange = (value: string) => {
       statusFilter.value = value;
     };
+    
+    // Handle severity filter change
+    const handleSeverityFilterChange = (value: string) => {
+      severityFilter.value = value;
+    };
 
     // Handle branch filter change
     const handleBranchFilterChange = (value: string) => {
@@ -673,103 +646,257 @@ export default defineComponent({
       dateRange.value = dates;
     };
 
-    // View requisition details
-    const viewRequisition = (record: Requisition) => {
-      selectedRequisition.value = record;
-      // Generate cheque items for this requisition
-      chequeItems.value = generateChequeItems(record);
-      modalVisible.value = true;
+    // Handle row selection change
+    const onSelectChange = (keys: number[]) => {
+      // If we're adding a new selection
+      if (keys.length > selectedRowKeys.value.length) {
+        const newKey = keys.find(key => !selectedRowKeys.value.includes(key));
+        
+        if (newKey !== undefined) {
+          const newItem = chequeItems.value.find(item => item.id === newKey);
+          const newStatus = newItem?.status || 'Pending';
+          
+          // If we already have selections and they have a different status
+          if (selectedRowKeys.value.length > 0) {
+            const existingStatus = selectedItemsStatus.value;
+            
+            if (existingStatus !== newStatus) {
+              // Don't allow selection of items with different status
+              message.warning('You can only select items with the same status');
+              return;
+            }
+          }
+        }
+      }
+      
+      selectedRowKeys.value = keys;
     };
 
-    // Approve requisition
-    const approveRequisition = (record: Requisition) => {
-      confirmModalTitle.value = "Approve Requisition";
-      confirmModalMessage.value = `Are you sure you want to approve requisition ${record.requisitionNo}?`;
-      confirmModalOkText.value = "Approve";
-      confirmModalAction.value = "approve";
-      requisitionToAction.value = record;
+    // Get bulk action text based on selected items status
+    const getBulkActionText = () => {
+      const status = selectedItemsStatus.value;
+      
+      switch(status) {
+        case 'Pending': return 'Approve All';
+        case 'Approved': return 'Order All';
+        case 'Ordered': return 'Download All';
+        case 'Download': return 'Dispatch All';
+        case 'Dispatch': return 'Receive All';
+        default: return 'Update All';
+      }
+    };
+    
+    // Get bulk action icon based on selected items status
+    const getBulkActionIcon = () => {
+      const status = selectedItemsStatus.value;
+      
+      switch(status) {
+        case 'Pending': return CheckOutlined;
+        case 'Approved': return ShoppingCartOutlined;
+        case 'Ordered': return DownloadOutlined;
+        case 'Download': return CarOutlined;
+        case 'Dispatch': return InboxOutlined;
+        default: return CheckCircleOutlined;
+      }
+    };
+    
+    // Get bulk action button class based on selected items status
+    const getBulkActionButtonClass = () => {
+      const status = selectedItemsStatus.value;
+      
+      switch(status) {
+        case 'Pending': return 'action-button approve-button';
+        case 'Approved': return 'action-button order-button';
+        case 'Ordered': return 'action-button download-button';
+        case 'Download': return 'action-button dispatch-button';
+        case 'Dispatch': return 'action-button delivery-button';
+        default: return 'action-button';
+      }
+    };
+
+    // Handle bulk action
+    const handleBulkAction = () => {
+      if (selectedRowKeys.value.length === 0) {
+        message.warning("Please select at least one item");
+        return;
+      }
+      
+      if (hasMixedStatuses.value) {
+        message.warning("Cannot perform bulk actions on mixed statuses");
+        return;
+      }
+      
+      const currentStatus = selectedItemsStatus.value;
+      const nextStatus = getNextStatus(currentStatus);
+      
+      if (!nextStatus) {
+        message.warning("No further action available for these items");
+        return;
+      }
+      
+      confirmModalTitle.value = `${getBulkActionText()}`;
+      confirmModalMessage.value = `Are you sure you want to update ${selectedRowKeys.value.length} item(s) to ${nextStatus}?`;
+      confirmModalOkText.value = getBulkActionText();
+      confirmModalAction.value = "bulkUpdate";
+      confirmModalButtonClass.value = getBulkActionButtonClass();
+      bulkActionStatus.value = nextStatus;
       confirmModalVisible.value = true;
     };
 
-    // Order requisition
-    const OrderRequisition = (record: Requisition) => {
-      confirmModalTitle.value = "Order Requisition";
-      confirmModalMessage.value = `Are you sure you want to Order requisition ${record.requisitionNo}?`;
-      confirmModalOkText.value = "Order";
-      confirmModalAction.value = "Order";
-      requisitionToAction.value = record;
+    // Update individual item status
+    const updateItemStatus = (record: ChequeItem, newStatus: string) => {
+      confirmModalTitle.value = `Update Item Status`;
+      confirmModalMessage.value = `Are you sure you want to update this item to ${newStatus}?`;
+      confirmModalOkText.value = "Update";
+      confirmModalAction.value = "updateStatus";
+      
+      // Set button class based on the action
+      switch(record.status || 'Pending') {
+        case 'Pending': 
+          confirmModalButtonClass.value = 'approve-button';
+          break;
+        case 'Approved': 
+          confirmModalButtonClass.value = 'order-button';
+          break;
+        case 'Ordered': 
+          confirmModalButtonClass.value = 'download-button';
+          break;
+        case 'Download': 
+          confirmModalButtonClass.value = 'dispatch-button';
+          break;
+        case 'Dispatch': 
+          confirmModalButtonClass.value = 'delivery-button';
+          break;
+        default:
+          confirmModalButtonClass.value = '';
+      }
+      
+      itemToAction.value = { ...record, status: newStatus };
       confirmModalVisible.value = true;
+    };
+
+    // Edit item
+    const editItem = (record: ChequeItem) => {
+      editingItem.value = { ...record };
+      editModalVisible.value = true;
+    };
+
+    // Delete item
+    const deleteItem = (record: ChequeItem) => {
+      confirmModalTitle.value = "Delete Item";
+      confirmModalMessage.value = `Are you sure you want to delete this item (${record.accountNo})?`;
+      confirmModalOkText.value = "Delete";
+      confirmModalAction.value = "delete";
+      confirmModalButtonClass.value = "";
+      itemToAction.value = record;
+      confirmModalVisible.value = true;
+    };
+
+    // Handle edit save
+    const handleEditSave = () => {
+      if (!editingItem.value) return;
+      
+      editLoading.value = true;
+      
+      // In a real application, this would be an API call
+      setTimeout(() => {
+        const index = chequeItems.value.findIndex(item => item.id === editingItem.value?.id);
+        
+        if (index !== -1) {
+          chequeItems.value[index] = { ...editingItem.value };
+          message.success("Item updated successfully");
+        }
+        
+        editLoading.value = false;
+        editModalVisible.value = false;
+        editingItem.value = null;
+      }, 500);
     };
 
     // Handle confirm action
     const handleConfirmAction = () => {
-      if (!requisitionToAction.value) return;
-
-      const record = requisitionToAction.value;
-      const recordIndex = requisitions.value.findIndex(
-        (r) => r.id === record.id
-      );
-
-      if (recordIndex === -1) return;
-
-      if (confirmModalAction.value === "approve") {
-        // Update status to Approved
-        requisitions.value[recordIndex].status = "Approved";
-        message.success(
-          `Requisition ${record.requisitionNo} has been approved`
+      if (confirmModalAction.value === "updateStatus" && itemToAction.value) {
+        const itemIndex = chequeItems.value.findIndex(
+          (item) => item.id === itemToAction.value?.id
         );
-      } else if (confirmModalAction.value === "Order") {
-        // Update status to Ordered
-        requisitions.value[recordIndex].status = "Ordered";
-        message.success(`Requisition ${record.requisitionNo} has been Ordered`);
-      }
 
-      // Update selected requisition if it's the same record
-      if (
-        selectedRequisition.value &&
-        selectedRequisition.value.id === record.id
-      ) {
-        selectedRequisition.value = { ...requisitions.value[recordIndex] };
+        if (itemIndex !== -1) {
+          // Update the item status
+          chequeItems.value[itemIndex].status = itemToAction.value.status;
+          message.success(`Item status updated to ${itemToAction.value.status}`);
+        }
+      } else if (confirmModalAction.value === "bulkUpdate") {
+        // Update all selected items
+        chequeItems.value = chequeItems.value.map(item => {
+          if (selectedRowKeys.value.includes(item.id)) {
+            return { ...item, status: bulkActionStatus.value };
+          }
+          return item;
+        });
+
+        message.success(`Successfully updated ${selectedRowKeys.value.length} item(s) to ${bulkActionStatus.value}`);
+        selectedRowKeys.value = []; // Clear selection after bulk update
+      } else if (confirmModalAction.value === "delete" && itemToAction.value) {
+        // Delete the item
+        chequeItems.value = chequeItems.value.filter(item => item.id !== itemToAction.value?.id);
+        message.success("Item deleted successfully");
       }
 
       confirmModalVisible.value = false;
-      requisitionToAction.value = null;
+      itemToAction.value = null;
     };
+
+    // Reset selection when filtered items change
+    watch([statusFilter, severityFilter, branchFilter, searchText], () => {
+      selectedRowKeys.value = [];
+    });
 
     // Fetch data on component mount
     onMounted(() => {
-      fetchRequisitions();
+      fetchChequeItems();
     });
 
     return {
-      requisitions,
       loading,
       searchText,
       statusFilter,
+      severityFilter,
       branchFilter,
       dateRange,
-      columns,
       chequeItemColumns,
       chequeItems,
-      filteredRequisitions,
-      modalVisible,
-      selectedRequisition,
+      filteredChequeItems,
+      selectedRowKeys,
+      rowSelection,
+      hasSelectedItems,
+      hasMixedStatuses,
+      selectedItemsStatus,
       confirmModalVisible,
       confirmModalTitle,
       confirmModalMessage,
       confirmModalOkText,
-      confirmModalAction,
+      confirmModalButtonClass,
+      editModalVisible,
+      editingItem,
+      editLoading,
       handleSearch,
       handleStatusFilterChange,
+      handleSeverityFilterChange,
       handleBranchFilterChange,
       handleDateRangeChange,
-      viewRequisition,
-      approveRequisition,
-      OrderRequisition,
+      onSelectChange,
+      getBulkActionText,
+      getBulkActionIcon,
+      getBulkActionButtonClass,
+      handleBulkAction,
+      updateItemStatus,
+      editItem,
+      deleteItem,
+      handleEditSave,
       handleConfirmAction,
-      formatDate,
       getStatusColor,
       getSeverityColor,
+      isEditDeleteDisabled,
     };
   },
 });
@@ -787,28 +914,103 @@ export default defineComponent({
   background-color: #f0fdf4;
 }
 
-.custom-table :deep(.ant-table-tbody > tr.bg-emerald-50 > td) {
+.custom-table :deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
   background-color: #ecfdf5;
 }
 
-.custom-modal :deep(.ant-modal-header) {
-  border-bottom: none;
-  padding: 16px 24px;
-  background-color: #f9fafb;
+/* Modern action buttons */
+.action-button {
+  border-radius: 6px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 110px;
+  height: 36px;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
 }
 
-.custom-modal :deep(.ant-modal-content) {
-  overflow: hidden;
-  border-radius: 8px;
+.action-button:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-/* Ensure buttons have consistent width */
-.ant-btn {
-  min-width: 32px;
+.approve-button {
+  background-color: #10b981;
+  border-color: #10b981;
 }
 
-.ant-btn:not(.ant-btn-circle) {
-  min-width: 80px;
+.approve-button:hover {
+  background-color: #059669;
+  border-color: #059669;
+}
+
+.order-button {
+  background-color: #3b82f6;
+  border-color: #3b82f6;
+}
+
+.order-button:hover {
+  background-color: #2563eb;
+  border-color: #2563eb;
+}
+
+.download-button {
+  background-color: #6366f1;
+  border-color: #6366f1;
+}
+
+.download-button:hover {
+  background-color: #4f46e5;
+  border-color: #4f46e5;
+}
+
+.dispatch-button {
+  background-color: #f59e0b;
+  border-color: #f59e0b;
+}
+
+.dispatch-button:hover {
+  background-color: #d97706;
+  border-color: #d97706;
+}
+
+.delivery-button {
+  background-color: #8b5cf6;
+  border-color: #8b5cf6;
+}
+
+.delivery-button:hover {
+  background-color: #7c3aed;
+  border-color: #7c3aed;
+}
+
+.completed-button {
+  background-color: #e5e7eb;
+  border-color: #d1d5db;
+  color: #6b7280;
+}
+
+.edit-button, .delete-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.edit-button:hover:not(:disabled) {
+  color: #1890ff;
+  border-color: #1890ff;
+  background-color: #e6f7ff;
+}
+
+.delete-button:hover:not(:disabled) {
+  background-color: #fff1f0;
 }
 
 /* Transition effects */
@@ -820,13 +1022,15 @@ export default defineComponent({
   transition: all 0.3s ease;
 }
 
-.ant-btn {
-  transition: all 0.3s ease;
-}
-
-/* Make the modal scrollable */
-.custom-modal :deep(.ant-modal-body) {
-  max-height: 80vh;
-  overflow-y: auto;
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .ant-table-cell {
+    padding: 8px 4px !important;
+  }
+  
+  .action-button {
+    min-width: 90px;
+    padding: 0 8px;
+  }
 }
 </style>
