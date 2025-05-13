@@ -1,13 +1,16 @@
 <template>
-  <div class="user-list-container p-6 bg-gray-50 min-h-screen">
+  <div
+    class="user-management-container"
+    :class="{ 'modal-open': modalVisible }"
+  >
     <!-- Header Section -->
-    <div class="mb-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">User Management</h1>
-          <p class="text-gray-500 mt-1">View and manage all Users</p>
+    <div class="header-section">
+      <div class="header-content">
+        <div class="header-title-container">
+          <h1 class="header-title">User Management</h1>
+          <p class="header-subtitle">View and manage all system users</p>
         </div>
-        <div class="mt-4 md:mt-0">
+        <div class="header-actions">
           <a-button
             type="primary"
             class="add-user-btn"
@@ -21,61 +24,62 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div
-        class="bg-white rounded-lg shadow-md p-5 border-l-4 border-green-500"
-      >
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-gray-500 text-sm">Total Users</p>
-            <p class="text-2xl font-bold">{{ users.length }}</p>
+    <div class="stats-container">
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Total Users</p>
+            <p class="stats-value">{{ users.length }}</p>
           </div>
-          <div class="bg-green-100 p-3 rounded-full">
-            <UsergroupAddOutlined style="font-size: 24px; color: #22c55e" />
+          <div class="stats-icon">
+            <UsergroupAddOutlined />
           </div>
         </div>
       </div>
-      <div
-        class="bg-white rounded-lg shadow-md p-5 border-l-4 border-green-500"
-      >
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-gray-500 text-sm">Active Users</p>
-            <p class="text-2xl font-bold">{{ activeUsers }}</p>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Active Users</p>
+            <p class="stats-value">{{ activeUsers }}</p>
           </div>
-          <div class="bg-green-100 p-3 rounded-full">
-            <CheckCircleOutlined style="font-size: 24px; color: #22c55e" />
+          <div class="stats-icon stats-icon-navy">
+            <CheckCircleOutlined />
           </div>
         </div>
       </div>
-      <div
-        class="bg-white rounded-lg shadow-md p-5 border-l-4 border-yellow-500"
-      >
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-gray-500 text-sm">Inactive Users</p>
-            <p class="text-2xl font-bold">{{ inactiveUsers }}</p>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Inactive Users</p>
+            <p class="stats-value">{{ inactiveUsers }}</p>
           </div>
-          <div class="bg-yellow-100 p-3 rounded-full">
-            <CloseCircleOutlined style="font-size: 24px; color: #eab308" />
+          <div class="stats-icon stats-icon-red">
+            <CloseCircleOutlined />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Table Section -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div
-        class="p-5 border-b border-gray-200 flex justify-between items-center flex-wrap gap-4"
-      >
-        <h2 class="text-lg font-semibold text-gray-800">All Users List</h2>
-        <div class="flex gap-4">
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">All Users List</h2>
+        <div class="table-actions">
+          <a-input-search
+            v-model:value="searchText"
+            placeholder="Search users..."
+            class="search-input"
+            @search="onSearch"
+            allow-clear
+          />
           <a-select
             v-model:value="roleFilter"
             placeholder="Filter by Role"
-            style="width: 180px"
+            class="role-filter"
+            allowClear
             @change="handleRoleFilterChange"
-            allow-clear
           >
             <a-select-option value="All">All Users</a-select-option>
             <a-select-option value="BankAdmin">Bank Admin</a-select-option>
@@ -85,109 +89,108 @@
             >
             <a-select-option value="VendorAdmin">Vendor Admin</a-select-option>
           </a-select>
-          <a-input-search
-            v-model:value="searchText"
-            placeholder="Search users..."
-            style="width: 250px"
-            @search="onSearch"
-            allow-clear
-          />
         </div>
       </div>
 
-      <a-table
-        :dataSource="filteredUsers"
-        :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showTotal: (total) => `Total ${total} users`,
-        }"
-        :loading="loading"
-        :rowClassName="rowClassName"
-        class="custom-table"
-      >
-        <!-- User Name Column -->
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'name'">
-            <div class="flex items-center">
-              <a-avatar
-                :src="record.ImagePath || ''"
-                :style="{
-                  backgroundColor: !record.ImagePath
-                    ? '#22c55e'
-                    : 'transparent',
-                }"
-              >
-                {{
-                  !record.ImagePath ? record.Name.charAt(0).toUpperCase() : ""
-                }}
-              </a-avatar>
-              <span class="ml-2">{{ record.Name }}</span>
-            </div>
-          </template>
-
-          <!-- Role Column -->
-          <template v-if="column.key === 'role'">
-            <a-tag :color="getRoleColor(record.Role)">{{ record.Role }}</a-tag>
-          </template>
-
-          <!-- Status Column -->
-          <template v-if="column.key === 'status'">
-            <a-tag :color="record.IsActive ? 'success' : 'error'">
-              {{ record.IsActive ? "Active" : "Inactive" }}
-            </a-tag>
-          </template>
-
-          <!-- Action Column -->
-          <template v-if="column.key === 'action'">
-            <div class="flex space-x-2">
-              <a-tooltip title="Change Password">
-                <a-button
-                  type="link"
-                  size="small"
-                  style="color: #4096ff"
-                  @click="showPasswordModal(record)"
+      <div class="table-responsive">
+        <a-table
+          :dataSource="filteredUsers"
+          :columns="columns"
+          :pagination="{
+            pageSize: 10,
+            showTotal: (total) => `Total ${total} users`,
+          }"
+          :loading="loading"
+          :rowClassName="rowClassName"
+          class="custom-table"
+          :scroll="{ x: 1000 }"
+        >
+          <!-- User Name Column -->
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'name'">
+              <div class="user-name-cell">
+                <a-avatar
+                  :src="record.ImagePath || ''"
+                  :style="{
+                    backgroundColor: !record.ImagePath
+                      ? 'var(--secondary-color)'
+                      : 'transparent',
+                  }"
+                  class="user-avatar"
                 >
-                  <template #icon>
-                    <LockOutlined />
-                  </template>
-                </a-button>
-              </a-tooltip>
+                  {{
+                    !record.ImagePath ? record.Name.charAt(0).toUpperCase() : ""
+                  }}
+                </a-avatar>
+                <span>{{ record.Name }}</span>
+              </div>
+            </template>
 
-              <a-tooltip title="Edit User">
-                <a-button
-                  type="link"
-                  size="small"
-                  style="color: #22c55e"
-                  @click="showModal('edit', record)"
-                >
-                  <template #icon>
-                    <EditOutlined />
-                  </template>
-                </a-button>
-              </a-tooltip>
+            <!-- Role Column -->
+            <template v-if="column.key === 'role'">
+              <a-tag :color="getRoleColor(record.Role)">{{
+                record.Role
+              }}</a-tag>
+            </template>
 
-              <a-tooltip title="Delete User">
-                <a-popconfirm
-                  title="Are you sure you want to delete this user?"
-                  ok-text="Yes"
-                  cancel-text="No"
-                  @confirm="deleteUser(record.id)"
-                >
-                  <a-button type="link" size="small" danger>
+            <!-- Status Column -->
+            <template v-if="column.key === 'status'">
+              <a-tag :color="record.IsActive ? 'success' : 'error'">
+                {{ record.IsActive ? "Active" : "Inactive" }}
+              </a-tag>
+            </template>
+
+            <!-- Action Column -->
+            <template v-if="column.key === 'action'">
+              <div class="action-buttons">
+                <a-tooltip title="Change Password">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    class="password-btn"
+                    @click="showPasswordModal(record)"
+                  >
                     <template #icon>
-                      <DeleteOutlined />
+                      <LockOutlined class="btn-icon" />
                     </template>
                   </a-button>
-                </a-popconfirm>
-              </a-tooltip>
-            </div>
+                </a-tooltip>
+
+                <a-tooltip title="Edit User">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    class="edit-btn"
+                    @click="showModal('edit', record)"
+                  >
+                    <template #icon>
+                      <EditOutlined class="btn-icon" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+
+                <a-tooltip title="Delete User">
+                  <a-popconfirm
+                    title="Are you sure you want to delete this user?"
+                    ok-text="Yes"
+                    cancel-text="No"
+                    @confirm="deleteUser(record.id)"
+                  >
+                    <a-button type="primary" size="small" class="delete-btn">
+                      <template #icon>
+                        <DeleteOutlined class="btn-icon" />
+                      </template>
+                    </a-button>
+                  </a-popconfirm>
+                </a-tooltip>
+              </div>
+            </template>
           </template>
-        </template>
-      </a-table>
+        </a-table>
+      </div>
     </div>
 
-    <!-- Create/Edit User Modal -->
+    <!-- Enhanced Professional User Modal -->
     <a-modal
       v-model:visible="modalVisible"
       :title="null"
@@ -196,11 +199,13 @@
       :bodyStyle="{ padding: '0' }"
       style="top: 20px"
       :maskClosable="false"
+      :zIndex="100"
+      :maskStyle="{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }"
       class="user-modal"
     >
       <!-- Custom Header -->
       <div class="modal-custom-header">
-        <div class="flex items-center">
+        <div class="modal-header-content">
           <div class="modal-icon">
             <template v-if="modalMode === 'add'">
               <PlusOutlined />
@@ -265,10 +270,13 @@
                 </a-select>
               </a-form-item>
               <a-form-item label="Status" name="isActive" class="form-item">
-                <a-switch v-model:checked="formState.isActive" />
-                <span class="ml-2">{{
-                  formState.isActive ? "Active" : "Inactive"
-                }}</span>
+                <a-select
+                  v-model:value="formState.isActive"
+                  placeholder="Select status"
+                >
+                  <a-select-option :value="true">Active</a-select-option>
+                  <a-select-option :value="false">Inactive</a-select-option>
+                </a-select>
               </a-form-item>
             </div>
 
@@ -316,14 +324,22 @@
                 <a-input
                   v-model:value="formState.name"
                   placeholder="Enter full name"
-                />
+                >
+                  <template #prefix>
+                    <UserOutlined class="site-form-item-icon" />
+                  </template>
+                </a-input>
               </a-form-item>
               <a-form-item label="Email" name="email" class="form-item">
                 <a-input
                   v-model:value="formState.email"
                   placeholder="Enter email"
                   type="email"
-                />
+                >
+                  <template #prefix>
+                    <MailOutlined class="site-form-item-icon" />
+                  </template>
+                </a-input>
               </a-form-item>
             </div>
 
@@ -332,14 +348,18 @@
                 <a-input
                   v-model:value="formState.userName"
                   placeholder="Enter username"
-                />
+                >
+                  <template #prefix>
+                    <UserOutlined class="site-form-item-icon" />
+                  </template>
+                </a-input>
               </a-form-item>
               <a-form-item
                 label="Profile Image"
                 name="imagePath"
                 class="form-item"
               >
-                <div class="flex items-center">
+                <div class="profile-image-upload">
                   <a-upload
                     v-model:fileList="fileList"
                     list-type="picture-card"
@@ -347,29 +367,18 @@
                     :before-upload="beforeUpload"
                     @change="handleImageChange"
                   >
-                    <div v-if="imageUrl" class="relative">
-                      <img
-                        :src="imageUrl"
-                        alt="avatar"
-                        class="w-full h-full object-cover"
-                      />
-                      <div
-                        class="absolute inset-0 bg-black bg-opacity-40 flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity"
-                      >
-                        <UploadOutlined class="text-white text-xl" />
+                    <div v-if="imageUrl" class="image-preview">
+                      <img :src="imageUrl" alt="avatar" class="preview-img" />
+                      <div class="image-overlay">
+                        <UploadOutlined />
                       </div>
                     </div>
-                    <div
-                      v-else
-                      class="flex flex-col items-center justify-center"
-                    >
+                    <div v-else class="upload-placeholder">
                       <PlusOutlined />
-                      <div class="mt-2">Upload</div>
+                      <div class="upload-text">Upload</div>
                     </div>
                   </a-upload>
-                  <span class="ml-4 text-xs text-gray-500"
-                    >Max 255 characters</span
-                  >
+                  <span class="upload-hint">Max 2MB (JPG/PNG)</span>
                 </div>
               </a-form-item>
             </div>
@@ -380,7 +389,11 @@
                 <a-input-password
                   v-model:value="formState.password"
                   placeholder="Enter password"
-                />
+                >
+                  <template #prefix>
+                    <LockOutlined class="site-form-item-icon" />
+                  </template>
+                </a-input-password>
               </a-form-item>
               <a-form-item
                 label="Confirm Password"
@@ -390,8 +403,32 @@
                 <a-input-password
                   v-model:value="formState.confirmPassword"
                   placeholder="Confirm password"
-                />
+                >
+                  <template #prefix>
+                    <LockOutlined class="site-form-item-icon" />
+                  </template>
+                </a-input-password>
               </a-form-item>
+            </div>
+          </div>
+
+          <!-- Menu Permissions Section -->
+          <div class="form-section">
+            <h4 class="form-section-title">Menu Permissions</h4>
+            <div class="permissions-container">
+              <a-checkbox-group v-model:value="formState.permissions">
+                <div class="permissions-grid">
+                  <div
+                    v-for="(permission, index) in availablePermissions"
+                    :key="index"
+                    class="permission-item"
+                  >
+                    <a-checkbox :value="permission.value">
+                      {{ permission.label }}
+                    </a-checkbox>
+                  </div>
+                </div>
+              </a-checkbox-group>
             </div>
           </div>
         </a-form>
@@ -399,7 +436,9 @@
 
       <!-- Custom Footer -->
       <div class="modal-footer">
-        <a-button @click="modalVisible = false"> Cancel </a-button>
+        <a-button @click="modalVisible = false" class="cancel-btn">
+          Cancel
+        </a-button>
         <a-button type="primary" @click="handleModalSubmit" class="submit-btn">
           <template v-if="submitting">
             <LoadingOutlined />
@@ -415,34 +454,88 @@
     <!-- Change Password Modal -->
     <a-modal
       v-model:visible="passwordModalVisible"
-      title="Change Password"
-      @ok="handlePasswordChange"
-      :confirmLoading="passwordSubmitting"
+      :title="null"
+      :footer="null"
+      :width="500"
+      :bodyStyle="{ padding: '0' }"
+      :maskClosable="false"
+      class="password-modal"
     >
-      <a-form
-        :model="passwordForm"
-        layout="vertical"
-        :rules="passwordRules"
-        ref="passwordFormRef"
-      >
-        <a-form-item label="New Password" name="newPassword">
-          <a-input-password
-            v-model:value="passwordForm.newPassword"
-            placeholder="Enter new password"
-          />
-        </a-form-item>
-        <a-form-item label="Confirm New Password" name="confirmPassword">
-          <a-input-password
-            v-model:value="passwordForm.confirmPassword"
-            placeholder="Confirm new password"
-          />
-        </a-form-item>
-      </a-form>
+      <!-- Custom Header -->
+      <div class="modal-custom-header">
+        <div class="modal-header-content">
+          <div class="modal-icon">
+            <LockOutlined />
+          </div>
+          <div>
+            <h3 class="modal-title">Change Password</h3>
+            <p class="modal-subtitle">
+              Update password for {{ currentPasswordUser?.Name }}
+            </p>
+          </div>
+        </div>
+        <a-button
+          type="text"
+          @click="passwordModalVisible = false"
+          class="modal-close-btn"
+        >
+          <template #icon><CloseOutlined /></template>
+        </a-button>
+      </div>
+
+      <!-- Password Form Content -->
+      <div class="modal-content">
+        <a-form
+          :model="passwordForm"
+          layout="vertical"
+          :rules="passwordRules"
+          ref="passwordFormRef"
+        >
+          <a-form-item label="New Password" name="newPassword">
+            <a-input-password
+              v-model:value="passwordForm.newPassword"
+              placeholder="Enter new password"
+            >
+              <template #prefix>
+                <LockOutlined class="site-form-item-icon" />
+              </template>
+            </a-input-password>
+          </a-form-item>
+          <a-form-item label="Confirm New Password" name="confirmPassword">
+            <a-input-password
+              v-model:value="passwordForm.confirmPassword"
+              placeholder="Confirm new password"
+            >
+              <template #prefix>
+                <LockOutlined class="site-form-item-icon" />
+              </template>
+            </a-input-password>
+          </a-form-item>
+        </a-form>
+      </div>
+
+      <!-- Custom Footer -->
+      <div class="modal-footer">
+        <a-button @click="passwordModalVisible = false" class="cancel-btn">
+          Cancel
+        </a-button>
+        <a-button
+          type="primary"
+          @click="handlePasswordChange"
+          class="submit-btn"
+        >
+          <template v-if="passwordSubmitting">
+            <LoadingOutlined />
+            Updating...
+          </template>
+          <template v-else> Update Password </template>
+        </a-button>
+      </div>
     </a-modal>
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
 import { ref, computed, reactive, watch } from "vue";
 import {
   DeleteOutlined,
@@ -456,6 +549,10 @@ import {
   CloseOutlined,
   UploadOutlined,
   LoadingOutlined,
+  MailOutlined,
+  PhoneOutlined,
+  BankOutlined,
+  BranchesOutlined,
 } from "@ant-design/icons-vue";
 
 // Search and filter states
@@ -463,8 +560,8 @@ const searchText = ref("");
 const roleFilter = ref("");
 const loading = ref(false);
 const modalVisible = ref(false);
-const modalMode = ref("add");
-const currentUserId = ref(null);
+const modalMode = ref<"add" | "edit">("add");
+const currentUserId = ref<string | null>(null);
 const submitting = ref(false);
 const formRef = ref();
 const imageUrl = ref("");
@@ -492,7 +589,24 @@ const formState = reactive({
   branchId: null,
   imagePath: "",
   isActive: true,
+  permissions: [], // Added for menu permissions
 });
+
+// Available permissions for menu access
+const availablePermissions = [
+  { label: "Dashboard", value: "dashboard" },
+  { label: "User Management", value: "user_management" },
+  { label: "Branch Management", value: "branch_management" },
+  { label: "Customer Management", value: "customer_management" },
+  { label: "Transaction History", value: "transaction_history" },
+  { label: "Reports", value: "reports" },
+  { label: "Settings", value: "settings" },
+  { label: "Audit Logs", value: "audit_logs" },
+  { label: "System Configuration", value: "system_config" },
+  { label: "Vendor Management", value: "vendor_management" },
+  { label: "API Access", value: "api_access" },
+  { label: "Notifications", value: "notifications" },
+];
 
 // Computed properties for conditional field display
 const showBankField = computed(() => {
@@ -519,24 +633,24 @@ watch(
 
 // Function for row class name
 const rowClassName = (record, index) => {
-  return index % 2 === 0 ? "bg-gray-50" : "";
+  return index % 2 === 0 ? "table-row-light" : "table-row-dark";
 };
 
 // Form validation rules
 const rules = {
-  name: [{ required: true, message: "Please input user name!" }],
+  name: [{ required: true, message: "Please enter full name" }],
   email: [
-    { required: true, message: "Please input email!" },
-    { type: "email", message: "Please enter a valid email!" },
+    { required: true, message: "Please enter email" },
+    { type: "email", message: "Please enter a valid email address" },
   ],
-  userName: [{ required: true, message: "Please input username!" }],
+  userName: [{ required: true, message: "Please enter username" }],
   password: [
     {
       required: true,
-      message: "Please input password!",
+      message: "Please enter password",
       validator: (rule, value) => {
         if (modalMode.value === "add" && !value) {
-          return Promise.reject("Please input password!");
+          return Promise.reject("Please enter password");
         }
         return Promise.resolve();
       },
@@ -547,17 +661,17 @@ const rules = {
       validator: (rule, value) => {
         if (modalMode.value === "add") {
           if (!value) {
-            return Promise.reject("Please confirm your password!");
+            return Promise.reject("Please confirm your password");
           }
           if (value !== formState.password) {
-            return Promise.reject("Passwords do not match!");
+            return Promise.reject("Passwords do not match");
           }
         }
         return Promise.resolve();
       },
     },
   ],
-  role: [{ required: true, message: "Please select a role!" }],
+  role: [{ required: true, message: "Please select a role" }],
   bankAdmin: [
     {
       validator: (rule, value) => {
@@ -567,7 +681,7 @@ const rules = {
             formState.role === "BranchOfficer") &&
           !value
         ) {
-          return Promise.reject("Please select a bank!");
+          return Promise.reject("Please select a bank");
         }
         return Promise.resolve();
       },
@@ -581,17 +695,7 @@ const rules = {
             formState.role === "BranchOfficer") &&
           !value
         ) {
-          return Promise.reject("Please select a branch!");
-        }
-        return Promise.resolve();
-      },
-    },
-  ],
-  imagePath: [
-    {
-      validator: (rule, value) => {
-        if (value && value.length > 255) {
-          return Promise.reject("Image path cannot exceed 255 characters!");
+          return Promise.reject("Please select a branch");
         }
         return Promise.resolve();
       },
@@ -602,15 +706,15 @@ const rules = {
 // Password validation rules
 const passwordRules = {
   newPassword: [
-    { required: true, message: "Please input new password!" },
-    { min: 6, message: "Password must be at least 6 characters!" },
+    { required: true, message: "Please enter new password" },
+    { min: 6, message: "Password must be at least 6 characters" },
   ],
   confirmPassword: [
-    { required: true, message: "Please confirm your password!" },
+    { required: true, message: "Please confirm your password" },
     {
       validator: (rule, value) => {
         if (value !== passwordForm.newPassword) {
-          return Promise.reject("Passwords do not match!");
+          return Promise.reject("Passwords do not match");
         }
         return Promise.resolve();
       },
@@ -650,7 +754,6 @@ const columns = [
     title: "Bank",
     dataIndex: "BankName",
     key: "bank",
-    customFilterDropdown: true,
   },
   {
     title: "Branch",
@@ -684,6 +787,12 @@ const users = ref([
     BranchId: null,
     BranchName: null,
     IsActive: true,
+    Permissions: [
+      "dashboard",
+      "user_management",
+      "branch_management",
+      "reports",
+    ],
   },
   {
     id: 2,
@@ -697,6 +806,7 @@ const users = ref([
     BranchId: 1,
     BranchName: "Main Branch",
     IsActive: true,
+    Permissions: ["dashboard", "customer_management"],
   },
   {
     id: 3,
@@ -710,6 +820,7 @@ const users = ref([
     BranchId: 3,
     BranchName: "Downtown Branch",
     IsActive: false,
+    Permissions: ["dashboard", "transaction_history"],
   },
   {
     id: 4,
@@ -723,6 +834,7 @@ const users = ref([
     BranchId: null,
     BranchName: null,
     IsActive: true,
+    Permissions: ["dashboard", "vendor_management", "api_access"],
   },
 ]);
 
@@ -866,6 +978,7 @@ const showModal = (mode, record) => {
       branchId: null,
       imagePath: "",
       isActive: true,
+      permissions: [],
     });
     imageUrl.value = "";
     fileList.value = [];
@@ -883,6 +996,7 @@ const showModal = (mode, record) => {
       branchId: record.BranchId,
       imagePath: record.ImagePath,
       isActive: record.IsActive,
+      permissions: record.Permissions || [],
     });
     imageUrl.value = record.ImagePath || "";
     fileList.value = record.ImagePath
@@ -963,6 +1077,7 @@ const handleModalSubmit = () => {
             : null,
           ImagePath: formState.imagePath,
           IsActive: formState.isActive,
+          Permissions: formState.permissions,
         };
 
         if (modalMode.value === "add") {
@@ -1016,141 +1131,621 @@ const deleteUser = (userId) => {
 </script>
 
 <style scoped>
+/* Base container */
+.user-management-container {
+  padding: 0;
+  background-color: var(--neutral-50);
+  min-height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  position: relative;
+}
+
+/* Header Section */
+.header-section {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color) 0%,
+    var(--secondary-light) 100%
+  );
+  padding: 2rem;
+  color: white;
+  border-radius: 0 0 1rem 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .header-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.header-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Add User Button */
 .add-user-btn {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 500;
+  height: 40px;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
 
 .add-user-btn:hover {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+  transform: translateY(-1px);
 }
 
-:deep(.ant-table-thead > tr > th) {
-  background-color: #f8fafc;
+/* Stats Cards */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  padding: 0 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Stats Card */
+.stats-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 4px solid var(--secondary-color);
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stats-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.stats-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-label {
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  margin: 0 0 0.25rem 0;
+}
+
+.stats-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--neutral-800);
+  margin: 0;
+}
+
+/* Stats Icons */
+.stats-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: rgba(13, 148, 136, 0.1);
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+}
+
+.stats-icon-navy {
+  background-color: rgba(10, 25, 47, 0.1);
+  color: var(--primary-color);
+}
+
+.stats-icon-red {
+  background-color: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+}
+
+/* Table Section */
+.table-container {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  margin: 0 1.5rem 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+@media (min-width: 768px) {
+  .table-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.table-title {
+  font-size: 1.25rem;
   font-weight: 600;
+  color: var(--neutral-800);
+  margin: 0;
 }
 
+.table-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .table-actions {
+    flex-direction: row;
+    width: auto;
+  }
+}
+
+.search-input {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .search-input {
+    width: 250px;
+  }
+}
+
+.role-filter {
+  width: 100%;
+}
+
+@media (min-width: 768px) {
+  .role-filter {
+    width: 180px;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Custom Table Styling */
+:deep(.custom-table .ant-table) {
+  background-color: transparent;
+}
+
+:deep(.custom-table .ant-table-thead > tr > th) {
+  background-color: var(--neutral-100);
+  color: var(--neutral-700);
+  font-weight: 600;
+  border-bottom: 2px solid var(--neutral-200);
+  padding: 1rem 1rem;
+}
+
+:deep(.custom-table .ant-table-tbody > tr > td) {
+  padding: 1rem 1rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+:deep(.table-row-light) {
+  background-color: #ffffff;
+}
+
+:deep(.table-row-dark) {
+  background-color: var(--neutral-50);
+}
+
+/* Table hover */
+:deep(.custom-table .ant-table-tbody > tr.ant-table-row:hover > td) {
+  background-color: rgba(10, 25, 47, 0.05) !important;
+}
+
+/* Pagination */
 :deep(.ant-pagination-item-active) {
-  border-color: #22c55e;
+  border-color: var(--secondary-color);
 }
 
 :deep(.ant-pagination-item-active a) {
-  color: #22c55e;
+  color: var(--secondary-color);
 }
 
-:deep(.ant-table-row:hover > td) {
-  background-color: #f0fdf4 !important;
-}
-
+/* Search button */
 :deep(.ant-input-search-button) {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
 :deep(.ant-input-search-button:hover) {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--secondary-light);
+  border-color: var(--secondary-light);
+}
+
+/* User Name Cell */
+.user-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.user-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+}
+
+/* Action Buttons */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.password-btn {
+  background-color: #4096ff;
+  border-color: #4096ff;
+}
+
+.password-btn:hover {
+  background-color: #1677ff;
+  border-color: #1677ff;
+}
+
+.edit-btn {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.edit-btn:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
 }
 
 /* Modal Styling */
-.user-modal :deep(.ant-modal-content) {
-  border-radius: 12px;
+.user-modal :deep(.ant-modal-content),
+.password-modal :deep(.ant-modal-content) {
+  border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Enhanced modal mask (backdrop) */
+:deep(.ant-modal-mask) {
+  background-color: rgba(0, 0, 0, 0.65) !important;
+}
+
+/* Modal wrapper */
+:deep(.ant-modal-wrap) {
+  z-index: 100 !important;
 }
 
 .modal-custom-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  background-color: var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-200);
 }
 
+.modal-header-content {
+  display: flex;
+  align-items: center;
+}
+
+/* Modal icon */
 .modal-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #22c55e;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: var(--primary-color);
   color: white;
-  margin-right: 16px;
-  font-size: 18px;
+  margin-right: 1rem;
+  font-size: 1.25rem;
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--neutral-800);
   margin: 0;
 }
 
 .modal-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  margin: 0.25rem 0 0 0;
 }
 
 .modal-close-btn {
-  color: #6b7280;
+  color: var(--neutral-500);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background-color: var(--neutral-200);
+  color: var(--neutral-800);
 }
 
 .modal-content {
-  padding: 24px;
+  padding: 1.5rem;
   max-height: 60vh;
   overflow-y: auto;
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 
 .form-section-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  color: var(--neutral-700);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--neutral-200);
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 .form-item {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
+}
+
+/* Profile Image Upload */
+.profile-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.image-preview {
+  position: relative;
+  width: 104px;
+  height: 104px;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.preview-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-overlay {
+  position: absolute;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  color: white;
+  font-size: 1.25rem;
+}
+
+.image-preview:hover .image-overlay {
+  opacity: 1;
+}
+
+.upload-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 104px;
+  height: 104px;
+  border-radius: 0.5rem;
+  border: 1px dashed var(--neutral-300);
+  background-color: var(--neutral-50);
+  color: var(--neutral-500);
+}
+
+.upload-text {
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.upload-hint {
+  font-size: 0.75rem;
+  color: var(--neutral-500);
+}
+
+/* Permissions Section */
+.permissions-container {
+  padding: 1rem;
+  background-color: var(--neutral-50);
+  border-radius: 0.5rem;
+}
+
+.permissions-grid {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 0.75rem;
+}
+
+@media (min-width: 640px) {
+  .permissions-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .permissions-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+.permission-item {
+  padding: 0.5rem;
+  transition: background-color 0.2s ease;
+  border-radius: 0.25rem;
+}
+
+.permission-item:hover {
+  background-color: var(--neutral-100);
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  background-color: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--neutral-100);
+  border-top: 1px solid var(--neutral-200);
 }
 
+.cancel-btn {
+  border-radius: 0.5rem;
+}
+
+/* Submit button */
 .submit-btn {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  border-radius: 0.5rem;
+  font-weight: 500;
 }
 
 .submit-btn:hover {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+:deep(.site-form-item-icon) {
+  color: var(--neutral-400);
+}
+
+/* Fix for button icon alignment */
+.btn-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .header-section {
+    padding: 1.5rem;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-container,
+  .table-container {
+    margin: 0 1rem 1rem 1rem;
+  }
+
+  .table-header {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .header-section {
+    padding: 2.5rem;
+  }
+
+  .stats-container,
+  .table-container {
+    margin: 0 2rem 2rem 2rem;
+  }
+}
+
+/* CSS Variables */
+:root {
+  --primary-color: #0a192f;
+  --primary-light: #172a46;
+  --secondary-color: #0d9488;
+  --secondary-light: #14b8a6;
+  --neutral-50: #f9fafb;
+  --neutral-100: #f3f4f6;
+  --neutral-200: #e5e7eb;
+  --neutral-300: #d1d5db;
+  --neutral-400: #9ca3af;
+  --neutral-500: #6b7280;
+  --neutral-700: #374151;
+  --neutral-800: #1f2937;
 }
 </style>
