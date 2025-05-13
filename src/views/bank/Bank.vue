@@ -1,13 +1,13 @@
 <template>
-  <div class="branch-list-container p-6 bg-gray-50 min-h-screen">
+  <div class="bank-management-container">
     <!-- Header Section -->
-    <div class="mb-6">
-      <div class="flex flex-col md:flex-row md:items-center md:justify-between">
-        <div>
-          <h1 class="text-2xl font-bold text-gray-800">Bank Management</h1>
-          <p class="text-gray-500 mt-1">View and manage all banks</p>
+    <div class="header-section">
+      <div class="header-content">
+        <div class="header-title-container">
+          <h1 class="header-title">Bank Management</h1>
+          <p class="header-subtitle">View and manage all banks</p>
         </div>
-        <div class="mt-4 md:mt-0">
+        <div class="header-actions">
           <a-button
             type="primary"
             class="add-bank-btn"
@@ -21,93 +21,111 @@
     </div>
 
     <!-- Stats Cards -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
-      <div class="bg-white rounded-lg shadow-md p-5 border-l-4 border-blue-500">
-        <div class="flex justify-between items-center">
-          <div>
-            <p class="text-gray-500 text-sm">Total Banks</p>
-            <p class="text-2xl font-bold">{{ banks.length }}</p>
+    <div class="stats-container">
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Total Banks</p>
+            <p class="stats-value">{{ banks.length }}</p>
           </div>
-          <div class="bg-blue-100 p-3 rounded-full">
-            <BankOutlined style="font-size: 24px; color: #3b82f6" />
+          <div class="stats-icon">
+            <BankOutlined />
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Active Banks</p>
+            <p class="stats-value">{{ banks.length }}</p>
+          </div>
+          <div class="stats-icon stats-icon-navy">
+            <CheckCircleOutlined />
+          </div>
+        </div>
+      </div>
+
+      <div class="stats-card">
+        <div class="stats-content">
+          <div class="stats-info">
+            <p class="stats-label">Last Updated</p>
+            <p class="stats-value">Today</p>
+          </div>
+          <div class="stats-icon stats-icon-teal-light">
+            <ClockCircleOutlined />
           </div>
         </div>
       </div>
     </div>
 
     <!-- Table Section -->
-    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-      <div class="p-5 border-b border-gray-200 flex justify-between">
-        <h2 class="text-lg font-semibold text-gray-800">All Bank List</h2>
+    <div class="table-container">
+      <div class="table-header">
+        <h2 class="table-title">All Bank List</h2>
         <a-input-search
           v-model:value="searchText"
           placeholder="Search banks..."
-          style="max-width: 300px"
+          class="search-input"
           @search="onSearch"
           allow-clear
         />
       </div>
 
-      <a-table
-        :dataSource="filteredBanks"
-        :columns="columns"
-        :pagination="{
+      <div class="table-responsive">
+        <a-table
+          :dataSource="filteredBanks"
+          :columns="columns"
+          :pagination="{
             pageSize: 10,
             showTotal: (total:number) => `Total ${total} banks`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50'],
           }"
-        :loading="loading"
-        :rowClassName="rowClassName"
-        class="custom-table"
-      >
-        <!-- Bank Name Column -->
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'bankName'">
-            <div class="flex items-center">
-              <BankOutlined class="mr-2 text-gray-500" />
-              {{ record.bankName }}
-            </div>
+          :loading="loading"
+          :rowClassName="rowClassName"
+          class="custom-table"
+          :scroll="{ x: 1000 }"
+        >
+          <!-- Bank Name Column -->
+          <template #bodyCell="{ column, record }">
+            <template v-if="column.key === 'bankName'">
+              <div class="bank-name-cell">
+                <div class="bank-icon">
+                  <BankOutlined />
+                </div>
+                <span>{{ record.bankName }}</span>
+              </div>
+            </template>
+
+            <!-- Action Column -->
+            <template v-if="column.key === 'action'">
+              <div class="action-buttons">
+                <a-tooltip title="Edit Bank">
+                  <a-button
+                    type="primary"
+                    size="small"
+                    class="edit-btn"
+                    @click="showModal('edit', record)"
+                  >
+                    <template #icon>
+                      <EditOutlined class="pb-13" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+
+                <a-tooltip title="Delete Bank">
+                  <a-button type="primary" size="small" class="delete-btn">
+                    <template #icon>
+                      <DeleteOutlined class="pb-13" />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+              </div>
+            </template>
           </template>
-
-          <!-- Branch Name Column -->
-          <template v-if="column.key === 'branchName'">
-            <div class="font-medium">{{ record.branchName }}</div>
-          </template>
-
-          <!-- Action Column -->
-          <template v-if="column.key === 'action'">
-            <div class="flex space-x-2">
-              <a-tooltip title="View Details">
-                <a-button type="link" size="small" style="color: #4096ff">
-                  <template #icon>
-                    <EyeOutlined />
-                  </template>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip title="Edit Branch">
-                <a-button
-                  type="link"
-                  size="small"
-                  style="color: #22c55e"
-                  @click="showModal('edit', record)"
-                >
-                  <template #icon>
-                    <EditOutlined />
-                  </template>
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip title="Delete Branch">
-                <a-button type="link" size="small" danger>
-                  <template #icon>
-                    <DeleteOutlined />
-                  </template>
-                </a-button>
-              </a-tooltip>
-            </div>
-          </template>
-        </template>
-      </a-table>
+        </a-table>
+      </div>
     </div>
 
     <!-- Enhanced Professional Bank Modal -->
@@ -123,7 +141,7 @@
     >
       <!-- Custom Header -->
       <div class="modal-custom-header">
-        <div class="flex items-center">
+        <div class="modal-header-content">
           <div class="modal-icon">
             <template v-if="modalMode === 'add'">
               <PlusOutlined />
@@ -243,7 +261,9 @@
 
       <!-- Custom Footer -->
       <div class="modal-footer">
-        <a-button @click="modalVisible = false"> Cancel </a-button>
+        <a-button @click="modalVisible = false" class="cancel-btn">
+          Cancel
+        </a-button>
         <a-button type="primary" @click="handleModalSubmit" class="submit-btn">
           <template v-if="submitting">
             <LoadingOutlined />
@@ -272,6 +292,7 @@ import {
   MailOutlined,
   PhoneOutlined,
   LoadingOutlined,
+  ClockCircleOutlined,
 } from "@ant-design/icons-vue";
 
 // Search and filter states
@@ -285,7 +306,7 @@ const formRef = ref();
 
 // Function for row class name
 const rowClassName = (record: any, index: number) => {
-  return index % 2 === 0 ? "bg-gray-50" : "";
+  return index % 2 === 0 ? "table-row-light" : "table-row-dark";
 };
 
 // Form state for modal
@@ -463,46 +484,303 @@ const handleModalSubmit = () => {
 </script>
 
 <style scoped>
+/* Base container */
+.bank-management-container {
+  padding: 0;
+  background-color: var(--neutral-50);
+  min-height: 100vh;
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+}
+
+/* Header Section - Now using secondary colors */
+.header-section {
+  background: linear-gradient(
+    135deg,
+    var(--secondary-color) 0%,
+    var(--secondary-light) 100%
+  );
+  padding: 2rem;
+  color: white;
+  border-radius: 0 0 1rem 1rem;
+  margin-bottom: 1.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+.header-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .header-content {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.header-title {
+  font-size: 1.875rem;
+  font-weight: 700;
+  margin: 0;
+  line-height: 1.2;
+}
+
+.header-subtitle {
+  font-size: 1rem;
+  opacity: 0.9;
+  margin: 0.5rem 0 0 0;
+}
+
+/* Add Bank Button - Now using primary colors */
 .add-bank-btn {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  font-weight: 500;
+  height: 40px;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  transition: all 0.2s ease;
 }
 
 .add-bank-btn:hover {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+  transform: translateY(-1px);
 }
 
-:deep(.ant-table-thead > tr > th) {
-  background-color: #f8fafc;
+/* Stats Cards */
+.stats-container {
+  display: grid;
+  grid-template-columns: repeat(1, 1fr);
+  gap: 1rem;
+  padding: 0 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .stats-container {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 1024px) {
+  .stats-container {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+/* Stats Card - Now using secondary color for border */
+.stats-card {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  overflow: hidden;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  border-left: 4px solid var(--secondary-color);
+}
+
+.stats-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.stats-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1.5rem;
+}
+
+.stats-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.stats-label {
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  margin: 0 0 0.25rem 0;
+}
+
+.stats-value {
+  font-size: 1.875rem;
+  font-weight: 700;
+  color: var(--neutral-800);
+  margin: 0;
+}
+
+/* Stats Icons - Swapped colors */
+.stats-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: rgba(13, 148, 136, 0.1);
+  color: var(--secondary-color);
+  font-size: 1.5rem;
+}
+
+.stats-icon-navy {
+  background-color: rgba(10, 25, 47, 0.1);
+  color: var(--primary-color);
+}
+
+.stats-icon-teal-light {
+  background-color: rgba(20, 184, 166, 0.1);
+  color: var(--secondary-light);
+}
+
+/* Table Section */
+.table-container {
+  background-color: white;
+  border-radius: 1rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  margin: 0 1.5rem 1.5rem 1.5rem;
+  overflow: hidden;
+}
+
+.table-header {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+@media (min-width: 768px) {
+  .table-header {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.table-title {
+  font-size: 1.25rem;
   font-weight: 600;
+  color: var(--neutral-800);
+  margin: 0;
 }
 
+.search-input {
+  max-width: 100%;
+}
+
+@media (min-width: 768px) {
+  .search-input {
+    max-width: 300px;
+  }
+}
+
+.table-responsive {
+  overflow-x: auto;
+}
+
+/* Custom Table Styling */
+:deep(.custom-table .ant-table) {
+  background-color: transparent;
+}
+
+:deep(.custom-table .ant-table-thead > tr > th) {
+  background-color: var(--neutral-100);
+  color: var(--neutral-700);
+  font-weight: 600;
+  border-bottom: 2px solid var(--neutral-200);
+  padding: 1rem 1rem;
+}
+
+:deep(.custom-table .ant-table-tbody > tr > td) {
+  padding: 1rem 1rem;
+  border-bottom: 1px solid var(--neutral-200);
+}
+
+:deep(.table-row-light) {
+  background-color: #ffffff;
+}
+
+:deep(.table-row-dark) {
+  background-color: var(--neutral-50);
+}
+
+/* Table hover - Now using primary color */
+:deep(.custom-table .ant-table-tbody > tr.ant-table-row:hover > td) {
+  background-color: rgba(10, 25, 47, 0.05) !important;
+}
+
+/* Pagination - Now using secondary color */
 :deep(.ant-pagination-item-active) {
-  border-color: #22c55e;
+  border-color: var(--secondary-color);
 }
 
 :deep(.ant-pagination-item-active a) {
-  color: #22c55e;
+  color: var(--secondary-color);
 }
 
-:deep(.ant-table-row:hover > td) {
-  background-color: #f0fdf4 !important;
-}
-
+/* Search button - Now using secondary color */
 :deep(.ant-input-search-button) {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--secondary-color);
+  border-color: var(--secondary-color);
 }
 
 :deep(.ant-input-search-button:hover) {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--secondary-light);
+  border-color: var(--secondary-light);
+}
+
+/* Bank Name Cell - Now using secondary color */
+.bank-name-cell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.bank-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 0.5rem;
+  background-color: rgba(13, 148, 136, 0.1);
+  color: var(--secondary-color);
+}
+
+/* Action Buttons - Swapped colors */
+.action-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.edit-btn {
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+}
+
+.edit-btn:hover {
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
+}
+
+.delete-btn {
+  background-color: #ef4444;
+  border-color: #ef4444;
+}
+
+.delete-btn:hover {
+  background-color: #dc2626;
+  border-color: #dc2626;
 }
 
 /* Modal Styling */
 .bank-modal :deep(.ant-modal-content) {
-  border-radius: 12px;
+  border-radius: 1rem;
   overflow: hidden;
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
@@ -512,96 +790,157 @@ const handleModalSubmit = () => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
-  background-color: #f9fafb;
-  border-bottom: 1px solid #e5e7eb;
+  padding: 1.5rem;
+  background-color: var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-200);
 }
 
+.modal-header-content {
+  display: flex;
+  align-items: center;
+}
+
+/* Modal icon - Now using primary color */
 .modal-icon {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  background-color: #22c55e;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background-color: var(--primary-color);
   color: white;
-  margin-right: 16px;
-  font-size: 18px;
+  margin-right: 1rem;
+  font-size: 1.25rem;
 }
 
 .modal-title {
-  font-size: 18px;
+  font-size: 1.25rem;
   font-weight: 600;
-  color: #111827;
+  color: var(--neutral-800);
   margin: 0;
 }
 
 .modal-subtitle {
-  font-size: 14px;
-  color: #6b7280;
-  margin: 4px 0 0 0;
+  font-size: 0.875rem;
+  color: var(--neutral-500);
+  margin: 0.25rem 0 0 0;
 }
 
 .modal-close-btn {
-  color: #6b7280;
+  color: var(--neutral-500);
+  border-radius: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.modal-close-btn:hover {
+  background-color: var(--neutral-200);
+  color: var(--neutral-800);
 }
 
 .modal-content {
-  padding: 24px;
+  padding: 1.5rem;
   max-height: 60vh;
   overflow-y: auto;
 }
 
 .form-section {
-  margin-bottom: 24px;
+  margin-bottom: 1.5rem;
 }
 
 .form-section-title {
-  font-size: 16px;
+  font-size: 1rem;
   font-weight: 600;
-  color: #374151;
-  margin-bottom: 16px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid #e5e7eb;
+  color: var(--neutral-700);
+  margin-bottom: 1rem;
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--neutral-200);
 }
 
 .form-row {
   display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  grid-template-columns: 1fr;
+  gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (min-width: 640px) {
   .form-row {
-    grid-template-columns: 1fr;
+    grid-template-columns: 1fr 1fr;
   }
 }
 
 .form-item {
-  margin-bottom: 16px;
+  margin-bottom: 1rem;
 }
 
 .modal-footer {
   display: flex;
   justify-content: flex-end;
-  gap: 12px;
-  padding: 16px 24px;
-  background-color: #f9fafb;
-  border-top: 1px solid #e5e7eb;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background-color: var(--neutral-100);
+  border-top: 1px solid var(--neutral-200);
 }
 
+.cancel-btn {
+  border-radius: 0.5rem;
+}
+
+/* Submit button - Now using primary color */
 .submit-btn {
-  background-color: #22c55e;
-  border-color: #22c55e;
+  background-color: var(--primary-color);
+  border-color: var(--primary-color);
+  border-radius: 0.5rem;
+  font-weight: 500;
 }
 
 .submit-btn:hover {
-  background-color: #16a34a;
-  border-color: #16a34a;
+  background-color: var(--primary-light);
+  border-color: var(--primary-light);
 }
 
 :deep(.site-form-item-icon) {
-  color: rgba(0, 0, 0, 0.45);
+  color: var(--neutral-400);
+}
+
+/* Responsive adjustments */
+@media (max-width: 480px) {
+  .header-section {
+    padding: 1.5rem;
+  }
+
+  .header-title {
+    font-size: 1.5rem;
+  }
+
+  .stats-container {
+    padding: 0 1rem;
+  }
+
+  .table-container {
+    margin: 0 1rem 1rem 1rem;
+  }
+
+  .table-header {
+    padding: 1rem;
+  }
+
+  .modal-content {
+    padding: 1rem;
+  }
+}
+
+@media (min-width: 1280px) {
+  .header-section {
+    padding: 2.5rem;
+  }
+
+  .stats-container {
+    padding: 0 2rem;
+  }
+
+  .table-container {
+    margin: 0 2rem 2rem 2rem;
+  }
 }
 </style>
