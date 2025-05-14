@@ -120,7 +120,7 @@
           pageSize: 10,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
-          showTotal: (total) => `Total ${total} items`,
+          showTotal: (total:number) => `Total ${total} items`,
         }"
         :rowSelection="{
           selectedRowKeys: selectedRowKeys,
