@@ -85,9 +85,21 @@ export const useMenuStore = defineStore("menu", () => {
           icon: undefined,
         },
         {
-          key: "dispatch-requisitions",
-          title: "Dispatch Requisitions",
-          path: "/requisitions/dispatch",
+          key: "downloaded-requisitions",
+          title: "Downloaded Requisitions",
+          path: "/requisitions/downloaded",
+          icon: undefined,
+        },
+        {
+          key: "dispatched-requisitions",
+          title: "Dispatched Requisitions",
+          path: "/requisitions/dispatched",
+          icon: undefined,
+        },
+        {
+          key: "confirmed-delivery-requisitions",
+          title: "Confirmed Delivery Requisitions",
+          path: "/requisitions/confirmed-delivery",
           icon: undefined,
         },
         {

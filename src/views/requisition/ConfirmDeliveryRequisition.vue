@@ -3,11 +3,11 @@
     <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-4 md:mb-0">
-          <span class="text-purple-600">Download</span> Requisition Management
+          <span class="text-amber-600">Confirm Delivery</span> Requisition Management
         </h1>
         
         <div class="flex gap-3">
-          <a-button type="primary" class="bg-purple-600 hover:bg-purple-700 border-0" @click="refreshData">
+          <a-button type="primary" class="bg-amber-600 hover:bg-amber-700 border-0" @click="refreshData">
             <template #icon><ReloadOutlined /></template>
             Refresh
           </a-button>
@@ -26,19 +26,13 @@
             :allowClear="true"
           />
 
-          <!-- Bank Filter -->
-          <a-select
+          <!-- Bank Filter (Read-only) -->
+          <a-input
             v-model:value="bankFilter"
-            placeholder="Select Bank"
+            placeholder="Bank"
             class="w-full md:w-48"
-            @change="handleBankFilterChange"
-          >
-            <a-select-option value="">All Banks</a-select-option>
-            <a-select-option value="National Bank">National Bank</a-select-option>
-            <a-select-option value="City Bank">City Bank</a-select-option>
-            <a-select-option value="Metro Bank">Metro Bank</a-select-option>
-            <a-select-option value="Global Bank">Global Bank</a-select-option>
-          </a-select>
+            disabled
+          />
 
           <!-- Branch Filter - Dynamic based on selected bank -->
           <a-select
@@ -46,7 +40,6 @@
             placeholder="Select Branch"
             class="w-full md:w-48"
             @change="handleBranchFilterChange"
-            :disabled="!bankFilter"
           >
             <a-select-option value="">All Branches</a-select-option>
             <template v-for="branch in availableBranches" :key="branch.value">
@@ -89,61 +82,46 @@
           <a-button
             v-if="hasSelectedItems"
             type="primary"
-            @click="handleBulkDispatch"
-            class="action-button download-button"
-            :disabled="!selectedItemsSameBank"
+            @click="handleBulkConfirmDelivery"
+            class="action-button confirm-button"
           >
-            <template #icon><SendOutlined /></template>
-            Dispatch Selected ({{ selectedRowKeys.length }})
+            <template #icon><CheckCircleOutlined /></template>
+            Confirm Delivery Receive ({{ selectedRowKeys.length }})
           </a-button>
           
           <span v-if="selectedRowKeys.length > 0" class="text-sm text-slate-500 ml-2">
             {{ selectedRowKeys.length }} item(s) selected
           </span>
         </div>
-        
-        <div v-if="!selectedItemsSameBank && hasSelectedItems" class="text-red-500 text-sm">
-          {{ mixedBankErrorMessage }}
-        </div>
       </div>
 
-      <!-- Downloaded Items Stats -->
-      <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a-card class="stats-card downloaded-card">
+      <!-- Dispatched Items Stats -->
+      <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <a-card class="stats-card dispatched-card">
           <template #title>
             <div class="flex items-center">
-              <DownloadOutlined class="text-purple-500 mr-2" />
-              <span>Download Items</span>
+              <SendOutlined class="text-amber-500 mr-2" />
+              <span>Pending Delivery Items</span>
             </div>
           </template>
-          <p class="text-2xl font-bold text-purple-600">{{ downloadedItems.length }}</p>
-        </a-card>
-        
-        <a-card class="stats-card bank-card">
-          <template #title>
-            <div class="flex items-center">
-              <BankOutlined class="text-blue-500 mr-2" />
-              <span>Banks</span>
-            </div>
-          </template>
-          <p class="text-2xl font-bold text-blue-600">{{ uniqueBanksCount }}</p>
+          <p class="text-2xl font-bold text-amber-600">{{ dispatchedItems.length }}</p>
         </a-card>
         
         <a-card class="stats-card branch-card">
           <template #title>
             <div class="flex items-center">
-              <BranchesOutlined class="text-green-500 mr-2" />
+              <BranchesOutlined class="text-purple-500 mr-2" />
               <span>Branches</span>
             </div>
           </template>
-          <p class="text-2xl font-bold text-green-600">{{ uniqueBranchesCount }}</p>
+          <p class="text-2xl font-bold text-purple-600">{{ uniqueBranchesCount }}</p>
         </a-card>
       </div>
 
-      <!-- Downloaded Requisition Items Table -->
+      <!-- Dispatched Requisition Items Table -->
       <a-table
-        :dataSource="filteredDownloadedItems"
-        :columns="downloadedItemColumns"
+        :dataSource="filteredDispatchedItems"
+        :columns="dispatchedItemColumns"
         :loading="loading"
         :pagination="{
           pageSize: 10,
@@ -154,6 +132,11 @@
         :rowSelection="{
           selectedRowKeys: selectedRowKeys,
           onChange: onSelectChange,
+          selections: [
+            Table.SELECTION_ALL,
+            Table.SELECTION_INVERT,
+            Table.SELECTION_NONE,
+          ],
         }"
         rowKey="id"
         class="mb-6 custom-table"
@@ -173,24 +156,23 @@
           <!-- Status Column -->
           <template v-if="column.key === 'status'">
             <a-tag
-              color="purple"
+              color="amber"
               class="px-3 py-1 rounded-full"
             >
-              Download
+              Dispatched
             </a-tag>
           </template>
 
           <!-- Actions Column -->
           <template v-if="column.key === 'actions'">
             <div class="flex justify-center">
-              <!-- Dispatch Button -->
               <a-button 
                 type="primary" 
-                class="action-button download-button"
-                @click="dispatchItem(record)"
+                class="action-button confirm-button"
+                @click="confirmDeliveryItem(record)"
               >
-                <template #icon><SendOutlined /></template>
-                Dispatch
+                <template #icon><CheckCircleOutlined /></template>
+                Confirm Delivery
               </a-button>
             </div>
           </template>
@@ -198,27 +180,26 @@
       </a-table>
       
       <!-- Empty State -->
-      <div v-if="!loading && downloadedItems.length === 0" class="text-center py-12 bg-slate-50 rounded-lg">
+      <div v-if="!loading && dispatchedItems.length === 0" class="text-center py-12 bg-slate-50 rounded-lg">
         <InboxOutlined style="font-size: 48px" class="text-slate-300" />
-        <p class="mt-3 text-slate-500 text-lg">No download requisitions found</p>
-        <p class="text-slate-400">No requisitions are available for download yet</p>
+        <p class="mt-3 text-slate-500 text-lg">No pending delivery items found</p>
+        <p class="text-slate-400">No items are pending delivery confirmation for this bank</p>
       </div>
     </div>
 
     <!-- Confirmation Modal -->
-    <!-- <a-modal
+    <a-modal
       v-model:visible="confirmModalVisible"
       :title="confirmModalTitle"
       @ok="handleConfirmAction"
       :okText="confirmModalOkText"
       :okButtonProps="{
         type: 'primary',
-        danger: confirmModalAction === 'delete',
         class: confirmModalButtonClass,
       }"
     >
       <p>{{ confirmModalMessage }}</p>
-    </a-modal> -->
+    </a-modal>
   </div>
 </template>
 
@@ -226,15 +207,13 @@
 import { defineComponent, ref, computed, onMounted, watch } from "vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
+import { Table } from "ant-design-vue";
 import {
   SendOutlined,
-  EditOutlined,
-  DeleteOutlined,
   ReloadOutlined,
-  DownloadOutlined,
-  BankOutlined,
   BranchesOutlined,
-  InboxOutlined
+  InboxOutlined,
+  CheckCircleOutlined
 } from "@ant-design/icons-vue";
 
 interface ChequeItem {
@@ -260,6 +239,7 @@ interface ChequeItem {
   status?: string;
   requestDate: string;
   challanNo: string;
+  dispatchDate?: string;
 }
 
 interface BranchOption {
@@ -268,34 +248,37 @@ interface BranchOption {
 }
 
 export default defineComponent({
-  name: "DownloadRequisitionList",
+  name: "ConfirmDeliveryList",
   components: {
     SendOutlined,
-    EditOutlined,
-    DeleteOutlined,
     ReloadOutlined,
-    DownloadOutlined,
-    BankOutlined,
     BranchesOutlined,
-    InboxOutlined
+    InboxOutlined,
+    CheckCircleOutlined
   },
-  setup() {
+  props: {
+    bankName: {
+      type: String,
+      required: true,
+      default: "National Bank" // Default bank for demo purposes
+    }
+  },
+  setup(props) {
     const loading = ref(true);
     const searchText = ref("");
     const severityFilter = ref("");
-    const bankFilter = ref("");
+    const bankFilter = ref(props.bankName);
     const branchFilter = ref("");
     const dateRange = ref<[Dayjs, Dayjs] | null>(null);
     const allItems = ref<ChequeItem[]>([]);
     const selectedRowKeys = ref<number[]>([]);
+    const challanNoFilter = ref("");
     const confirmModalVisible = ref(false);
     const confirmModalTitle = ref("");
     const confirmModalMessage = ref("");
     const confirmModalOkText = ref("");
-    const confirmModalAction = ref("");
     const confirmModalButtonClass = ref("");
     const itemToAction = ref<ChequeItem | null>(null);
-    const challanNoFilter = ref("");
 
     // Bank to branches mapping
     const bankBranchesMap = {
@@ -322,52 +305,28 @@ export default defineComponent({
 
     // Available branches based on selected bank
     const availableBranches = computed(() => {
-      if (!bankFilter.value) return [];
       return bankBranchesMap[bankFilter.value as keyof typeof bankBranchesMap] || [];
     });
 
-    // Filter to only downloaded items
-    const downloadedItems = computed(() => {
-      return allItems.value.filter(item => item.status === 'Download');
-    });
-    
-    // Count of unique banks
-    const uniqueBanksCount = computed(() => {
-      const banks = new Set(downloadedItems.value.map(item => item.bankName));
-      return banks.size;
+    // Filter to only dispatched items for the selected bank
+    const dispatchedItems = computed(() => {
+      return allItems.value.filter(item => 
+        item.status === 'Dispatched' && 
+        item.bankName === bankFilter.value
+      );
     });
     
     // Count of unique branches
     const uniqueBranchesCount = computed(() => {
-      const branches = new Set(downloadedItems.value.map(item => item.branchName));
+      const branches = new Set(dispatchedItems.value.map(item => item.branchName));
       return branches.size;
     });
 
     // Computed property to check if any items are selected
     const hasSelectedItems = computed(() => selectedRowKeys.value.length > 0);
 
-    // Check if all selected items belong to the same bank
-    const selectedItemsSameBank = computed(() => {
-      if (selectedRowKeys.value.length <= 1) return true;
-      
-      const selectedItems = allItems.value.filter(item => 
-        selectedRowKeys.value.includes(item.id) && item.status === 'Download'
-      );
-      
-      if (selectedItems.length === 0) return true;
-      
-      const firstBankName = selectedItems[0].bankName;
-      return selectedItems.every(item => item.bankName === firstBankName);
-    });
-
-    // Get the error message for mixed bank selection
-    const mixedBankErrorMessage = computed(() => {
-      if (selectedItemsSameBank.value) return '';
-      return 'Cannot dispatch items from different banks together';
-    });
-
-    // Downloaded item columns for the table
-    const downloadedItemColumns = [
+    // Dispatched item columns for the table
+    const dispatchedItemColumns = [
       {
         title: "Account No",
         dataIndex: "accountNo",
@@ -381,19 +340,6 @@ export default defineComponent({
         key: "accountName",
         sorter: (a: ChequeItem, b: ChequeItem) => a.accountName.localeCompare(b.accountName),
         width: 180,
-      },
-      {
-        title: "Bank",
-        dataIndex: "bankName",
-        key: "bankName",
-        width: 150,
-        filters: [
-          { text: "National Bank", value: "National Bank" },
-          { text: "City Bank", value: "City Bank" },
-          { text: "Metro Bank", value: "Metro Bank" },
-          { text: "Global Bank", value: "Global Bank" },
-        ],
-        onFilter: (value: string, record: ChequeItem) => record.bankName === value,
       },
       {
         title: "Branch",
@@ -434,13 +380,13 @@ export default defineComponent({
         onFilter: (value: string, record: ChequeItem) => record.severity === value,
       },
       {
-        title: "Request Date",
-        dataIndex: "requestDate",
-        key: "requestDate",
+        title: "Dispatch Date",
+        dataIndex: "dispatchDate",
+        key: "dispatchDate",
         width: 150,
         render: (text: string) => formatDate(text),
         sorter: (a: ChequeItem, b: ChequeItem) => 
-          new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
+          new Date(a.dispatchDate || '').getTime() - new Date(b.dispatchDate || '').getTime(),
       },
       {
         title: "Status",
@@ -466,6 +412,7 @@ export default defineComponent({
 
     // Format date for display
     const formatDate = (dateString: string) => {
+      if (!dateString) return '';
       const date = new Date(dateString);
       return date.toLocaleDateString("en-US", {
         year: "numeric",
@@ -474,9 +421,9 @@ export default defineComponent({
       });
     };
 
-    // Computed property for filtered downloaded items
-    const filteredDownloadedItems = computed(() => {
-      let result = [...downloadedItems.value];
+    // Computed property for filtered dispatched items
+    const filteredDispatchedItems = computed(() => {
+      let result = [...dispatchedItems.value];
 
       // Apply search filter
       if (searchText.value) {
@@ -485,7 +432,6 @@ export default defineComponent({
           (item) =>
             item.accountNo.toLowerCase().includes(searchLower) ||
             item.accountName.toLowerCase().includes(searchLower) ||
-            item.bankName.toLowerCase().includes(searchLower) ||
             item.branchName.toLowerCase().includes(searchLower)
         );
       }
@@ -493,11 +439,6 @@ export default defineComponent({
       // Apply severity filter
       if (severityFilter.value) {
         result = result.filter((item) => item.severity === severityFilter.value);
-      }
-      
-      // Apply bank filter
-      if (bankFilter.value) {
-        result = result.filter((item) => item.bankName === bankFilter.value);
       }
       
       // Apply branch filter
@@ -511,8 +452,8 @@ export default defineComponent({
         const endDate = dateRange.value[1].valueOf();
 
         result = result.filter((item) => {
-          const reqDate = new Date(item.requestDate).getTime();
-          return reqDate >= startDate && reqDate <= endDate;
+          const dispDate = new Date(item.dispatchDate || '').getTime();
+          return dispDate >= startDate && dispDate <= endDate;
         });
       }
 
@@ -560,11 +501,25 @@ export default defineComponent({
       const severities = ["High", "Medium", "Low"];
 
       return Array.from({ length: 50 }, (_, i) => {
-        // For dispatch page, make more items have Download status
-        const randomStatus = Math.random() < 0.7 ? "Download" : statuses[Math.floor(Math.random() * statuses.length)];
+        // For confirm delivery page, make more items have Dispatched status
+        const randomStatus = Math.random() < 0.7 ? "Dispatched" : statuses[Math.floor(Math.random() * statuses.length)];
         const bank = banks[i % 4];
         const branchOptions = bankBranchesMap[bank as keyof typeof bankBranchesMap];
         const branch = branchOptions[i % branchOptions.length].value;
+        
+        // Generate a request date
+        const requestDate = new Date(
+          2023,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        );
+        
+        // Generate a dispatch date that's after the request date (if status is Dispatched)
+        let dispatchDate = null;
+        if (randomStatus === "Dispatched") {
+          dispatchDate = new Date(requestDate);
+          dispatchDate.setDate(dispatchDate.getDate() + Math.floor(Math.random() * 14) + 1); // 1-14 days after request
+        }
         
         return {
           id: i + 1,
@@ -586,11 +541,8 @@ export default defineComponent({
           distributionPointName: `Distribution Point ${(i % 5) + 1}`,
           receivingBranch: branch,
           status: randomStatus,
-          requestDate: new Date(
-            2023,
-            Math.floor(Math.random() * 12),
-            Math.floor(Math.random() * 28) + 1
-          ).toISOString(),
+          requestDate: requestDate.toISOString(),
+          dispatchDate: dispatchDate ? dispatchDate.toISOString() : undefined,
           challanNo: `CHN-${10000 + i}`,
         };
       });
@@ -617,12 +569,6 @@ export default defineComponent({
       severityFilter.value = value;
     };
 
-    // Handle bank filter change
-    const handleBankFilterChange = (value: string) => {
-      bankFilter.value = value;
-      branchFilter.value = ""; // Reset branch filter when bank changes
-    };
-
     // Handle branch filter change
     const handleBranchFilterChange = (value: string) => {
       branchFilter.value = value;
@@ -638,68 +584,67 @@ export default defineComponent({
       selectedRowKeys.value = keys;
     };
 
-    // Dispatch a single item
-    const dispatchItem = (record: ChequeItem) => {
-      confirmModalTitle.value = `Dispatch Item`;
-      confirmModalMessage.value = `Are you sure you want to Dispatch this item to the next stage?`;
-      confirmModalOkText.value = "Dispatch";
-      confirmModalAction.value = "dispatch";
-      confirmModalButtonClass.value = "download-button";
-      itemToAction.value = record;
-      confirmModalVisible.value = true;
-    };
-
-    // Handle bulk Dispatch
-    const handleBulkDispatch = () => {
-      if (selectedRowKeys.value.length === 0) {
-        message.warning("Please select at least one item");
-        return;
-      }
-      
-      confirmModalTitle.value = `Dispatch Selected Items`;
-      confirmModalMessage.value = `Are you sure you want to Dispatch ${selectedRowKeys.value.length} selected item(s) to the next stage?`;
-      confirmModalOkText.value = "Dispatch All";
-      confirmModalAction.value = "bulkDispatch";
-      confirmModalButtonClass.value = "download-button";
-      confirmModalVisible.value = true;
-    };
-
-    // Handle confirm action
-    const handleConfirmAction = () => {
-      if (confirmModalAction.value === "dispatch" && itemToAction.value) {
-        const itemIndex = allItems.value.findIndex(
-          (item) => item.id === itemToAction.value?.id
-        );
-
-        if (itemIndex !== -1) {
-          // Update the item status to the next stage (Dispatched)
-          allItems.value[itemIndex].status = "Dispatched";
-          message.success(`Item dispatched successfully`);
-        }
-      } else if (confirmModalAction.value === "bulkDispatch") {
-        // Update all selected items
-        allItems.value = allItems.value.map(item => {
-          if (selectedRowKeys.value.includes(item.id)) {
-            return { ...item, status: "Dispatched" };
-          }
-          return item;
-        });
-
-        message.success(`Successfully dispatched ${selectedRowKeys.value.length} item(s)`);
-        selectedRowKeys.value = []; // Clear selection after bulk update
-      }
-
-      confirmModalVisible.value = false;
-      itemToAction.value = null;
-    };
-
     // Handle challan no filter change
     const handleChallanNoFilterChange = (e: Event) => {
       challanNoFilter.value = (e.target as HTMLInputElement).value;
     };
 
+    // Confirm delivery for a single item
+    const confirmDeliveryItem = (record: ChequeItem) => {
+      confirmModalTitle.value = `Confirm Delivery`;
+      confirmModalMessage.value = `Are you sure you want to confirm delivery receipt for this item?`;
+      confirmModalOkText.value = "Confirm";
+      confirmModalButtonClass.value = "confirm-button";
+      itemToAction.value = record;
+      confirmModalVisible.value = true;
+    };
+
+    // Handle bulk confirm delivery
+    const handleBulkConfirmDelivery = () => {
+      if (selectedRowKeys.value.length === 0) {
+        message.warning("Please select at least one item");
+        return;
+      }
+      
+      confirmModalTitle.value = `Confirm Delivery Receipt`;
+      confirmModalMessage.value = `Are you sure you want to confirm delivery receipt for ${selectedRowKeys.value.length} selected item(s)?`;
+      confirmModalOkText.value = "Confirm All";
+      confirmModalButtonClass.value = "confirm-button";
+      confirmModalVisible.value = true;
+    };
+
+    // Handle confirm action
+    const handleConfirmAction = () => {
+      if (itemToAction.value) {
+        // Single item confirmation
+        const itemIndex = allItems.value.findIndex(
+          (item) => item.id === itemToAction.value?.id
+        );
+
+        if (itemIndex !== -1) {
+          // Update the item status to Delivery Receive
+          allItems.value[itemIndex].status = "Delivery Receive";
+          message.success(`Delivery receipt confirmed successfully`);
+        }
+        itemToAction.value = null;
+      } else {
+        // Bulk confirmation
+        allItems.value = allItems.value.map(item => {
+          if (selectedRowKeys.value.includes(item.id)) {
+            return { ...item, status: "Delivery Receive" };
+          }
+          return item;
+        });
+
+        message.success(`Successfully confirmed delivery receipt for ${selectedRowKeys.value.length} item(s)`);
+        selectedRowKeys.value = []; // Clear selection after bulk update
+      }
+
+      confirmModalVisible.value = false;
+    };
+
     // Reset selection when filtered items change
-    watch([severityFilter, bankFilter, branchFilter, searchText, challanNoFilter], () => {
+    watch([severityFilter, branchFilter, searchText, challanNoFilter], () => {
       selectedRowKeys.value = [];
     });
 
@@ -715,15 +660,12 @@ export default defineComponent({
       bankFilter,
       branchFilter,
       dateRange,
-      downloadedItemColumns,
+      dispatchedItemColumns,
       allItems,
-      downloadedItems,
-      filteredDownloadedItems,
+      dispatchedItems,
+      filteredDispatchedItems,
       selectedRowKeys,
       hasSelectedItems,
-      selectedItemsSameBank,
-      mixedBankErrorMessage,
-      uniqueBanksCount,
       uniqueBranchesCount,
       availableBranches,
       confirmModalVisible,
@@ -731,20 +673,20 @@ export default defineComponent({
       confirmModalMessage,
       confirmModalOkText,
       confirmModalButtonClass,
-      handleSearch,
-      handleSeverityFilterChange,
-      handleBankFilterChange,
-      handleBranchFilterChange,
-      handleDateRangeChange,
-      onSelectChange,
-      dispatchItem,
-      handleBulkDispatch,
-      handleConfirmAction,
       getSeverityColor,
       formatDate,
       refreshData,
+      handleSearch,
+      handleSeverityFilterChange,
+      handleBranchFilterChange,
+      handleDateRangeChange,
+      onSelectChange,
+      confirmDeliveryItem,
+      handleBulkConfirmDelivery,
+      handleConfirmAction,
       challanNoFilter,
       handleChallanNoFilterChange,
+      Table,
     };
   },
 });
@@ -764,7 +706,7 @@ export default defineComponent({
 }
 
 .custom-table :deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
-  background-color: #f3e8ff;
+  background-color: #fef3c7;
 }
 
 .custom-table :deep(.ant-table) {
@@ -785,19 +727,14 @@ export default defineComponent({
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.downloaded-card {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  border-color: #d8b4fe;
-}
-
-.bank-card {
-  background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
-  border-color: #93c5fd;
+.dispatched-card {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  border-color: #fcd34d;
 }
 
 .branch-card {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #6ee7b7;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #d8b4fe;
 }
 
 /* Modern action buttons */
@@ -819,35 +756,14 @@ export default defineComponent({
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
-.download-button {
-  background-color: #9333ea;
-  border-color: #9333ea;
+.confirm-button {
+  background-color: #d97706;
+  border-color: #d97706;
 }
 
-.download-button:hover {
-  background-color: #7e22ce;
-  border-color: #7e22ce;
-}
-
-.edit-button, .delete-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.edit-button:hover:not(:disabled) {
-  color: #1890ff;
-  border-color: #1890ff;
-  background-color: #e6f7ff;
-}
-
-.delete-button:hover:not(:disabled) {
-  background-color: #fff1f0;
+.confirm-button:hover {
+  background-color: #b45309;
+  border-color: #b45309;
 }
 
 /* Transition effects */

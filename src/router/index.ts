@@ -63,39 +63,51 @@ const router = createRouter({
         },
         {
           path: "/requisitions/new",
-          name: "New Requisition",
+          name: " Requisition/ New Requisition",
           component: () => import("@/views/requisition/CreateRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/all",
-          name: "All Requisitions",
+          name: " Requisition/ All Requisitions",
           component: AllRequisition, // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/pending",
-          name: "Pending Requisitions",
+          name: " Requisition/ Pending Requisitions",
           component: () => import("@/views/requisition/PendingRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/approved",
-          name: "Approved Requisitions",
+          name: " Requisition/ Approved Requisitions",
           component: () =>
             import("@/views/requisition/ApprovedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/ordered",
-          name: "Ordered Requisitions",
+          name: " Requisition/ Ordered Requisitions",
           component: () => import("@/views/requisition/OrderedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
-          path: "/requisitions/dispatch",
-          name: "Dispatch Requisitions",
+          path: "/requisitions/downloaded",
+          name: " Requisition/ Downloaded Requisitions",
+          component: () =>
+            import("@/views/requisition/DownloadedRequisition.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/requisitions/dispatched",
+          name: " Requisition/ Dispatched Requisitions",
           component: () =>
             import("@/views/requisition/DispatchedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
+          path: "/requisitions/confirmed-delivery",
+          name: " Requisition/ Confirmed Delivery Requisitions",
+          component: () =>
+            import("@/views/requisition/ConfirmDeliveryRequisition.vue"), // Placeholder, would be a real page in production
+        },
+        {
           path: "/requisitions/delivered",
-          name: "Delivered Requisitions",
+          name: " Requisition/ Delivered Requisitions",
           component: () => import("@/views/requisition/AllRequisition.vue"), // Placeholder, would be a real page in production
         },
         {

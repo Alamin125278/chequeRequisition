@@ -3,11 +3,11 @@
     <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200">
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-4 md:mb-0">
-          <span class="text-purple-600">Download</span> Requisition Management
+          <span class="text-green-600">Dispatch</span> Requisition Management
         </h1>
         
         <div class="flex gap-3">
-          <a-button type="primary" class="bg-purple-600 hover:bg-purple-700 border-0" @click="refreshData">
+          <a-button type="primary" class="bg-green-600 hover:bg-green-700 border-0" @click="refreshData">
             <template #icon><ReloadOutlined /></template>
             Refresh
           </a-button>
@@ -83,40 +83,16 @@
         </div>
       </div>
 
-      <!-- Bulk Actions -->
-      <div class="mb-4 flex flex-col gap-2">
-        <div class="flex flex-wrap gap-3 items-center">
-          <a-button
-            v-if="hasSelectedItems"
-            type="primary"
-            @click="handleBulkDispatch"
-            class="action-button download-button"
-            :disabled="!selectedItemsSameBank"
-          >
-            <template #icon><SendOutlined /></template>
-            Dispatch Selected ({{ selectedRowKeys.length }})
-          </a-button>
-          
-          <span v-if="selectedRowKeys.length > 0" class="text-sm text-slate-500 ml-2">
-            {{ selectedRowKeys.length }} item(s) selected
-          </span>
-        </div>
-        
-        <div v-if="!selectedItemsSameBank && hasSelectedItems" class="text-red-500 text-sm">
-          {{ mixedBankErrorMessage }}
-        </div>
-      </div>
-
-      <!-- Downloaded Items Stats -->
+      <!-- Dispatched Items Stats -->
       <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <a-card class="stats-card downloaded-card">
+        <a-card class="stats-card dispatched-card">
           <template #title>
             <div class="flex items-center">
-              <DownloadOutlined class="text-purple-500 mr-2" />
-              <span>Download Items</span>
+              <SendOutlined class="text-green-500 mr-2" />
+              <span>Dispatched Items</span>
             </div>
           </template>
-          <p class="text-2xl font-bold text-purple-600">{{ downloadedItems.length }}</p>
+          <p class="text-2xl font-bold text-green-600">{{ dispatchedItems.length }}</p>
         </a-card>
         
         <a-card class="stats-card bank-card">
@@ -132,28 +108,24 @@
         <a-card class="stats-card branch-card">
           <template #title>
             <div class="flex items-center">
-              <BranchesOutlined class="text-green-500 mr-2" />
+              <BranchesOutlined class="text-purple-500 mr-2" />
               <span>Branches</span>
             </div>
           </template>
-          <p class="text-2xl font-bold text-green-600">{{ uniqueBranchesCount }}</p>
+          <p class="text-2xl font-bold text-purple-600">{{ uniqueBranchesCount }}</p>
         </a-card>
       </div>
 
-      <!-- Downloaded Requisition Items Table -->
+      <!-- Dispatched Requisition Items Table -->
       <a-table
-        :dataSource="filteredDownloadedItems"
-        :columns="downloadedItemColumns"
+        :dataSource="filteredDispatchedItems"
+        :columns="dispatchedItemColumns"
         :loading="loading"
         :pagination="{
           pageSize: 10,
           showSizeChanger: true,
           pageSizeOptions: ['10', '20', '50'],
           showTotal: (total:number) => `Total ${total} items`,
-        }"
-        :rowSelection="{
-          selectedRowKeys: selectedRowKeys,
-          onChange: onSelectChange,
         }"
         rowKey="id"
         class="mb-6 custom-table"
@@ -173,52 +145,22 @@
           <!-- Status Column -->
           <template v-if="column.key === 'status'">
             <a-tag
-              color="purple"
+              color="green"
               class="px-3 py-1 rounded-full"
             >
-              Download
+              Dispatched
             </a-tag>
-          </template>
-
-          <!-- Actions Column -->
-          <template v-if="column.key === 'actions'">
-            <div class="flex justify-center">
-              <!-- Dispatch Button -->
-              <a-button 
-                type="primary" 
-                class="action-button download-button"
-                @click="dispatchItem(record)"
-              >
-                <template #icon><SendOutlined /></template>
-                Dispatch
-              </a-button>
-            </div>
           </template>
         </template>
       </a-table>
       
       <!-- Empty State -->
-      <div v-if="!loading && downloadedItems.length === 0" class="text-center py-12 bg-slate-50 rounded-lg">
+      <div v-if="!loading && dispatchedItems.length === 0" class="text-center py-12 bg-slate-50 rounded-lg">
         <InboxOutlined style="font-size: 48px" class="text-slate-300" />
-        <p class="mt-3 text-slate-500 text-lg">No download requisitions found</p>
-        <p class="text-slate-400">No requisitions are available for download yet</p>
+        <p class="mt-3 text-slate-500 text-lg">No dispatched requisitions found</p>
+        <p class="text-slate-400">No requisitions have been dispatched yet</p>
       </div>
     </div>
-
-    <!-- Confirmation Modal -->
-    <a-modal
-      v-model:visible="confirmModalVisible"
-      :title="confirmModalTitle"
-      @ok="handleConfirmAction"
-      :okText="confirmModalOkText"
-      :okButtonProps="{
-        type: 'primary',
-        danger: confirmModalAction === 'delete',
-        class: confirmModalButtonClass,
-      }"
-    >
-      <p>{{ confirmModalMessage }}</p>
-    </a-modal>
   </div>
 </template>
 
@@ -228,10 +170,7 @@ import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import {
   SendOutlined,
-  EditOutlined,
-  DeleteOutlined,
   ReloadOutlined,
-  DownloadOutlined,
   BankOutlined,
   BranchesOutlined,
   InboxOutlined
@@ -260,6 +199,7 @@ interface ChequeItem {
   status?: string;
   requestDate: string;
   challanNo: string;
+  dispatchDate?: string;
 }
 
 interface BranchOption {
@@ -268,13 +208,10 @@ interface BranchOption {
 }
 
 export default defineComponent({
-  name: "DownloadRequisitionList",
+  name: "DispatchRequisitionList",
   components: {
     SendOutlined,
-    EditOutlined,
-    DeleteOutlined,
     ReloadOutlined,
-    DownloadOutlined,
     BankOutlined,
     BranchesOutlined,
     InboxOutlined
@@ -287,14 +224,6 @@ export default defineComponent({
     const branchFilter = ref("");
     const dateRange = ref<[Dayjs, Dayjs] | null>(null);
     const allItems = ref<ChequeItem[]>([]);
-    const selectedRowKeys = ref<number[]>([]);
-    const confirmModalVisible = ref(false);
-    const confirmModalTitle = ref("");
-    const confirmModalMessage = ref("");
-    const confirmModalOkText = ref("");
-    const confirmModalAction = ref("");
-    const confirmModalButtonClass = ref("");
-    const itemToAction = ref<ChequeItem | null>(null);
     const challanNoFilter = ref("");
 
     // Bank to branches mapping
@@ -326,48 +255,25 @@ export default defineComponent({
       return bankBranchesMap[bankFilter.value as keyof typeof bankBranchesMap] || [];
     });
 
-    // Filter to only downloaded items
-    const downloadedItems = computed(() => {
-      return allItems.value.filter(item => item.status === 'Download');
+    // Filter to only dispatched items
+    const dispatchedItems = computed(() => {
+      return allItems.value.filter(item => item.status === 'Dispatched');
     });
     
     // Count of unique banks
     const uniqueBanksCount = computed(() => {
-      const banks = new Set(downloadedItems.value.map(item => item.bankName));
+      const banks = new Set(dispatchedItems.value.map(item => item.bankName));
       return banks.size;
     });
     
     // Count of unique branches
     const uniqueBranchesCount = computed(() => {
-      const branches = new Set(downloadedItems.value.map(item => item.branchName));
+      const branches = new Set(dispatchedItems.value.map(item => item.branchName));
       return branches.size;
     });
 
-    // Computed property to check if any items are selected
-    const hasSelectedItems = computed(() => selectedRowKeys.value.length > 0);
-
-    // Check if all selected items belong to the same bank
-    const selectedItemsSameBank = computed(() => {
-      if (selectedRowKeys.value.length <= 1) return true;
-      
-      const selectedItems = allItems.value.filter(item => 
-        selectedRowKeys.value.includes(item.id) && item.status === 'Download'
-      );
-      
-      if (selectedItems.length === 0) return true;
-      
-      const firstBankName = selectedItems[0].bankName;
-      return selectedItems.every(item => item.bankName === firstBankName);
-    });
-
-    // Get the error message for mixed bank selection
-    const mixedBankErrorMessage = computed(() => {
-      if (selectedItemsSameBank.value) return '';
-      return 'Cannot dispatch items from different banks together';
-    });
-
-    // Downloaded item columns for the table
-    const downloadedItemColumns = [
+    // Dispatched item columns for the table
+    const dispatchedItemColumns = [
       {
         title: "Account No",
         dataIndex: "accountNo",
@@ -400,6 +306,13 @@ export default defineComponent({
         dataIndex: "branchName",
         key: "branchName",
         width: 150,
+      },
+      {
+        title: "Challan No",
+        dataIndex: "challanNo",
+        key: "challanNo",
+        width: 150,
+        sorter: (a: ChequeItem, b: ChequeItem) => a.challanNo.localeCompare(b.challanNo),
       },
       {
         title: "Start No",
@@ -443,29 +356,26 @@ export default defineComponent({
           new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
       },
       {
+        title: "Dispatch Date",
+        dataIndex: "dispatchDate",
+        key: "dispatchDate",
+        width: 150,
+        render: (text: string) => formatDate(text),
+        sorter: (a: ChequeItem, b: ChequeItem) => 
+          new Date(a.dispatchDate || '').getTime() - new Date(b.dispatchDate || '').getTime(),
+      },
+      {
         title: "Status",
         dataIndex: "status",
         key: "status",
         width: 120,
       },
-      {
-        title: "Challan No",
-        dataIndex: "challanNo",
-        key: "challanNo",
-        width: 150,
-        sorter: (a: ChequeItem, b: ChequeItem) => a.challanNo.localeCompare(b.challanNo),
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        fixed: "right",
-        width: 220,
-        align: "center",
-      },
+      
     ];
 
     // Format date for display
     const formatDate = (dateString: string) => {
+      if (!dateString) return '';
       const date = new Date(dateString);
       return date.toLocaleDateString("en-US", {
         year: "numeric",
@@ -474,9 +384,9 @@ export default defineComponent({
       });
     };
 
-    // Computed property for filtered downloaded items
-    const filteredDownloadedItems = computed(() => {
-      let result = [...downloadedItems.value];
+    // Computed property for filtered dispatched items
+    const filteredDispatchedItems = computed(() => {
+      let result = [...dispatchedItems.value];
 
       // Apply search filter
       if (searchText.value) {
@@ -545,7 +455,6 @@ export default defineComponent({
     // Refresh data
     const refreshData = () => {
       loading.value = true;
-      selectedRowKeys.value = [];
       setTimeout(() => {
         allItems.value = generateMockItems();
         loading.value = false;
@@ -560,11 +469,25 @@ export default defineComponent({
       const severities = ["High", "Medium", "Low"];
 
       return Array.from({ length: 50 }, (_, i) => {
-        // For dispatch page, make more items have Download status
-        const randomStatus = Math.random() < 0.7 ? "Download" : statuses[Math.floor(Math.random() * statuses.length)];
+        // For dispatch page, make more items have Dispatched status
+        const randomStatus = Math.random() < 0.7 ? "Dispatched" : statuses[Math.floor(Math.random() * statuses.length)];
         const bank = banks[i % 4];
         const branchOptions = bankBranchesMap[bank as keyof typeof bankBranchesMap];
         const branch = branchOptions[i % branchOptions.length].value;
+        
+        // Generate a request date
+        const requestDate = new Date(
+          2023,
+          Math.floor(Math.random() * 12),
+          Math.floor(Math.random() * 28) + 1
+        );
+        
+        // Generate a dispatch date that's after the request date (if status is Dispatched)
+        let dispatchDate = null;
+        if (randomStatus === "Dispatched") {
+          dispatchDate = new Date(requestDate);
+          dispatchDate.setDate(dispatchDate.getDate() + Math.floor(Math.random() * 14) + 1); // 1-14 days after request
+        }
         
         return {
           id: i + 1,
@@ -586,11 +509,8 @@ export default defineComponent({
           distributionPointName: `Distribution Point ${(i % 5) + 1}`,
           receivingBranch: branch,
           status: randomStatus,
-          requestDate: new Date(
-            2023,
-            Math.floor(Math.random() * 12),
-            Math.floor(Math.random() * 28) + 1
-          ).toISOString(),
+          requestDate: requestDate.toISOString(),
+          dispatchDate: dispatchDate ? dispatchDate.toISOString() : undefined,
           challanNo: `CHN-${10000 + i}`,
         };
       });
@@ -633,66 +553,6 @@ export default defineComponent({
       dateRange.value = dates;
     };
 
-    // Handle row selection change
-    const onSelectChange = (keys: number[]) => {
-      selectedRowKeys.value = keys;
-    };
-
-    // Dispatch a single item
-    const dispatchItem = (record: ChequeItem) => {
-      confirmModalTitle.value = `Dispatch Item`;
-      confirmModalMessage.value = `Are you sure you want to Dispatch this item to the next stage?`;
-      confirmModalOkText.value = "Dispatch";
-      confirmModalAction.value = "dispatch";
-      confirmModalButtonClass.value = "download-button";
-      itemToAction.value = record;
-      confirmModalVisible.value = true;
-    };
-
-    // Handle bulk Dispatch
-    const handleBulkDispatch = () => {
-      if (selectedRowKeys.value.length === 0) {
-        message.warning("Please select at least one item");
-        return;
-      }
-      
-      confirmModalTitle.value = `Dispatch Selected Items`;
-      confirmModalMessage.value = `Are you sure you want to Dispatch ${selectedRowKeys.value.length} selected item(s) to the next stage?`;
-      confirmModalOkText.value = "Dispatch All";
-      confirmModalAction.value = "bulkDispatch";
-      confirmModalButtonClass.value = "download-button";
-      confirmModalVisible.value = true;
-    };
-
-    // Handle confirm action
-    const handleConfirmAction = () => {
-      if (confirmModalAction.value === "dispatch" && itemToAction.value) {
-        const itemIndex = allItems.value.findIndex(
-          (item) => item.id === itemToAction.value?.id
-        );
-
-        if (itemIndex !== -1) {
-          // Update the item status to the next stage (Dispatched)
-          allItems.value[itemIndex].status = "Dispatched";
-          message.success(`Item dispatched successfully`);
-        }
-      } else if (confirmModalAction.value === "bulkDispatch") {
-        // Update all selected items
-        allItems.value = allItems.value.map(item => {
-          if (selectedRowKeys.value.includes(item.id)) {
-            return { ...item, status: "Dispatched" };
-          }
-          return item;
-        });
-
-        message.success(`Successfully dispatched ${selectedRowKeys.value.length} item(s)`);
-        selectedRowKeys.value = []; // Clear selection after bulk update
-      }
-
-      confirmModalVisible.value = false;
-      itemToAction.value = null;
-    };
-
     // Handle challan no filter change
     const handleChallanNoFilterChange = (e: Event) => {
       challanNoFilter.value = (e.target as HTMLInputElement).value;
@@ -700,7 +560,7 @@ export default defineComponent({
 
     // Reset selection when filtered items change
     watch([severityFilter, bankFilter, branchFilter, searchText, challanNoFilter], () => {
-      selectedRowKeys.value = [];
+      // No selection to reset since we removed row selection
     });
 
     // Fetch data on component mount
@@ -715,34 +575,21 @@ export default defineComponent({
       bankFilter,
       branchFilter,
       dateRange,
-      downloadedItemColumns,
+      dispatchedItemColumns,
       allItems,
-      downloadedItems,
-      filteredDownloadedItems,
-      selectedRowKeys,
-      hasSelectedItems,
-      selectedItemsSameBank,
-      mixedBankErrorMessage,
+      dispatchedItems,
+      filteredDispatchedItems,
       uniqueBanksCount,
       uniqueBranchesCount,
       availableBranches,
-      confirmModalVisible,
-      confirmModalTitle,
-      confirmModalMessage,
-      confirmModalOkText,
-      confirmModalButtonClass,
+      getSeverityColor,
+      formatDate,
+      refreshData,
       handleSearch,
       handleSeverityFilterChange,
       handleBankFilterChange,
       handleBranchFilterChange,
       handleDateRangeChange,
-      onSelectChange,
-      dispatchItem,
-      handleBulkDispatch,
-      handleConfirmAction,
-      getSeverityColor,
-      formatDate,
-      refreshData,
       challanNoFilter,
       handleChallanNoFilterChange,
     };
@@ -763,10 +610,6 @@ export default defineComponent({
   background-color: #f8fafc;
 }
 
-.custom-table :deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
-  background-color: #f3e8ff;
-}
-
 .custom-table :deep(.ant-table) {
   border-radius: 8px;
   overflow: hidden;
@@ -785,9 +628,9 @@ export default defineComponent({
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
 }
 
-.downloaded-card {
-  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
-  border-color: #d8b4fe;
+.dispatched-card {
+  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
+  border-color: #6ee7b7;
 }
 
 .bank-card {
@@ -796,58 +639,8 @@ export default defineComponent({
 }
 
 .branch-card {
-  background: linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%);
-  border-color: #6ee7b7;
-}
-
-/* Modern action buttons */
-.action-button {
-  border-radius: 6px;
-  font-weight: 500;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-width: 110px;
-  height: 36px;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-}
-
-.action-button:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-}
-
-.download-button {
-  background-color: #9333ea;
-  border-color: #9333ea;
-}
-
-.download-button:hover {
-  background-color: #7e22ce;
-  border-color: #7e22ce;
-}
-
-.edit-button, .delete-button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 36px;
-  height: 36px;
-  border-radius: 6px;
-  transition: all 0.2s ease;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
-}
-
-.edit-button:hover:not(:disabled) {
-  color: #1890ff;
-  border-color: #1890ff;
-  background-color: #e6f7ff;
-}
-
-.delete-button:hover:not(:disabled) {
-  background-color: #fff1f0;
+  background: linear-gradient(135deg, #f3e8ff 0%, #e9d5ff 100%);
+  border-color: #d8b4fe;
 }
 
 /* Transition effects */
@@ -863,11 +656,6 @@ export default defineComponent({
 @media (max-width: 640px) {
   .ant-table-cell {
     padding: 8px 4px !important;
-  }
-  
-  .action-button {
-    min-width: 90px;
-    padding: 0 8px;
   }
 }
 </style>
