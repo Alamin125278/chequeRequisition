@@ -128,18 +128,14 @@ export const useMenuStore = defineStore("menu", () => {
       title: "Reports",
       icon: BarChartOutlined,
       path: "/reports",
+      permissions: ["view-reports"],
       children: [
-        {
-          key: "make-challan",
-          title: "Make A Challan",
-          path: "/reports/make-challan",
-          icon: undefined,
-        },
         {
           key: "challan-list",
           title: "All Challans",
           path: "/reports/challan-list",
           icon: undefined,
+          permissions: ["all-challans"],
         },
       ],
     },

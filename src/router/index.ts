@@ -107,7 +107,7 @@ const router = createRouter({
         {
           path: "/requisitions/delivered",
           name: " Requisition/ Delivered Requisitions",
-          component: () => import("@/views/requisition/AllRequisition.vue"), // Placeholder, would be a real page in production
+          component: () => import("@/views/requisition/DeliveredRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/reports/make-challan",
