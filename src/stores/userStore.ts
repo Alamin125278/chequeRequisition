@@ -1,55 +1,111 @@
 import { defineStore } from "pinia"
-import { ref } from "vue"
+import { ref, computed } from "vue"
 
 interface User {
   id: number
   name: string
+  username: string
   email: string
+  password?: string // Only used for local match
   avatar: string
   role: string
+}
+
+const rolePermissionsMap: Record<string, string[]> = {
+  "Vendor Admin": ["view-dashboard", "manage-users", "manage-banks","view-requisitions", "all-requisitions","ordered-requisitions","downloaded-requisitions","dispatched-requisitions","delivered-requisitions", "view-settings"],
+  "Bank Admin": ["view-dashboard", "manage-branches", "manage-users", "view-requisitions", "all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions", "view-settings"],
+  "Branch Officer": ["view-dashboard","manage-users","view-requisitions","new-requisition","all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions"],
+  "Branch User": ["view-dashboard", "view-requisitions","new-requisition","all-requisitions","pending-requisitions"],
 }
 
 export const useUserStore = defineStore("user", () => {
   const user = ref<User | null>(null)
   const isLoggedIn = ref(false)
+  const errorMessage = ref("")
 
-  // Initialize from localStorage if available
+  const allUsers: User[] = [
+    {
+      id: 1,
+      name: "Vendor Admin",
+      username: "vendoradmin",
+      email: "vendor@example.com",
+      password: "vendor123",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vendor",
+      role: "Vendor Admin",
+    },
+    {
+      id: 2,
+      name: "Bank Admin",
+      username: "bankadmin",
+      email: "bank@example.com",
+      password: "bank123",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bank",
+      role: "Bank Admin",
+    },
+    {
+      id: 3,
+      name: "Branch Officer",
+      username: "branchofficer",
+      email: "officer@example.com",
+      password: "officer123",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Officer",
+      role: "Branch Officer",
+    },
+    {
+      id: 4,
+      name: "Branch User",
+      username: "branchuser",
+      email: "user@example.com",
+      password: "user123",
+      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
+      role: "Branch User",
+    },
+  ]
+
   const initializeFromStorage = () => {
     const storedUser = localStorage.getItem("user")
     const storedLoginState = localStorage.getItem("isLoggedIn")
-
     if (storedUser && storedLoginState === "true") {
       user.value = JSON.parse(storedUser)
       isLoggedIn.value = true
     }
   }
 
-  // Call initialization
   initializeFromStorage()
 
-  const login = () => {
-    // In a real app, this would come from the API
-    user.value = {
-      id: 1,
-      name: "John Doe",
-      email: "john.doe@example.com",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=John",
-      role: "Admin",
-    }
-    isLoggedIn.value = true
+  const login = (identifier: string, password: string) => {
+    const foundUser = allUsers.find(
+      (u) =>
+        (u.email === identifier || u.username === identifier) &&
+        u.password === password
+    )
 
-    // Save to localStorage
-    localStorage.setItem("user", JSON.stringify(user.value))
-    localStorage.setItem("isLoggedIn", "true")
+    if (foundUser) {
+      user.value = { ...foundUser }
+      delete user.value.password // Don't store password
+      isLoggedIn.value = true
+      errorMessage.value = ""
+      localStorage.setItem("user", JSON.stringify(user.value))
+      localStorage.setItem("isLoggedIn", "true")
+    } else {
+      errorMessage.value = "Invalid email/username or password"
+    }
   }
 
   const logout = () => {
     user.value = null
     isLoggedIn.value = false
-
-    // Clear localStorage
     localStorage.removeItem("user")
     localStorage.removeItem("isLoggedIn")
+  }
+
+  const permissions = computed(() => {
+    if (!user.value) return []
+    return rolePermissionsMap[user.value.role] || []
+  })
+
+  const canAccess = (permission: string): boolean => {
+    return permissions.value.includes(permission)
   }
 
   return {
@@ -57,5 +113,8 @@ export const useUserStore = defineStore("user", () => {
     isLoggedIn,
     login,
     logout,
+    permissions,
+    canAccess,
+    errorMessage,
   }
 })

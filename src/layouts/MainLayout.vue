@@ -32,7 +32,7 @@
           :inline-collapsed="isSidebarCollapsed"
           class="custom-menu"
         >
-          <template v-for="item in menuStore.menuItems" :key="item.key">
+          <template v-for="item in filteredMenu" :key="item.key">
             <!-- Menu item with children -->
             <a-sub-menu
               v-if="item.children && item.children.length > 0"
@@ -220,6 +220,7 @@ const route = useRoute();
 const menuStore = useMenuStore();
 const userStore = useUserStore();
 
+const filteredMenu = computed(() => menuStore.getFilteredMenu(userStore.permissions))
 const selectedKeys = ref<string[]>(["dashboard"]);
 const openKeys = ref<string[]>([]);
 

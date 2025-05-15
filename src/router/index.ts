@@ -5,7 +5,6 @@ import AuthLayout from "@/layouts/AuthLayout.vue";
 import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
-import NewRequisitionPage from "@/views/NewRequisitionPage.vue";
 import AllBranches from "@/views/branch/AllBranches.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
 
