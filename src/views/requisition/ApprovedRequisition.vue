@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen">
-    <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200">
+    <!-- <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200"> -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-4 md:mb-0">
           <span class="text-emerald-600">Approved</span> Requisition Management
@@ -196,7 +196,7 @@
         <p class="mt-3 text-slate-500 text-lg">No approved requisitions found</p>
         <p class="text-slate-400">No requisitions have been approved yet</p>
       </div>
-    </div>
+    <!-- </div> -->
 
     <!-- Edit Item Modal -->
     <a-modal

@@ -1,6 +1,6 @@
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen">
-    <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
+  <div class="p-1 bg-gray-50 min-h-screen">
+    <!-- <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100"> -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
           <span class="text-emerald-600">Cheque</span> Requisition Management
@@ -224,7 +224,7 @@
           </template>
         </template>
       </a-table>
-    </div>
+    <!-- </div> -->
 
     <!-- Edit Item Modal -->
     <a-modal

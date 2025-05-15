@@ -1,5 +1,5 @@
 <template>
-  <div class="p-6 max-w-full bg-gray-50 min-h-screen">
+  <div class="p-1 max-w-full bg-gray-50 min-h-screen">
     <div class="max-w-7xl mx-auto">
       <h1 class="text-2xl font-bold mb-2 text-gray-800">Order Management</h1>
       <p class="text-gray-500 mb-6">Manage and export your cheque orders</p>

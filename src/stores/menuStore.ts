@@ -8,6 +8,7 @@ import {
   BankOutlined,
   BranchesOutlined,
   UsergroupAddOutlined,
+  CloudDownloadOutlined
 } from "@ant-design/icons-vue";
 
 export interface MenuItem {
@@ -49,6 +50,13 @@ export const useMenuStore = defineStore("menu", () => {
       icon: UsergroupAddOutlined,
       path: "/users",
       permissions: ["manage-users"],
+    },
+    {
+      key:"upload requisition",
+      title:"Upload Requisition Excel File",
+      icon: CloudDownloadOutlined ,
+      path: "/upload-requisition",
+      permissions: ["upload-requisition"],
     },
     {
       key: "requisitions",

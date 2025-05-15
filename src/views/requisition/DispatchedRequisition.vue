@@ -1,6 +1,6 @@
 <template>
   <div class="min-h-screen">
-    <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200">
+    <!-- <div class="bg-white rounded-lg shadow-xl p-3 border border-slate-200"> -->
       <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
         <h1 class="text-2xl font-bold text-slate-800 mb-4 md:mb-0">
           <span class="text-green-600">Dispatch</span> Requisition Management
@@ -161,7 +161,7 @@
         <p class="text-slate-400">No requisitions have been dispatched yet</p>
       </div>
     </div>
-  </div>
+  <!-- </div> -->
 </template>
 
 <script lang="ts">

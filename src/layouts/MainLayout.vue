@@ -148,9 +148,12 @@
             <template #overlay>
               <a-menu>
                 <a-menu-item key="profile">
-                  <UserOutlined />
-                  Profile
+                  <router-link to="/user-profile" class="menu-link">
+    <UserOutlined />
+    <span>Profile</span>
+  </router-link>
                 </a-menu-item>
+                
                 <a-menu-item key="settings">
                   <SettingOutlined />
                   Settings

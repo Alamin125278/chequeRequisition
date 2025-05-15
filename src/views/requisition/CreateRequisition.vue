@@ -1,6 +1,6 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-6">
-    <div class="max-w-4xl mx-auto">
+  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-1">
+    <!-- <div class="max-w-4xl mx-auto"> -->
       <!-- Header with Logo and Title -->
       <div class="flex items-center justify-between mb-8">
         <div class="flex items-center">
@@ -394,7 +394,7 @@
           </div>
         </div>
       </div>
-    </div>
+    <!-- </div> -->
 
     <!-- Preview Modal -->
     <a-modal

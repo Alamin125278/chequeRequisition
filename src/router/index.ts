@@ -55,10 +55,16 @@ const router = createRouter({
           name: "All Branches",
           component: AllBranches, // Placeholder, would be a real page in production
         },
+        { path: "/user-profile", name: "User Profile", component: () => import("@/views/user/UserProfile.vue") },
         {
           path: "/users",
           name: "Users",
           component: () => import("@/views/user/userPage.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/upload-requisition",
+          name: "Upload Requisition Excel File",
+          component: () => import("@/views/LocalFileUpload/UploadRequisitionExcel.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/new",

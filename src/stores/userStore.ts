@@ -12,7 +12,7 @@ interface User {
 }
 
 const rolePermissionsMap: Record<string, string[]> = {
-  "Vendor Admin": ["view-dashboard", "manage-users", "manage-banks","view-requisitions", "all-requisitions","ordered-requisitions","downloaded-requisitions","dispatched-requisitions","delivered-requisitions","view-reports","all-challans", "view-settings"],
+  "Vendor Admin": ["view-dashboard", "manage-users","upload-requisition", "manage-banks","view-requisitions", "all-requisitions","ordered-requisitions","downloaded-requisitions","dispatched-requisitions","delivered-requisitions","view-reports","all-challans", "view-settings"],
   "Bank Admin": ["view-dashboard", "manage-branches", "manage-users", "view-requisitions", "all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions","view-reports","all-challans", "view-settings"],
   "Branch Officer": ["view-dashboard","manage-users","view-requisitions","new-requisition","all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions","view-reports","all-challans",],
   "Branch User": ["view-dashboard", "view-requisitions","new-requisition","all-requisitions","pending-requisitions"],
