@@ -1,47 +1,68 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-1">
-    <!-- Main Content Card -->
-      <!-- Header with Logo and Title -->
-      <div class="flex items-center justify-between mb-6">
-        <div class="flex items-center">
-          <div class="bg-indigo-600 text-white p-2 rounded-lg mr-3">
-            <bank-outlined class="text-xl" />
+  <div class="bg-background min-h-screen">
+    <!-- Professional Hero Header Section -->
+    <div class="bg-card border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent rounded-md p-2">
+                <UploadOutlined class="h-6 w-6 text-white" />
+              </div>
+              <h1 class="ml-3 text-2xl font-semibold text-primary">
+                <span class="text-accent">Upload</span> Cheque Requisition
+              </h1>
+            </div>
+            <p class="mt-2 text-sm text-secondary max-w-2xl">
+              Upload and process bulk cheque requisitions using CSV or Excel
+              files.
+            </p>
           </div>
-          <h1 class="text-2xl font-bold text-slate-800">
-            Upload Cheque File
-          </h1>
-        </div>
-        <div class="text-sm text-slate-500 flex items-center">
-          <calendar-outlined class="mr-1" />
-          {{ new Date().toLocaleDateString() }}
+          <div class="mt-4 md:mt-0 md:ml-4">
+            <a-tooltip title="Current Date">
+              <div
+                class="bg-card border border-gray-200 rounded-md px-4 py-2 flex items-center"
+              >
+                <CalendarOutlined class="mr-2 text-accent" />
+                {{ currentDate }}
+              </div>
+            </a-tooltip>
+          </div>
         </div>
       </div>
+    </div>
 
+    <!-- Main Content Area -->
+    <div class="max-w-7xl mx-auto py-6">
       <!-- Main Card -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-100">
-        <!-- Card Header -->
-        <div class="bg-slate-50 px-6 py-4 border-b border-slate-200">
-          <h2 class="text-lg font-semibold text-slate-800 flex items-center">
-            <file-text-outlined class="mr-2 text-indigo-600" />
-            {{ showImportedData ? "Review Imported Data" : "Upload Cheque File" }}
+      <div class="bg-card shadow-md rounded-md overflow-hidden mb-6">
+        <div class="px-6 py-4 bg-background border-b border-gray-200">
+          <h2 class="text-lg font-medium text-primary flex items-center">
+            <FileTextOutlined class="mr-2 text-accent" />
+            {{
+              showImportedData ? "Review Imported Data" : "Upload Cheque File"
+            }}
           </h2>
         </div>
 
-        <!-- Card Content -->
         <div class="p-6">
           <!-- Pre-Upload View -->
           <div v-if="!showImportedData">
             <!-- Bank Selection -->
-            <div class="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <div
+              class="mb-6 bg-background p-5 rounded-md border border-gray-200"
+            >
               <div class="flex items-center mb-4">
-                <bank-outlined class="text-indigo-600 mr-2 text-lg" />
-                <h3 class="text-lg font-medium text-slate-700">Select Bank</h3>
+                <BankOutlined class="text-accent mr-2 text-lg" />
+                <h3 class="text-md font-medium text-primary">Select Bank</h3>
               </div>
-              
+
               <a-select
                 v-model:value="selectedBank"
                 placeholder="Select Bank"
-                class="w-full md:w-1/3 rounded-lg"
+                class="w-full md:w-1/3 rounded-md"
                 size="large"
                 :options="banks"
               />
@@ -56,20 +77,22 @@
                 :before-upload="beforeUpload"
                 @change="handleChange"
                 accept=".csv,.xls,.xlsx"
-                class="p-2 border-2 border-dashed border-indigo-200 hover:border-indigo-400 bg-white rounded-xl transition-all duration-300"
+                class="p-2 border-2 border-dashed border-gray-200 hover:border-accent bg-white rounded-md transition-all duration-300"
                 :disabled="!selectedBank"
               >
                 <div class="py-8">
                   <p class="ant-upload-drag-icon">
-                    <inbox-outlined class="text-indigo-500 text-4xl" />
+                    <InboxOutlined class="text-accent text-4xl" />
                   </p>
-                  <p class="ant-upload-text font-medium text-slate-800 text-lg mt-4">
+                  <p
+                    class="ant-upload-text font-medium text-primary text-lg mt-4"
+                  >
                     Click or drag file to upload
                   </p>
-                  <p class="ant-upload-hint text-slate-500 mt-2">
+                  <p class="ant-upload-hint text-secondary mt-2">
                     Support for a single upload. Only CSV, XLS, or XLSX files.
                   </p>
-                  <p v-if="!selectedBank" class="text-amber-500 mt-3">
+                  <p v-if="!selectedBank" class="text-warning mt-3">
                     Please select a bank first
                   </p>
                 </div>
@@ -77,30 +100,42 @@
 
               <!-- Help Section -->
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6">
-                <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100">
+                <div
+                  class="bg-accent-light p-5 rounded-md border border-accent-lighter"
+                >
                   <div class="flex items-start">
-                    <info-circle-outlined class="text-indigo-600 mt-1 mr-3 text-lg" />
+                    <InfoCircleOutlined class="text-accent mt-1 mr-3 text-lg" />
                     <div>
-                      <h4 class="font-medium text-indigo-800 mb-2">
+                      <h4 class="font-medium text-primary mb-2">
                         Instructions
                       </h4>
-                      <p class="text-indigo-700 text-sm">
-                        Upload a CSV or Excel file containing cheque data.
-                        The file should include all required columns listed on
-                        the right.
+                      <p class="text-secondary text-sm">
+                        Upload a CSV or Excel file containing cheque data. The
+                        file should include all required columns listed on the
+                        right.
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
-                  <h4 class="font-medium text-slate-700 mb-3 flex items-center">
-                    <check-circle-outlined class="text-indigo-600 mr-2" />
+                <div
+                  class="bg-background p-5 rounded-md border border-gray-200"
+                >
+                  <h4 class="font-medium text-primary mb-3 flex items-center">
+                    <CheckCircleOutlined class="text-accent mr-2" />
                     Required Columns
                   </h4>
-                  <div class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm text-slate-600">
-                    <div v-for="column in requiredColumns" :key="column" class="flex items-center">
-                      <div class="w-1.5 h-1.5 rounded-full bg-indigo-500 mr-2"></div>
+                  <div
+                    class="grid grid-cols-2 gap-y-2 gap-x-4 text-sm text-secondary"
+                  >
+                    <div
+                      v-for="column in requiredColumns"
+                      :key="column"
+                      class="flex items-center"
+                    >
+                      <div
+                        class="w-1.5 h-1.5 rounded-full bg-accent mr-2"
+                      ></div>
                       {{ column }}
                     </div>
                   </div>
@@ -110,14 +145,14 @@
 
             <!-- File Selected View -->
             <div v-else class="space-y-6">
-              <div class="bg-slate-50 p-5 rounded-xl border border-slate-200">
+              <div class="bg-background p-5 rounded-md border border-gray-200">
                 <div class="flex items-center">
-                  <div class="bg-indigo-100 p-3 rounded-lg mr-4">
-                    <file-text-outlined class="text-indigo-600 text-xl" />
+                  <div class="bg-accent-light p-3 rounded-md mr-4">
+                    <FileTextOutlined class="text-accent text-xl" />
                   </div>
                   <div>
-                    <h4 class="font-medium text-slate-800">{{ file.name }}</h4>
-                    <p class="text-sm text-slate-500">
+                    <h4 class="font-medium text-primary">{{ file.name }}</h4>
+                    <p class="text-sm text-secondary">
                       {{ formatFileSize(file.size) }} •
                       {{ file.type || "Unknown type" }}
                     </p>
@@ -129,7 +164,7 @@
                 <a-button
                   @click="resetFile"
                   size="large"
-                  class="rounded-lg px-6 border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400"
+                  class="rounded-md px-6 border-gray-300 text-secondary hover:text-primary hover:border-accent"
                 >
                   Cancel
                 </a-button>
@@ -138,9 +173,9 @@
                   @click="processFile"
                   :loading="isProcessing"
                   size="large"
-                  class="rounded-lg px-6 bg-indigo-600 hover:bg-indigo-700 border-indigo-600 hover:border-indigo-700 flex items-center"
+                  class="rounded-md px-6 bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark flex items-center"
                 >
-                  <eye-outlined v-if="!isProcessing" class="mr-2" />
+                  <EyeOutlined v-if="!isProcessing" class="mr-2" />
                   {{ isProcessing ? "Processing..." : "Preview Data" }}
                 </a-button>
               </div>
@@ -150,16 +185,20 @@
           <!-- Post-Upload View (Data Table) -->
           <div v-else class="space-y-6">
             <!-- Summary Card -->
-            <div class="bg-indigo-50 p-5 rounded-xl border border-indigo-100 mb-6">
+            <div
+              class="bg-success-light p-5 rounded-md border border-success-lighter mb-6"
+            >
               <div class="flex items-center">
-                <div class="bg-indigo-100 p-3 rounded-lg mr-4">
-                  <check-circle-outlined class="text-indigo-600 text-xl" />
+                <div
+                  class="bg-white p-3 rounded-md mr-4 border border-success-lighter"
+                >
+                  <CheckCircleOutlined class="text-success text-xl" />
                 </div>
                 <div>
-                  <h4 class="font-medium text-indigo-800">
+                  <h4 class="font-medium text-primary">
                     File Processed Successfully
                   </h4>
-                  <p class="text-sm text-indigo-700">
+                  <p class="text-sm text-secondary">
                     {{ importedData.length }} items have been imported and are
                     ready for review.
                   </p>
@@ -168,23 +207,31 @@
             </div>
 
             <!-- Bank Information -->
-            <div class="mb-6 bg-slate-50 p-5 rounded-xl border border-slate-200">
+            <div
+              class="mb-6 bg-background p-5 rounded-md border border-gray-200"
+            >
               <div class="flex items-center mb-4">
-                <bank-outlined class="text-indigo-600 mr-2 text-lg" />
-                <h3 class="text-lg font-medium text-slate-700">Selected Bank</h3>
+                <BankOutlined class="text-accent mr-2 text-lg" />
+                <h3 class="text-md font-medium text-primary">Selected Bank</h3>
               </div>
-              <div class="bg-white p-3 rounded-lg inline-block border border-slate-200">
-                <p class="font-medium text-slate-800">{{ selectedBank }}</p>
+              <div
+                class="bg-card p-3 rounded-md inline-block border border-gray-200"
+              >
+                <p class="font-medium text-primary">{{ selectedBank }}</p>
               </div>
             </div>
 
             <!-- Data Table with improved design -->
-            <div class="border border-slate-200 rounded-xl overflow-hidden">
-              <div class="bg-slate-50 px-6 py-3 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-medium text-slate-700">Imported Items</h3>
-                <div class="text-sm text-slate-500">
+            <div class="border border-gray-200 rounded-md overflow-hidden">
+              <div
+                class="bg-background px-6 py-3 border-b border-gray-200 flex justify-between items-center"
+              >
+                <h3 class="font-medium text-primary">Imported Items</h3>
+                <div class="text-sm text-secondary">
                   Total:
-                  <span class="font-medium text-slate-700">{{ importedData.length }}</span>
+                  <span class="font-medium text-primary">{{
+                    importedData.length
+                  }}</span>
                   items
                 </div>
               </div>
@@ -210,10 +257,10 @@
               <a-button
                 @click="handleDiscard"
                 size="large"
-                class="rounded-lg px-6 border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400 flex items-center"
+                class="rounded-md px-6 border-gray-300 text-secondary hover:text-primary hover:border-accent flex items-center"
                 :disabled="isSubmitting"
               >
-                <close-outlined class="mr-2" />
+                <CloseOutlined class="mr-2" />
                 Discard
               </a-button>
               <a-button
@@ -221,9 +268,9 @@
                 @click="handleSubmit"
                 :loading="isSubmitting"
                 size="large"
-                class="rounded-lg px-6 bg-indigo-600 hover:bg-indigo-700 border-indigo-600 hover:border-indigo-700 flex items-center"
+                class="rounded-md px-6 bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark flex items-center"
               >
-                <check-outlined v-if="!isSubmitting" class="mr-2" />
+                <CheckOutlined v-if="!isSubmitting" class="mr-2" />
                 {{ isSubmitting ? "Submitting..." : "Submit" }}
               </a-button>
             </div>
@@ -232,43 +279,52 @@
       </div>
 
       <!-- Help Card -->
-      <div class="mt-6 bg-white rounded-xl shadow-sm border border-slate-100 p-5">
+      <div class="bg-card shadow-sm rounded-md border border-gray-200 p-6 mb-6">
         <div class="flex items-start">
-          <div class="bg-slate-100 p-2 rounded-lg mr-4">
-            <info-circle-outlined class="text-slate-600" />
+          <div class="bg-background p-3 rounded-md mr-4 border border-gray-200">
+            <InfoCircleOutlined class="text-accent text-lg" />
           </div>
           <div>
-            <h3 class="font-medium text-slate-800 mb-1">Need Help?</h3>
-            <p class="text-sm text-slate-600">
+            <h3 class="font-medium text-primary mb-1">Need Help?</h3>
+            <p class="text-sm text-secondary">
               If you're having trouble with the import process, please contact
               support at
-              <a href="mailto:support@example.com" class="text-indigo-600 hover:text-indigo-700">support@example.com</a>
+              <a
+                href="mailto:support@example.com"
+                class="text-accent hover:text-accent-dark font-medium"
+                >support@example.com</a
+              >
             </p>
           </div>
         </div>
       </div>
+    </div>
 
     <!-- Success Modal -->
     <a-modal
       v-model:visible="showSuccessModal"
       :footer="null"
       :closable="false"
-      width="400px"
+      width="450px"
       class="custom-modal"
     >
-      <div class="text-center py-6 px-2">
-        <div class="mx-auto mb-6 flex items-center justify-center w-20 h-20 rounded-full bg-indigo-100">
-          <check-outlined class="text-indigo-600 text-3xl" />
+      <div class="text-center py-8 px-4">
+        <div
+          class="mx-auto mb-6 flex items-center justify-center w-24 h-24 rounded-full bg-success-light border-4 border-success-lighter"
+        >
+          <CheckOutlined class="text-success text-4xl" />
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-3">
+        <h3 class="text-2xl font-bold text-primary mb-3">
           {{ successMessage }}
         </h3>
-        <p class="text-slate-600 mb-8">{{ successDescription }}</p>
+        <p class="text-secondary mb-8 max-w-sm mx-auto">
+          {{ successDescription }}
+        </p>
         <a-button
           type="primary"
           @click="handleSuccessModalClose"
           size="large"
-          class="w-full rounded-lg py-2 h-auto bg-indigo-600 hover:bg-indigo-700 border-indigo-600 hover:border-indigo-700 text-base"
+          class="w-full rounded-md py-3 h-auto bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark text-base font-medium shadow-md"
         >
           Continue
         </a-button>
@@ -277,22 +333,22 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref } from "vue";
-import * as XLSX from "xlsx";
+<script setup lang="ts">
 import {
-  UploadOutlined,
-  InboxOutlined,
   BankOutlined,
-  FileTextOutlined,
-  InfoCircleOutlined,
+  CalendarOutlined,
   CheckCircleOutlined,
   CheckOutlined,
   CloseOutlined,
-  CalendarOutlined,
-  EyeOutlined
+  EyeOutlined,
+  FileTextOutlined,
+  InboxOutlined,
+  InfoCircleOutlined,
+  UploadOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { computed, ref } from "vue";
+import * as XLSX from "xlsx";
 
 // Define interfaces
 interface ImportedItem {
@@ -315,29 +371,38 @@ interface ImportedItem {
   courierCode: string;
 }
 
+// Current date for display
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+});
+
 // Bank data
 const banks = [
-  { value: '', label: 'Select Bank' },
-  { value: 'National Bank', label: 'National Bank' },
-  { value: 'City Bank', label: 'City Bank' },
-  { value: 'Metro Bank', label: 'Metro Bank' },
-  { value: 'Global Bank', label: 'Global Bank' }
+  { value: "", label: "Select Bank" },
+  { value: "National Bank", label: "National Bank" },
+  { value: "City Bank", label: "City Bank" },
+  { value: "Metro Bank", label: "Metro Bank" },
+  { value: "Global Bank", label: "Global Bank" },
 ];
 
 // Required columns for the file
 const requiredColumns = [
-  'Branch Name',
-  'Routing No.',
-  'Account No.',
-  'Account Name',
-  'Prefix',
-  'Series',
-  'TR Code',
-  'No. of Leaves',
-  'Starting No.',
-  'Ending No.',
-  'No. of Book',
-  'Receiving Branch'
+  "Branch Name",
+  "Routing No.",
+  "Account No.",
+  "Account Name",
+  "Prefix",
+  "Series",
+  "TR Code",
+  "No. of Leaves",
+  "Starting No.",
+  "Ending No.",
+  "No. of Book",
+  "Receiving Branch",
 ];
 
 // Table columns
@@ -372,17 +437,17 @@ const columns = [
     key: "accountName",
     width: 150,
   },
-  { 
-    title: "Prefix", 
-    dataIndex: "prefix", 
-    key: "prefix", 
-    width: 120 
+  {
+    title: "Prefix",
+    dataIndex: "prefix",
+    key: "prefix",
+    width: 120,
   },
-  { 
-    title: "Series", 
-    dataIndex: "series", 
-    key: "series", 
-    width: 120 
+  {
+    title: "Series",
+    dataIndex: "series",
+    key: "series",
+    width: 120,
   },
   {
     title: "TR Code",
@@ -396,34 +461,34 @@ const columns = [
     key: "leafCount",
     width: 120,
   },
-  { 
-    title: "Starting No.", 
-    dataIndex: "startNo", 
-    key: "startNo", 
-    width: 120 
+  {
+    title: "Starting No.",
+    dataIndex: "startNo",
+    key: "startNo",
+    width: 120,
   },
-  { 
-    title: "Ending No.", 
-    dataIndex: "endNo", 
-    key: "endNo", 
-    width: 120 
+  {
+    title: "Ending No.",
+    dataIndex: "endNo",
+    key: "endNo",
+    width: 120,
   },
-  { 
-    title: "No. of Book", 
-    dataIndex: "bookQty", 
-    key: "bookQty", 
-    width: 120 
+  {
+    title: "No. of Book",
+    dataIndex: "bookQty",
+    key: "bookQty",
+    width: 120,
   },
   {
     title: "Receiving Branch",
     dataIndex: "receivingBranch",
     key: "receivingBranch",
     width: 150,
-  }
+  },
 ];
 
 // State variables
-const selectedBank = ref('');
+const selectedBank = ref("");
 const file = ref<File | null>(null);
 const fileList = ref<any[]>([]);
 const isProcessing = ref(false);
@@ -436,13 +501,13 @@ const successDescription = ref("");
 
 // Format file size
 const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  
+  if (bytes === 0) return "0 Bytes";
+
   const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const sizes = ["Bytes", "KB", "MB", "GB"];
   const i = Math.floor(Math.log(bytes) / Math.log(k));
-  
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
 };
 
 // File upload handlers
@@ -450,7 +515,8 @@ const beforeUpload = (file: File) => {
   const isCSVOrExcel =
     file.type === "text/csv" ||
     file.type === "application/vnd.ms-excel" ||
-    file.type === "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
+    file.type ===
+      "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" ||
     file.name.endsWith(".csv") ||
     file.name.endsWith(".xls") ||
     file.name.endsWith(".xlsx");
@@ -470,7 +536,7 @@ const beforeUpload = (file: File) => {
 const handleChange = (info: any) => {
   fileList.value = info.fileList.slice(-1);
 
-  if (info.file.status !== 'uploading') {
+  if (info.file.status !== "uploading") {
     if (info.fileList.length > 0) {
       file.value = info.fileList[0].originFileObj as File;
     } else {
@@ -517,21 +583,21 @@ const processFile = () => {
       importedData.value = (jsonData as any[]).map((row, index) => ({
         key: index.toString(),
         bankName: selectedBank.value,
-        branchName: row["Branch Name"] || '',
-        routingNo: row["Routing No."] || '',
-        accountNo: row["Account No."] || '',
-        accountName: row["Account Name"] || '',
-        prefix: row["Prefix"] || '',
-        series: row["Series"] || '',
-        branchCode: row["Branch Code"] || '',
-        transactionCode: row["TR Code"] || '',
-        leafCount: row["No. of Leaves"] || '',
-        startNo: row["Starting No."] || '',
-        endNo: row["Ending No."] || '',
-        bookQty: row["No. of Book"] || '',
-        receivingBranch: row["Receiving Branch"] || '',
-        distributionPointName: row["Distribution Point Name"] || '',
-        courierCode: row["Courier Code"] || ''
+        branchName: row["Branch Name"] || "",
+        routingNo: row["Routing No."] || "",
+        accountNo: row["Account No."] || "",
+        accountName: row["Account Name"] || "",
+        prefix: row["Prefix"] || "",
+        series: row["Series"] || "",
+        branchCode: row["Branch Code"] || "",
+        transactionCode: row["TR Code"] || "",
+        leafCount: row["No. of Leaves"] || "",
+        startNo: row["Starting No."] || "",
+        endNo: row["Ending No."] || "",
+        bookQty: row["No. of Book"] || "",
+        receivingBranch: row["Receiving Branch"] || "",
+        distributionPointName: row["Distribution Point Name"] || "",
+        courierCode: row["Courier Code"] || "",
       }));
 
       showImportedData.value = true;
@@ -580,7 +646,7 @@ const handleSuccessModalClose = () => {
   importedData.value = [];
   file.value = null;
   fileList.value = [];
-  selectedBank.value = '';
+  selectedBank.value = "";
 };
 </script>
 
@@ -592,74 +658,136 @@ const handleSuccessModalClose = () => {
 
 :deep(.ant-input),
 :deep(.ant-input-number),
+:deep(.ant-picker),
 :deep(.ant-select-selector),
-:deep(.ant-picker) {
-  border-radius: 0.5rem !important;
+:deep(.ant-input-affix-wrapper),
+:deep(.ant-textarea) {
+  border-radius: var(--radius-md) !important;
   transition: all 0.3s;
+  border-color: #e2e8f0;
+}
+
+:deep(.ant-input-affix-wrapper .ant-input) {
+  border-radius: 0 !important;
+}
+
+:deep(.ant-btn) {
+  border-radius: var(--radius-md);
+  transition: all 0.3s;
+}
+
+:deep(.ant-btn-primary) {
+  background-color: var(--accent-cta);
+  border-color: var(--accent-cta);
+}
+
+:deep(.ant-btn-primary:hover) {
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 :deep(.ant-upload-drag) {
   border: 2px dashed #e2e8f0;
-  border-radius: 0.75rem;
+  border-radius: var(--radius-md);
   transition: all 0.3s;
 }
 
 :deep(.ant-upload-drag:hover) {
-  border-color: #6366f1;
-  background-color: #eef2ff;
-}
-
-:deep(.ant-btn-primary) {
-  background-color: #6366f1;
-  border-color: #6366f1;
-}
-
-:deep(.ant-btn-primary:hover) {
-  background-color: #4f46e5;
-  border-color: #4f46e5;
+  border-color: var(--accent-cta);
+  background-color: rgba(107, 142, 35, 0.05);
 }
 
 :deep(.ant-input:focus),
 :deep(.ant-input-number-focused),
+:deep(.ant-picker-focused),
 :deep(.ant-select-focused .ant-select-selector),
-:deep(.ant-picker-focused) {
-  border-color: #6366f1 !important;
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2) !important;
+:deep(.ant-input-affix-wrapper-focused),
+:deep(.ant-textarea-focused) {
+  border-color: var(--accent-cta) !important;
+  box-shadow: 0 0 0 2px rgba(107, 142, 35, 0.2) !important;
 }
 
 :deep(.ant-input:hover),
 :deep(.ant-input-number:hover),
+:deep(.ant-picker:hover),
 :deep(.ant-select:hover .ant-select-selector),
-:deep(.ant-picker:hover) {
-  border-color: #6366f1 !important;
+:deep(.ant-input-affix-wrapper:hover),
+:deep(.ant-textarea:hover) {
+  border-color: var(--accent-cta) !important;
 }
 
-:deep(.ant-table-thead > tr > th) {
-  background-color: #f8fafc;
-  font-weight: 600;
-  color: #475569;
+:deep(.ant-radio-wrapper .ant-radio-checked .ant-radio-inner) {
+  background-color: var(--accent-cta);
+  border-color: var(--accent-cta);
 }
 
-:deep(.ant-table-tbody > tr:hover > td) {
-  background-color: #eef2ff;
-}
-
-:deep(.ant-table-tbody > tr > td) {
-  padding: 12px 16px;
-  color: #334155;
-}
-
-:deep(.ant-pagination) {
-  margin: 16px 0;
+:deep(.ant-form-item-label > label) {
+  font-weight: 500;
+  color: var(--text-primary);
 }
 
 :deep(.ant-modal-content) {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
+:deep(.ant-modal-header) {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--background);
+  padding: 16px 24px;
+}
+
+:deep(.ant-modal-title) {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1.125rem;
+}
+
+:deep(.ant-modal-close) {
+  color: var(--text-secondary);
+}
+
 :deep(.ant-modal-body) {
-  padding: 0;
+  padding: 24px;
+}
+
+:deep(.ant-select-item) {
+  padding: 8px 12px;
+}
+
+:deep(.ant-select-item-option-active:not(.ant-select-item-option-disabled)) {
+  background-color: rgba(107, 142, 35, 0.05);
+}
+
+:deep(.ant-select-item-option-selected:not(.ant-select-item-option-disabled)) {
+  background-color: rgba(107, 142, 35, 0.1);
+  font-weight: 500;
+}
+
+/* Custom table styles */
+.custom-table :deep(.ant-table-thead > tr > th) {
+  background-color: var(--background);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 16px;
+}
+
+.custom-table :deep(.ant-table-tbody > tr > td) {
+  padding: 16px;
+  color: var(--text-primary);
+}
+
+.custom-table :deep(.ant-table-tbody > tr:hover > td) {
+  background-color: var(--background);
+}
+
+.custom-table :deep(.ant-table-container) {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+}
+
+.custom-table :deep(.ant-table-pagination) {
+  margin: 16px;
 }
 
 /* Custom animation for success modal */
@@ -678,12 +806,10 @@ const handleSuccessModalClose = () => {
   animation: fadeInUp 0.3s ease-out;
 }
 
-.custom-table :deep(.ant-table-container) {
-  border-radius: 0.5rem;
-  overflow: hidden;
-}
-
-.custom-table :deep(.ant-table-pagination) {
-  margin: 16px;
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  :deep(.ant-form-item) {
+    margin-bottom: 12px;
+  }
 }
 </style>

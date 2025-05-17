@@ -1,54 +1,65 @@
 <template>
-  <div class="min-h-screen bg-gradient-to-br from-slate-50 to-slate-100 p-1">
-    <!-- <div class="max-w-4xl mx-auto"> -->
-      <!-- Header with Logo and Title -->
-      <div class="flex items-center justify-between mb-8">
-        <div class="flex items-center">
-          <div class="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white p-3 rounded-xl mr-4 shadow-md">
-            <bank-outlined class="text-2xl" />
+  <div class="bg-background min-h-screen">
+    <!-- Professional Hero Header Section -->
+    <div class="bg-card border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent rounded-md p-2">
+                <FileAddOutlined class="h-6 w-6 text-white" />
+              </div>
+              <h1 class="ml-3 text-2xl font-semibold text-primary">
+                <span class="text-accent">Create</span> Cheque Requisition
+              </h1>
+            </div>
+            <p class="mt-2 text-sm text-secondary max-w-2xl">
+              Fill the form below to create a new cheque request for processing.
+            </p>
           </div>
-          <div>
-            <h1 class="text-2xl font-bold text-slate-800">
-              Create Cheque Request
-            </h1>
-            <p class="text-sm text-slate-500 mt-1">Fill the form below to create a new cheque request</p>
+          <div class="mt-4 md:mt-0 md:ml-4">
+            <a-tooltip title="Current Date">
+              <div
+                class="bg-card border border-gray-200 rounded-md px-4 py-2 flex items-center"
+              >
+                <CalendarOutlined class="mr-2 text-accent" />
+                {{ currentDate }}
+              </div>
+            </a-tooltip>
           </div>
-        </div>
-        <div class="text-sm bg-white px-4 py-2 rounded-lg shadow-sm border border-slate-100 text-slate-600 flex items-center">
-          <calendar-outlined class="mr-2 text-emerald-500" />
-          {{ new Date().toLocaleDateString() }}
         </div>
       </div>
+    </div>
 
-      <!-- Main Form Card -->
-      <div class="bg-white rounded-xl shadow-lg overflow-hidden border border-slate-100">
-        <!-- Card Header -->
-        <div class="bg-gradient-to-r from-slate-50 to-white px-8 py-5 border-b border-slate-200">
-          <h2 class="text-lg font-semibold text-slate-800 flex items-center">
-            <file-text-outlined class="mr-3 text-emerald-600" />
-            Cheque Request Details
+    <!-- Main Form Card -->
+    <div class="max-w-7xl mx-auto py-6">
+      <div class="bg-card shadow-md rounded-md overflow-hidden mb-6">
+        <div class="px-6 py-4 bg-background border-b border-gray-200">
+          <h2 class="text-lg font-medium text-primary flex items-center">
+            <FormOutlined class="mr-2 text-accent" /> Cheque Request Details
           </h2>
         </div>
 
-        <!-- Form Content -->
-        <div class="p-8">
-          <a-form
-            :model="formState"
-            layout="vertical"
-            @finish="handleSubmit"
-            class="space-y-8"
-          >
+        <div class="p-6">
+          <a-form :model="formState" layout="vertical" @finish="handleSubmit">
             <!-- First Section: Basic Information -->
-            <div>
-              <h3 class="text-md font-medium text-slate-700 mb-4 flex items-center">
-                <user-outlined class="mr-2 text-emerald-500" /> Basic Information
+            <div class="mb-8">
+              <h3
+                class="text-md font-medium text-primary mb-4 flex items-center border-b border-gray-100 pb-2"
+              >
+                <UserOutlined class="mr-2 text-accent" /> Basic Information
               </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Requested By -->
                 <a-form-item
                   label="Requested By"
                   name="requestedBy"
-                  :rules="[{ required: true, message: 'Please select requester' }]"
+                  :rules="[
+                    { required: true, message: 'Please select requester' },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.requestedBy"
@@ -64,7 +75,9 @@
                 <a-form-item
                   label="Bank Name"
                   name="bankName"
-                  :rules="[{ required: true, message: 'Bank name is required' }]"
+                  :rules="[
+                    { required: true, message: 'Bank name is required' },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.bankName"
@@ -72,7 +85,9 @@
                     :disabled="true"
                     class="w-full"
                   >
-                    <a-select-option value="National Bank">National Bank</a-select-option>
+                    <a-select-option value="National Bank"
+                      >National Bank</a-select-option
+                    >
                   </a-select>
                 </a-form-item>
               </div>
@@ -82,7 +97,9 @@
                 <a-form-item
                   label="Request Branch Name"
                   name="requestBranchName"
-                  :rules="[{ required: true, message: 'Request branch is required' }]"
+                  :rules="[
+                    { required: true, message: 'Request branch is required' },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.requestBranchName"
@@ -90,8 +107,12 @@
                     :disabled="true"
                     class="w-full"
                   >
-                    <a-select-option value="Main Branch">Main Branch</a-select-option>
-                    <a-select-option value="Downtown Branch">Downtown Branch</a-select-option>
+                    <a-select-option value="Main Branch"
+                      >Main Branch</a-select-option
+                    >
+                    <a-select-option value="North Branch"
+                      >North Branch</a-select-option
+                    >
                   </a-select>
                 </a-form-item>
 
@@ -99,36 +120,52 @@
                 <a-form-item
                   label="Receiving Branch Name"
                   name="receivingBranchName"
-                  :rules="[{ required: true, message: 'Receiving branch is required' }]"
+                  :rules="[
+                    { required: true, message: 'Receiving branch is required' },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.receivingBranchName"
                     placeholder="Select receiving branch"
                     class="w-full"
                   >
-                    <a-select-option value="Main Branch">Main Branch</a-select-option>
-                    <a-select-option value="Downtown Branch">Downtown Branch</a-select-option>
-                    <a-select-option value="Uptown Branch">Uptown Branch</a-select-option>
-                    <a-select-option value="West Branch">West Branch</a-select-option>
-                    <a-select-option value="East Branch">East Branch</a-select-option>
+                    <a-select-option value="Main Branch"
+                      >Main Branch</a-select-option
+                    >
+                    <a-select-option value="North Branch"
+                      >North Branch</a-select-option
+                    >
+                    <a-select-option value="South Branch"
+                      >South Branch</a-select-option
+                    >
+                    <a-select-option value="East Branch"
+                      >East Branch</a-select-option
+                    >
+                    <a-select-option value="West Branch"
+                      >West Branch</a-select-option
+                    >
                   </a-select>
                 </a-form-item>
               </div>
             </div>
 
-            <div class="border-t border-slate-100 pt-6"></div>
-
             <!-- Second Section: Account Information -->
-            <div>
-              <h3 class="text-md font-medium text-slate-700 mb-4 flex items-center">
-                <credit-card-outlined class="mr-2 text-emerald-500" /> Account Information
+            <div class="mb-8">
+              <h3
+                class="text-md font-medium text-primary mb-4 flex items-center border-b border-gray-100 pb-2"
+              >
+                <CreditCardOutlined class="mr-2 text-accent" /> Account
+                Information
               </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Request Date -->
                 <a-form-item
                   label="Request Date"
                   name="requestDate"
-                  :rules="[{ required: true, message: 'Request date is required' }]"
+                  :rules="[
+                    { required: true, message: 'Request date is required' },
+                  ]"
                 >
                   <a-date-picker
                     v-model:value="formState.requestDate"
@@ -141,7 +178,9 @@
                 <a-form-item
                   label="Account Number"
                   name="accountNumber"
-                  :rules="[{ required: true, message: 'Account number is required' }]"
+                  :rules="[
+                    { required: true, message: 'Account number is required' },
+                  ]"
                 >
                   <a-auto-complete
                     v-model:value="formState.accountNumber"
@@ -153,8 +192,12 @@
                   >
                     <template #option="{ value: accountNumber, label }">
                       <div class="py-1.5 px-1">
-                        <div class="font-medium text-slate-800">{{ accountNumber }}</div>
-                        <div class="text-xs text-slate-500 mt-0.5">{{ label }}</div>
+                        <div class="font-medium text-primary">
+                          {{ accountNumber }}
+                        </div>
+                        <div class="text-xs text-secondary mt-0.5">
+                          {{ label }}
+                        </div>
                       </div>
                     </template>
                   </a-auto-complete>
@@ -162,12 +205,19 @@
               </div>
 
               <!-- Auto-populated fields -->
-              <div class="mt-4 bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200 shadow-sm">
-                <h4 class="text-sm font-medium text-slate-700 mb-3 flex items-center">
-                  <info-circle-outlined class="mr-2 text-emerald-500" />
-                  Account Details <span class="text-xs text-slate-500 ml-2">(Auto-populated)</span>
+              <div
+                class="mt-4 bg-background p-5 rounded-md border border-gray-200 shadow-sm"
+              >
+                <h4
+                  class="text-sm font-medium text-primary mb-3 flex items-center"
+                >
+                  <InfoCircleOutlined class="mr-2 text-accent" />
+                  Account Details
+                  <span class="text-xs text-secondary ml-2"
+                    >(Auto-populated)</span
+                  >
                 </h4>
-                
+
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <!-- Customer Name -->
                   <a-form-item label="Customer Name" name="customerName">
@@ -177,7 +227,7 @@
                       :disabled="true"
                     >
                       <template #prefix>
-                        <user-outlined class="text-slate-400" />
+                        <UserOutlined class="text-secondary" />
                       </template>
                     </a-input>
                   </a-form-item>
@@ -190,7 +240,7 @@
                       :disabled="true"
                     >
                       <template #prefix>
-                        <number-outlined class="text-slate-400" />
+                        <NumberOutlined class="text-secondary" />
                       </template>
                     </a-input>
                   </a-form-item>
@@ -203,7 +253,7 @@
                       :disabled="true"
                     >
                       <template #prefix>
-                        <wallet-outlined class="text-slate-400" />
+                        <WalletOutlined class="text-secondary" />
                       </template>
                     </a-input>
                   </a-form-item>
@@ -211,19 +261,25 @@
               </div>
             </div>
 
-            <div class="border-t border-slate-100 pt-6"></div>
-
             <!-- Third Section: Cheque Details -->
-            <div>
-              <h3 class="text-md font-medium text-slate-700 mb-4 flex items-center">
-                <book-outlined class="mr-2 text-emerald-500" /> Cheque Details
+            <div class="mb-8">
+              <h3
+                class="text-md font-medium text-primary mb-4 flex items-center border-b border-gray-100 pb-2"
+              >
+                <BookOutlined class="mr-2 text-accent" /> Cheque Details
               </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Cheque Leaves Option -->
                 <a-form-item
                   label="Cheque Leaves Option"
                   name="chequeLeaves"
-                  :rules="[{ required: true, message: 'Please select cheque leaves option' }]"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Please select cheque leaves option',
+                    },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.chequeLeaves"
@@ -241,6 +297,10 @@
                       <a-select-option value="50">50 Leaves</a-select-option>
                       <a-select-option value="100">100 Leaves</a-select-option>
                     </template>
+                    <template v-else>
+                      <a-select-option value="10">10 Leaves</a-select-option>
+                      <a-select-option value="25">25 Leaves</a-select-option>
+                    </template>
                   </a-select>
                 </a-form-item>
 
@@ -248,7 +308,9 @@
                 <a-form-item
                   label="Book Quantity"
                   name="bookQuantity"
-                  :rules="[{ required: true, message: 'Book quantity is required' }]"
+                  :rules="[
+                    { required: true, message: 'Book quantity is required' },
+                  ]"
                 >
                   <a-input-number
                     v-model:value="formState.bookQuantity"
@@ -264,7 +326,12 @@
                 <a-form-item
                   label="First Leaf Number"
                   name="firstLeafNumber"
-                  :rules="[{ required: true, message: 'First leaf number is required' }]"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'First leaf number is required',
+                    },
+                  ]"
                 >
                   <a-input
                     v-model:value="formState.firstLeafNumber"
@@ -278,7 +345,10 @@
                   name="series"
                   :rules="[{ required: true, message: 'Please select series' }]"
                 >
-                  <a-radio-group v-model:value="formState.series" class="flex space-x-6">
+                  <a-radio-group
+                    v-model:value="formState.series"
+                    class="flex space-x-6"
+                  >
                     <a-radio value="A">
                       <span class="font-medium">Series A</span>
                     </a-radio>
@@ -293,19 +363,22 @@
               </div>
             </div>
 
-            <div class="border-t border-slate-100 pt-6"></div>
-
             <!-- Fourth Section: Delivery Details -->
-            <div>
-              <h3 class="text-md font-medium text-slate-700 mb-4 flex items-center">
-                <car-outlined class="mr-2 text-emerald-500" /> Delivery Details
+            <div class="mb-8">
+              <h3
+                class="text-md font-medium text-primary mb-4 flex items-center border-b border-gray-100 pb-2"
+              >
+                <CarOutlined class="mr-2 text-accent" /> Delivery Details
               </h3>
+
               <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <!-- Courier Name -->
                 <a-form-item
                   label="Courier Name"
                   name="courierName"
-                  :rules="[{ required: true, message: 'Please select courier' }]"
+                  :rules="[
+                    { required: true, message: 'Please select courier' },
+                  ]"
                 >
                   <a-select
                     v-model:value="formState.courierName"
@@ -315,7 +388,9 @@
                     <a-select-option value="DHL">DHL</a-select-option>
                     <a-select-option value="FedEx">FedEx</a-select-option>
                     <a-select-option value="UPS">UPS</a-select-option>
-                    <a-select-option value="Local Courier">Local Courier</a-select-option>
+                    <a-select-option value="Local Courier"
+                      >Local Courier</a-select-option
+                    >
                   </a-select>
                 </a-form-item>
 
@@ -323,52 +398,58 @@
                 <a-form-item
                   label="Severity"
                   name="severity"
-                  :rules="[{ required: true, message: 'Please select severity' }]"
+                  :rules="[
+                    { required: true, message: 'Please select severity' },
+                  ]"
                 >
-                  <a-radio-group v-model:value="formState.severity" class="flex space-x-6">
-                    <a-radio value="Urgent">
-                      <span class="text-red-600 font-medium flex items-center">
-                        <thunderbolt-outlined class="mr-1" /> Urgent
+                  <a-radio-group
+                    v-model:value="formState.severity"
+                    class="flex space-x-6"
+                  >
+                    <a-radio value="High">
+                      <span class="text-error font-medium flex items-center">
+                        <ThunderboltOutlined class="mr-1" /> High
                       </span>
                     </a-radio>
-                    <a-radio value="Normal">
-                      <span class="text-slate-600 font-medium">Normal</span>
+                    <a-radio value="Medium">
+                      <span class="text-warning font-medium">Medium</span>
+                    </a-radio>
+                    <a-radio value="Low">
+                      <span class="text-success font-medium">Low</span>
                     </a-radio>
                   </a-radio-group>
                 </a-form-item>
               </div>
 
               <!-- Remarks -->
-              <a-form-item
-                label="Remarks"
-                name="remarks"
-                class="mt-4"
-              >
+              <a-form-item label="Remarks" name="remarks" class="mt-4">
                 <a-textarea
                   v-model:value="formState.remarks"
                   placeholder="Enter additional notes or remarks"
                   :rows="4"
-                  class="rounded-lg"
+                  class="rounded-md"
                 />
               </a-form-item>
             </div>
 
             <!-- Form Actions -->
-            <div class="flex justify-end space-x-4 pt-6 border-t border-slate-100">
+            <div
+              class="flex justify-end space-x-4 pt-6 border-t border-gray-100"
+            >
               <a-button
                 @click="resetForm"
                 size="large"
-                class="rounded-lg px-6 border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400 flex items-center"
+                class="rounded-md px-6 border-gray-300 text-secondary hover:text-primary hover:border-accent flex items-center"
               >
-                <reload-outlined class="mr-2" /> Reset
+                <ReloadOutlined class="mr-2" /> Reset
               </a-button>
               <a-button
                 type="primary"
                 html-type="submit"
                 size="large"
-                class="rounded-lg px-8 bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 flex items-center shadow-md"
+                class="rounded-md px-8 bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark flex items-center shadow-md"
               >
-                <check-outlined class="mr-2" /> Preview & Submit
+                <CheckOutlined class="mr-2" /> Preview & Submit
               </a-button>
             </div>
           </a-form>
@@ -376,25 +457,26 @@
       </div>
 
       <!-- Help Card -->
-      <div class="mt-8 bg-white rounded-xl shadow-sm border border-slate-100 p-6">
+      <div class="bg-card shadow-sm rounded-md border border-gray-200 p-6 mb-6">
         <div class="flex items-start">
-          <div class="bg-slate-50 p-3 rounded-lg mr-4 border border-slate-200">
-            <info-circle-outlined class="text-emerald-600 text-lg" />
+          <div class="bg-background p-3 rounded-md mr-4 border border-gray-200">
+            <InfoCircleOutlined class="text-accent text-lg" />
           </div>
           <div>
-            <h3 class="font-medium text-slate-800 mb-1">Need Help?</h3>
-            <p class="text-sm text-slate-600">
-              If you're having trouble with the cheque request form, please contact
-              support at
+            <h3 class="font-medium text-primary mb-1">Need Help?</h3>
+            <p class="text-sm text-secondary">
+              If you're having trouble with the cheque request form, please
+              contact support at
               <a
                 href="mailto:support@example.com"
-                class="text-emerald-600 hover:text-emerald-700 font-medium"
-              >support@example.com</a>
+                class="text-accent hover:text-accent-dark font-medium"
+                >support@example.com</a
+              >
             </p>
           </div>
         </div>
       </div>
-    <!-- </div> -->
+    </div>
 
     <!-- Preview Modal -->
     <a-modal
@@ -406,106 +488,147 @@
       :maskClosable="false"
     >
       <div class="space-y-6 py-2">
-        <div class="bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200">
-          <h3 class="font-medium text-slate-800 mb-3 flex items-center">
-            <user-outlined class="mr-2 text-emerald-500" /> Request Information
+        <div class="bg-background p-5 rounded-md border border-gray-200">
+          <h3 class="font-medium text-primary mb-3 flex items-center">
+            <UserOutlined class="mr-2 text-accent" /> Request Information
           </h3>
           <div class="grid grid-cols-2 gap-x-8 gap-y-4">
             <div>
-              <p class="text-sm text-slate-500">Requested By</p>
-              <p class="font-medium text-slate-800">{{ formState.requestedBy }}</p>
+              <p class="text-sm text-secondary">Requested By</p>
+              <p class="font-medium text-primary">
+                {{ formState.requestedBy }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Bank Name</p>
-              <p class="font-medium text-slate-800">{{ formState.bankName }}</p>
+              <p class="text-sm text-secondary">Bank Name</p>
+              <p class="font-medium text-primary">{{ formState.bankName }}</p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Request Branch</p>
-              <p class="font-medium text-slate-800">{{ formState.requestBranchName }}</p>
+              <p class="text-sm text-secondary">Request Branch</p>
+              <p class="font-medium text-primary">
+                {{ formState.requestBranchName }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Receiving Branch</p>
-              <p class="font-medium text-slate-800">{{ formState.receivingBranchName }}</p>
+              <p class="text-sm text-secondary">Receiving Branch</p>
+              <p class="font-medium text-primary">
+                {{ formState.receivingBranchName }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Request Date</p>
-              <p class="font-medium text-slate-800">{{ formState.requestDate?.format('YYYY-MM-DD') }}</p>
+              <p class="text-sm text-secondary">Request Date</p>
+              <p class="font-medium text-primary">
+                {{ formState.requestDate?.format("YYYY-MM-DD") }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Severity</p>
-              <p class="font-medium flex items-center" :class="{ 'text-red-600': formState.severity === 'Urgent' }">
-                <thunderbolt-outlined v-if="formState.severity === 'Urgent'" class="mr-1" />
+              <p class="text-sm text-secondary">Severity</p>
+              <p
+                class="font-medium flex items-center"
+                :class="{
+                  'text-error': formState.severity === 'High',
+                  'text-warning': formState.severity === 'Medium',
+                  'text-success': formState.severity === 'Low',
+                }"
+              >
+                <ThunderboltOutlined
+                  v-if="formState.severity === 'High'"
+                  class="mr-1"
+                />
                 {{ formState.severity }}
               </p>
             </div>
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200">
-          <h3 class="font-medium text-slate-800 mb-3 flex items-center">
-            <credit-card-outlined class="mr-2 text-emerald-500" /> Account Information
+        <div class="bg-background p-5 rounded-md border border-gray-200">
+          <h3 class="font-medium text-primary mb-3 flex items-center">
+            <CreditCardOutlined class="mr-2 text-accent" /> Account Information
           </h3>
           <div class="grid grid-cols-2 gap-x-8 gap-y-4">
             <div>
-              <p class="text-sm text-slate-500">Account Number</p>
-              <p class="font-medium text-slate-800">{{ formState.accountNumber }}</p>
+              <p class="text-sm text-secondary">Account Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.accountNumber }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Customer Name</p>
-              <p class="font-medium text-slate-800">{{ formState.customerName }}</p>
+              <p class="text-sm text-secondary">Customer Name</p>
+              <p class="font-medium text-primary">
+                {{ formState.customerName }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Routing Number</p>
-              <p class="font-medium text-slate-800">{{ formState.routingNumber }}</p>
+              <p class="text-sm text-secondary">Routing Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.routingNumber }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Account Type</p>
-              <p class="font-medium text-slate-800">{{ formState.accountType }}</p>
+              <p class="text-sm text-secondary">Account Type</p>
+              <p class="font-medium text-primary">
+                {{ formState.accountType }}
+              </p>
             </div>
           </div>
         </div>
 
-        <div class="bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200">
-          <h3 class="font-medium text-slate-800 mb-3 flex items-center">
-            <book-outlined class="mr-2 text-emerald-500" /> Cheque Details
+        <div class="bg-background p-5 rounded-md border border-gray-200">
+          <h3 class="font-medium text-primary mb-3 flex items-center">
+            <BookOutlined class="mr-2 text-accent" /> Cheque Details
           </h3>
           <div class="grid grid-cols-2 gap-x-8 gap-y-4">
             <div>
-              <p class="text-sm text-slate-500">Cheque Leaves</p>
-              <p class="font-medium text-slate-800">{{ formState.chequeLeaves }} leaves</p>
+              <p class="text-sm text-secondary">Cheque Leaves</p>
+              <p class="font-medium text-primary">
+                {{ formState.chequeLeaves }} leaves
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Book Quantity</p>
-              <p class="font-medium text-slate-800">{{ formState.bookQuantity }} books</p>
+              <p class="text-sm text-secondary">Book Quantity</p>
+              <p class="font-medium text-primary">
+                {{ formState.bookQuantity }} books
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">First Leaf Number</p>
-              <p class="font-medium text-slate-800">{{ formState.firstLeafNumber }}</p>
+              <p class="text-sm text-secondary">First Leaf Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.firstLeafNumber }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Series</p>
-              <p class="font-medium text-slate-800">Series {{ formState.series }}</p>
+              <p class="text-sm text-secondary">Series</p>
+              <p class="font-medium text-primary">
+                Series {{ formState.series }}
+              </p>
             </div>
             <div>
-              <p class="text-sm text-slate-500">Courier</p>
-              <p class="font-medium text-slate-800">{{ formState.courierName }}</p>
+              <p class="text-sm text-secondary">Courier</p>
+              <p class="font-medium text-primary">
+                {{ formState.courierName }}
+              </p>
             </div>
           </div>
         </div>
 
-        <div v-if="formState.remarks" class="bg-gradient-to-r from-slate-50 to-white p-5 rounded-xl border border-slate-200">
-          <h3 class="font-medium text-slate-800 mb-2 flex items-center">
-            <message-outlined class="mr-2 text-emerald-500" /> Remarks
+        <div
+          v-if="formState.remarks"
+          class="bg-background p-5 rounded-md border border-gray-200"
+        >
+          <h3 class="font-medium text-primary mb-2 flex items-center">
+            <MessageOutlined class="mr-2 text-accent" /> Remarks
           </h3>
-          <p class="text-slate-700">{{ formState.remarks }}</p>
+          <p class="text-primary">{{ formState.remarks }}</p>
         </div>
 
         <!-- Modal Footer Actions -->
-        <div class="flex justify-end space-x-4 pt-6 mt-4 border-t border-slate-200">
+        <div
+          class="flex justify-end space-x-4 pt-6 mt-4 border-t border-gray-200"
+        >
           <a-button
             @click="previewModalVisible = false"
             size="large"
-            class="rounded-lg px-6 border-slate-300 text-slate-700 hover:text-slate-900 hover:border-slate-400"
+            class="rounded-md px-6 border-gray-300 text-secondary hover:text-primary hover:border-accent"
           >
             Cancel
           </a-button>
@@ -514,10 +637,10 @@
             @click="submitForm"
             :loading="isSubmitting"
             size="large"
-            class="rounded-lg px-8 bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 flex items-center shadow-md"
+            class="rounded-md px-8 bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark flex items-center shadow-md"
           >
-            <check-circle-outlined v-if="!isSubmitting" class="mr-2" /> 
-            {{ isSubmitting ? 'Submitting...' : 'Confirm & Submit' }}
+            <CheckCircleOutlined v-if="!isSubmitting" class="mr-2" />
+            {{ isSubmitting ? "Submitting..." : "Confirm & Submit" }}
           </a-button>
         </div>
       </div>
@@ -532,20 +655,21 @@
       class="custom-modal"
     >
       <div class="text-center py-8 px-4">
-        <div class="mx-auto mb-6 flex items-center justify-center w-24 h-24 rounded-full bg-emerald-50 border-4 border-emerald-100">
-          <check-outlined class="text-emerald-500 text-4xl" />
+        <div
+          class="mx-auto mb-6 flex items-center justify-center w-24 h-24 rounded-full bg-success-light border-4 border-success-lighter"
+        >
+          <CheckOutlined class="text-success text-4xl" />
         </div>
-        <h3 class="text-2xl font-bold text-slate-800 mb-3">
-          Request Submitted!
-        </h3>
-        <p class="text-slate-600 mb-8 max-w-sm mx-auto">
-          Your cheque request has been successfully submitted and is being processed. You will receive a confirmation email shortly.
+        <h3 class="text-2xl font-bold text-primary mb-3">Request Submitted!</h3>
+        <p class="text-secondary mb-8 max-w-sm mx-auto">
+          Your cheque request has been successfully submitted and is being
+          processed. You will receive a confirmation email shortly.
         </p>
         <a-button
           type="primary"
           @click="successModalVisible = false"
           size="large"
-          class="w-full rounded-lg py-3 h-auto bg-emerald-600 hover:bg-emerald-700 border-emerald-600 hover:border-emerald-700 text-base font-medium shadow-md"
+          class="w-full rounded-md py-3 h-auto bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark text-base font-medium shadow-md"
         >
           Continue
         </a-button>
@@ -554,84 +678,93 @@
   </div>
 </template>
 
-<script lang="ts" setup>
-import { ref, reactive } from 'vue';
-import { message } from 'ant-design-vue';
-import dayjs from 'dayjs';
+<script setup lang="ts">
 import {
-  BankOutlined,
-  FileTextOutlined,
-  InfoCircleOutlined,
-  CheckOutlined,
-  CalendarOutlined,
-  UserOutlined,
-  CreditCardOutlined,
   BookOutlined,
-  WalletOutlined,
-  NumberOutlined,
+  CalendarOutlined,
   CarOutlined,
-  ThunderboltOutlined,
   CheckCircleOutlined,
+  CheckOutlined,
+  CreditCardOutlined,
+  FileAddOutlined,
+  FormOutlined,
+  InfoCircleOutlined,
   MessageOutlined,
+  NumberOutlined,
   ReloadOutlined,
-} from '@ant-design/icons-vue';
+  ThunderboltOutlined,
+  UserOutlined,
+  WalletOutlined,
+} from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+import dayjs from "dayjs";
+import { computed, reactive, ref } from "vue";
+
+// Current date for display
+const currentDate = computed(() => {
+  return new Date().toLocaleDateString("en-US", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+  });
+});
 
 // Form state
 const formState = reactive({
-  requestedBy: 'John Doe',
-  bankName: 'National Bank',
-  requestBranchName: 'Main Branch',
-  receivingBranchName: '',
+  requestedBy: "John Doe",
+  bankName: "National Bank",
+  requestBranchName: "Main Branch",
+  receivingBranchName: "",
   requestDate: dayjs(),
-  accountNumber: '',
-  customerName: '',
-  routingNumber: '',
-  accountType: '',
-  chequeLeaves: '',
+  accountNumber: "",
+  customerName: "",
+  routingNumber: "",
+  accountType: "",
+  chequeLeaves: "",
   bookQuantity: 1,
-  firstLeafNumber: '',
-  severity: 'Normal',
-  courierName: '',
-  series: 'A',
-  remarks: '',
+  firstLeafNumber: "",
+  severity: "Medium",
+  courierName: "",
+  series: "A",
+  remarks: "",
 });
 
 // Mock database for account lookup
 const accountDatabase = [
   {
-    accountNumber: '1234567890',
-    customerName: 'John Smith',
-    routingNumber: 'RT-123456',
-    accountType: 'Savings',
+    accountNumber: "AC-100001",
+    customerName: "John Smith",
+    routingNumber: "RT-123456",
+    accountType: "Savings",
   },
   {
-    accountNumber: '0987654321',
-    customerName: 'Jane Doe',
-    routingNumber: 'RT-654321',
-    accountType: 'Current',
+    accountNumber: "AC-100002",
+    customerName: "Jane Doe",
+    routingNumber: "RT-654321",
+    accountType: "Current",
   },
   {
-    accountNumber: '5678901234',
-    customerName: 'Robert Johnson',
-    routingNumber: 'RT-567890',
-    accountType: 'Savings',
+    accountNumber: "AC-100003",
+    customerName: "Robert Johnson",
+    routingNumber: "RT-567890",
+    accountType: "Savings",
   },
   {
-    accountNumber: '2468013579',
-    customerName: 'Emily Williams',
-    routingNumber: 'RT-246801',
-    accountType: 'Current',
+    accountNumber: "AC-100004",
+    customerName: "Emily Williams",
+    routingNumber: "RT-246801",
+    accountType: "Current",
   },
   {
-    accountNumber: '1357924680',
-    customerName: 'Michael Brown',
-    routingNumber: 'RT-135792',
-    accountType: 'Savings',
+    accountNumber: "AC-100005",
+    customerName: "Michael Brown",
+    routingNumber: "RT-135792",
+    accountType: "Savings",
   },
 ];
 
 // Account search and filtering
-const searchValue = ref('');
+const searchValue = ref("");
 const filteredAccounts = ref([]);
 
 // Handle account search for autocomplete
@@ -639,12 +772,14 @@ const handleAccountSearch = (value: string) => {
   searchValue.value = value;
   if (value) {
     filteredAccounts.value = accountDatabase
-      .filter(account => 
-        account.accountNumber.toLowerCase().includes(value.toLowerCase())
+      .filter(
+        (account) =>
+          account.accountNumber.toLowerCase().includes(value.toLowerCase()) ||
+          account.customerName.toLowerCase().includes(value.toLowerCase())
       )
-      .map(account => ({
+      .map((account) => ({
         value: account.accountNumber,
-        label: `${account.customerName} (${account.accountType})`
+        label: `${account.customerName} (${account.accountType})`,
       }));
   } else {
     filteredAccounts.value = [];
@@ -653,17 +788,17 @@ const handleAccountSearch = (value: string) => {
 
 // Handle account selection from dropdown
 const handleAccountSelect = (value: string) => {
-  const account = accountDatabase.find(acc => acc.accountNumber === value);
+  const account = accountDatabase.find((acc) => acc.accountNumber === value);
   if (account) {
     formState.accountNumber = account.accountNumber;
     formState.customerName = account.customerName;
     formState.routingNumber = account.routingNumber;
     formState.accountType = account.accountType;
-    
+
     // Reset cheque leaves when account type changes
-    formState.chequeLeaves = '';
-    
-    message.success('Account information loaded successfully');
+    formState.chequeLeaves = "";
+
+    message.success("Account information loaded successfully");
   }
 };
 
@@ -681,7 +816,7 @@ const handleSubmit = () => {
 // Submit form after preview confirmation
 const submitForm = () => {
   isSubmitting.value = true;
-  
+
   // Simulate API call
   setTimeout(() => {
     isSubmitting.value = false;
@@ -698,26 +833,26 @@ const resetForm = () => {
     bankName: formState.bankName,
     requestBranchName: formState.requestBranchName,
   };
-  
+
   // Reset all fields
   Object.assign(formState, {
     ...readOnlyFields,
-    receivingBranchName: '',
+    receivingBranchName: "",
     requestDate: dayjs(),
-    accountNumber: '',
-    customerName: '',
-    routingNumber: '',
-    accountType: '',
-    chequeLeaves: '',
+    accountNumber: "",
+    customerName: "",
+    routingNumber: "",
+    accountType: "",
+    chequeLeaves: "",
     bookQuantity: 1,
-    firstLeafNumber: '',
-    severity: 'Normal',
-    courierName: '',
-    series: 'A',
-    remarks: '',
+    firstLeafNumber: "",
+    severity: "Medium",
+    courierName: "",
+    series: "A",
+    remarks: "",
   });
-  
-  message.success('Form has been reset');
+
+  message.success("Form has been reset");
 };
 </script>
 
@@ -731,8 +866,9 @@ const resetForm = () => {
 :deep(.ant-input-number),
 :deep(.ant-picker),
 :deep(.ant-select-selector),
-:deep(.ant-input-affix-wrapper) {
-  border-radius: 0.5rem !important;
+:deep(.ant-input-affix-wrapper),
+:deep(.ant-textarea) {
+  border-radius: var(--radius-md) !important;
   transition: all 0.3s;
   border-color: #e2e8f0;
 }
@@ -742,66 +878,68 @@ const resetForm = () => {
 }
 
 :deep(.ant-btn) {
-  border-radius: 0.5rem;
+  border-radius: var(--radius-md);
   transition: all 0.3s;
 }
 
 :deep(.ant-btn-primary) {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: var(--accent-cta);
+  border-color: var(--accent-cta);
 }
 
 :deep(.ant-btn-primary:hover) {
-  background-color: #059669;
-  border-color: #059669;
+  background-color: var(--accent-dark);
+  border-color: var(--accent-dark);
 }
 
 :deep(.ant-input:focus),
 :deep(.ant-input-number-focused),
 :deep(.ant-picker-focused),
 :deep(.ant-select-focused .ant-select-selector),
-:deep(.ant-input-affix-wrapper-focused) {
-  border-color: #10b981 !important;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+:deep(.ant-input-affix-wrapper-focused),
+:deep(.ant-textarea-focused) {
+  border-color: var(--accent-cta) !important;
+  box-shadow: 0 0 0 2px rgba(107, 142, 35, 0.2) !important;
 }
 
 :deep(.ant-input:hover),
 :deep(.ant-input-number:hover),
 :deep(.ant-picker:hover),
 :deep(.ant-select:hover .ant-select-selector),
-:deep(.ant-input-affix-wrapper:hover) {
-  border-color: #10b981 !important;
+:deep(.ant-input-affix-wrapper:hover),
+:deep(.ant-textarea:hover) {
+  border-color: var(--accent-cta) !important;
 }
 
 :deep(.ant-radio-wrapper .ant-radio-checked .ant-radio-inner) {
-  background-color: #10b981;
-  border-color: #10b981;
+  background-color: var(--accent-cta);
+  border-color: var(--accent-cta);
 }
 
 :deep(.ant-form-item-label > label) {
   font-weight: 500;
-  color: #475569;
+  color: var(--text-primary);
 }
 
 :deep(.ant-modal-content) {
-  border-radius: 0.75rem;
+  border-radius: var(--radius-lg);
   overflow: hidden;
 }
 
 :deep(.ant-modal-header) {
-  background-color: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--background);
   padding: 16px 24px;
 }
 
 :deep(.ant-modal-title) {
   font-weight: 600;
-  color: #1e293b;
+  color: var(--text-primary);
   font-size: 1.125rem;
 }
 
 :deep(.ant-modal-close) {
-  color: #64748b;
+  color: var(--text-secondary);
 }
 
 :deep(.ant-modal-body) {
@@ -813,11 +951,11 @@ const resetForm = () => {
 }
 
 :deep(.ant-select-item-option-active:not(.ant-select-item-option-disabled)) {
-  background-color: #f0fdfa;
+  background-color: rgba(107, 142, 35, 0.05);
 }
 
 :deep(.ant-select-item-option-selected:not(.ant-select-item-option-disabled)) {
-  background-color: #d1fae5;
+  background-color: rgba(107, 142, 35, 0.1);
   font-weight: 500;
 }
 

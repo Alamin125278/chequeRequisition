@@ -7,7 +7,7 @@
         { 'sidebar-collapsed': isSidebarCollapsed },
         { 'sidebar-mobile-visible': isMobile && isSidebarVisible },
       ]"
-      v-show="!isMobile || (isMobile && isSidebarVisible)"
+      v-show="isSidebarVisible"
     >
       <div class="sidebar-header">
         <img
@@ -62,6 +62,15 @@
           </template>
         </a-menu>
       </div>
+
+      <div class="sidebar-footer">
+        <div class="sidebar-footer-content">
+          <span v-if="!isSidebarCollapsed"
+            >© {{ new Date().getFullYear() }} Fintera</span
+          >
+          <span v-else>©</span>
+        </div>
+      </div>
     </aside>
 
     <!-- Overlay for mobile sidebar -->
@@ -93,10 +102,36 @@
             <MenuFoldOutlined v-if="!isSidebarCollapsed" />
             <MenuUnfoldOutlined v-else />
           </button>
-          <h1 class="page-title">Home/{{ pageTitle }}</h1>
+          <div class="breadcrumb">
+            <span class="breadcrumb-home">Home</span>
+            <span class="breadcrumb-separator">/</span>
+            <span class="breadcrumb-current">{{ pageTitle }}</span>
+          </div>
         </div>
 
         <div class="header-right">
+          <!-- Search -->
+          <div class="search-container hide-on-mobile">
+            <input type="text" placeholder="Search..." class="search-input" />
+            <button class="search-button">
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="lucide lucide-search"
+              >
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.3-4.3" />
+              </svg>
+            </button>
+          </div>
+
           <!-- Notification feature -->
           <a-dropdown :trigger="['click']" placement="bottomRight">
             <a class="notification-dropdown" @click.prevent>
@@ -139,21 +174,41 @@
 
           <a-dropdown placement="bottomRight">
             <a class="user-dropdown" @click.prevent>
-              <a-avatar class="bg-primary" :src="userStore.user?.avatar" />
-              <span class="username hide-on-mobile">{{
-                userStore.user?.name
-              }}</span>
-              <DownOutlined />
+              <a-avatar class="user-avatar" :src="userStore.user?.avatar">
+                {{ userStore.user?.name?.charAt(0) || "U" }}
+              </a-avatar>
+              <div class="user-info hide-on-mobile">
+                <span class="username">{{
+                  userStore.user?.name || "User"
+                }}</span>
+                <span class="user-role">{{
+                  userStore.user?.role || "Member"
+                }}</span>
+              </div>
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="16"
+                height="16"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                class="chevron-down"
+              >
+                <path d="m6 9 6 6 6-6" />
+              </svg>
             </a>
             <template #overlay>
-              <a-menu>
+              <a-menu class="user-menu">
                 <a-menu-item key="profile">
                   <router-link to="/user-profile" class="menu-link">
-    <UserOutlined />
-    <span>Profile</span>
-  </router-link>
+                    <UserOutlined />
+                    <span>Profile</span>
+                  </router-link>
                 </a-menu-item>
-                
+
                 <a-menu-item key="settings">
                   <SettingOutlined />
                   Settings
@@ -175,19 +230,18 @@
       </main>
 
       <!-- Footer -->
-      <footer
-        class="py-5 border-t border-gray-200 bg-gradient-to-r from-gray-50 to-gray-100"
-      >
-        <div class="container mx-auto px-6">
-          <div class="flex justify-center items-center">
-            <span class="text-gray-400 px-2 text-xs">&bull;</span>
-            <p
-              class="text-sm font-semibold text-gray-500 font-light tracking-wide"
+      <footer class="footer">
+        <div class="footer-content">
+          <div class="footer-copyright">
+            <span
+              >&copy; {{ new Date().getFullYear() }} Fintera Solutions. All
+              rights reserved.</span
             >
-              &copy; {{ new Date().getFullYear() }} Fintera Solutions. All
-              rights reserved.
-            </p>
-            <span class="text-gray-400 px-2 text-xs">&bull;</span>
+          </div>
+          <div class="footer-links">
+            <a href="#" class="footer-link">Privacy Policy</a>
+            <a href="#" class="footer-link">Terms of Service</a>
+            <a href="#" class="footer-link">Contact Us</a>
           </div>
         </div>
       </footer>
@@ -196,26 +250,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, onMounted, onUnmounted, watch } from "vue";
-import { useRouter, useRoute } from "vue-router";
 import {
-  MenuFoldOutlined,
-  MenuUnfoldOutlined,
-  DashboardOutlined,
-  FileTextOutlined,
-  BarChartOutlined,
-  BranchesOutlined,
-  BankOutlined,
-  UserOutlined,
-  SettingOutlined,
-  LogoutOutlined,
-  MenuOutlined,
-  DownOutlined,
   BellOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuOutlined,
+  MenuUnfoldOutlined,
+  SettingOutlined,
+  UserOutlined,
 } from "@ant-design/icons-vue";
-import { useMenuStore } from "@/stores/menuStore";
-import { useUserStore } from "@/stores/userStore";
 import { message } from "ant-design-vue";
+import { computed, onMounted, onUnmounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
+import { useMenuStore } from "../stores/menuStore";
+import { useUserStore } from "../stores/userStore";
 
 // Router
 const router = useRouter();
@@ -223,7 +271,9 @@ const route = useRoute();
 const menuStore = useMenuStore();
 const userStore = useUserStore();
 
-const filteredMenu = computed(() => menuStore.getFilteredMenu(userStore.permissions))
+const filteredMenu = computed(() =>
+  menuStore.getFilteredMenu(userStore.permissions)
+);
 const selectedKeys = ref<string[]>(["dashboard"]);
 const openKeys = ref<string[]>([]);
 
@@ -315,7 +365,7 @@ watch(
 
 // Sidebar state
 const isSidebarCollapsed = ref(false);
-const isSidebarVisible = ref(false);
+const isSidebarVisible = ref(true);
 const isMobile = ref(false);
 
 // Toggle sidebar collapse state
@@ -336,7 +386,6 @@ const toggleSidebar = () => {
 // Toggle mobile sidebar visibility
 const toggleMobileSidebar = () => {
   isSidebarVisible.value = !isSidebarVisible.value;
-  console.log("Mobile sidebar toggled:", isSidebarVisible.value); // Debug log
 };
 
 // Navigation
@@ -351,12 +400,8 @@ const navigateTo = (path: string) => {
 const logout = () => {
   userStore.logout();
   message.success("Logged out successfully");
-  // Implement logout logic here
   router.push("/login");
 };
-
-// Current year for footer
-const currentYear = computed(() => new Date().getFullYear());
 
 // Check if device is mobile
 const checkIfMobile = () => {
@@ -436,10 +481,10 @@ watch(
 
 /* Sidebar styles */
 .sidebar {
-  width: 250px;
-  background-color: var(--primary-color);
-  color: white;
-  transition: all 0.3s ease;
+  width: 260px;
+  background-color: var(--primary-ui);
+  color: var(--background);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   z-index: 1001;
   display: flex;
   flex-direction: column;
@@ -449,7 +494,7 @@ watch(
   left: 0;
   height: 100vh;
   overflow-y: auto;
-  box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
 }
 
 .sidebar-collapsed {
@@ -459,10 +504,10 @@ watch(
 .sidebar-header {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  padding: 16px;
-  border-bottom: 1px solid var(--primary-light);
-  height: 64px;
+  justify-content: center;
+  padding: 20px 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 70px;
 }
 
 .logo {
@@ -477,21 +522,24 @@ watch(
   transition: all 0.3s ease;
 }
 
-.collapse-btn {
-  background: transparent;
-  border: none;
-  color: white;
-  cursor: pointer;
-  font-size: 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
 .sidebar-content {
   flex: 1;
   overflow-y: auto;
+  padding: 12px 0;
+}
+
+.sidebar-footer {
+  padding: 16px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.sidebar-footer-content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 /* Overlay for mobile sidebar */
@@ -504,6 +552,7 @@ watch(
   background-color: rgba(0, 0, 0, 0.5);
   z-index: 1000;
   animation: fadeIn 0.3s ease;
+  backdrop-filter: blur(2px);
 }
 
 @keyframes fadeIn {
@@ -522,10 +571,11 @@ watch(
   flex-direction: column;
   overflow-x: hidden;
   /* Adjust margin to account for fixed sidebar */
-  margin-left: 250px;
-  transition: margin-left 0.3s ease, width 0.3s ease;
+  margin-left: 260px;
+  transition: margin-left 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   /* Ensure the main content takes full width minus sidebar */
-  width: calc(100% - 250px);
+  width: calc(100% - 260px);
 }
 
 .main-content-expanded {
@@ -535,16 +585,15 @@ watch(
 
 /* Header styles */
 .header {
-  height: 64px;
-  /* Colorful header with primary color */
-  background-color: var(--primary-color);
-  color: white;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  height: 70px;
+  background-color: var(--card-bg);
+  color: var(--text-primary);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
   /* Fixed header */
   position: fixed;
   top: 0;
@@ -552,7 +601,8 @@ watch(
   /* Width should match main content */
   width: inherit;
   z-index: 999;
-  transition: width 0.3s ease, left 0.3s ease;
+  transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1),
+    left 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .header-left {
@@ -566,31 +616,44 @@ watch(
   font-size: 18px;
   margin-right: 16px;
   cursor: pointer;
-  color: white;
+  color: var(--text-primary);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all 0.2s ease;
   padding: 8px;
-  border-radius: 4px;
+  border-radius: 8px;
+  width: 36px;
+  height: 36px;
 }
 
 .menu-toggle:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+  color: var(--accent-cta);
 }
 
 .desktop-only {
   display: none;
 }
 
-.page-title {
-  margin: 0;
-  font-size: 18px;
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+}
+
+.breadcrumb-home {
+  color: var(--text-secondary);
+}
+
+.breadcrumb-separator {
+  margin: 0 8px;
+  color: var(--text-secondary);
+}
+
+.breadcrumb-current {
   font-weight: 600;
-  color: white;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  color: var(--text-primary);
 }
 
 .header-right {
@@ -599,22 +662,71 @@ watch(
   gap: 16px;
 }
 
+/* Search styles */
+.search-container {
+  position: relative;
+  width: 240px;
+}
+
+.search-input {
+  width: 100%;
+  height: 36px;
+  padding: 0 16px;
+  padding-right: 40px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  font-size: 14px;
+  transition: all 0.2s ease;
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--accent-cta);
+  background-color: white;
+  box-shadow: 0 0 0 3px rgba(107, 142, 35, 0.1);
+}
+
+.search-button {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+}
+
+.search-input:focus + .search-button {
+  color: var(--accent-cta);
+}
+
 /* Notification styles */
 .notification-dropdown {
   display: flex;
   align-items: center;
+  justify-content: center;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 8px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  width: 36px;
+  height: 36px;
+  transition: all 0.2s ease;
 }
 
 .notification-dropdown:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
 }
 
 .notification-icon {
-  font-size: 20px;
-  color: white;
+  font-size: 18px;
+  color: var(--text-primary);
 }
 
 :deep(.notification-menu) {
@@ -622,58 +734,77 @@ watch(
   max-height: 400px;
   overflow-y: auto;
   padding: 0;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .notification-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-200);
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
   font-weight: 600;
 }
 
 .notification-item {
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--neutral-100);
+  padding: 16px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  transition: background-color 0.2s ease;
+}
+
+.notification-item:hover {
+  background-color: rgba(0, 0, 0, 0.02);
 }
 
 .notification-content {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 .notification-title {
   font-weight: 600;
+  font-size: 14px;
 }
 
 .notification-message {
-  font-size: 14px;
-  color: var(--neutral-600);
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.4;
 }
 
 .notification-time {
   font-size: 12px;
-  color: var(--neutral-500);
+  color: var(--text-secondary);
+  margin-top: 4px;
 }
 
 .empty-notification {
   text-align: center;
-  padding: 16px;
-  color: var(--neutral-500);
+  padding: 24px 16px;
+  color: var(--text-secondary);
+  font-size: 14px;
 }
 
 .notification-footer {
   padding: 12px 16px;
   text-align: center;
-  border-top: 1px solid var(--neutral-200);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .notification-footer a {
-  color: var(--primary-color);
+  color: var(--accent-cta);
   font-size: 14px;
+  font-weight: 500;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+
+.notification-footer a:hover {
+  color: #5a7a1f;
+  text-decoration: underline;
 }
 
 /* User dropdown styles */
@@ -681,80 +812,187 @@ watch(
   display: flex;
   align-items: center;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 4px;
-  color: white;
+  padding: 6px 12px;
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.02);
+  transition: all 0.2s ease;
 }
 
 .user-dropdown:hover {
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: rgba(0, 0, 0, 0.05);
+}
+
+.user-avatar {
+  background-color: var(--accent-cta);
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  margin: 0 12px;
+  line-height: 1.2;
 }
 
 .username {
-  margin: 0 8px;
-  font-weight: 500;
+  font-weight: 600;
+  font-size: 14px;
+  color: var(--text-primary);
+}
+
+.user-role {
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.chevron-down {
+  color: var(--text-secondary);
+  margin-left: 4px;
+}
+
+:deep(.user-menu) {
+  min-width: 180px;
+  border-radius: 12px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  overflow: hidden;
+}
+
+:deep(.user-menu .ant-dropdown-menu-item) {
+  padding: 12px 16px;
+  transition: all 0.2s ease;
+}
+
+:deep(.user-menu .ant-dropdown-menu-item:hover) {
+  background-color: rgba(0, 0, 0, 0.02);
+}
+
+:deep(.user-menu .ant-dropdown-menu-item .anticon) {
+  margin-right: 10px;
+  font-size: 16px;
+}
+
+.menu-link {
+  display: flex;
+  align-items: center;
+  color: inherit;
+  text-decoration: none;
 }
 
 /* Content area */
 .content {
   flex: 1;
   padding: 24px;
-  background-color: var(--neutral-50);
+  background-color: var(--background);
   overflow-y: auto;
   /* Add padding to account for fixed header */
-  padding-top: 88px; /* 64px header height + 24px original padding */
+  padding-top: 94px; /* 70px header height + 24px original padding */
 }
 
 /* Footer */
 .footer {
-  padding: 16px 24px;
-  text-align: center;
+  padding: 20px 24px;
   background-color: white;
-  border-top: 1px solid var(--neutral-200);
-  color: var(--neutral-600);
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.footer-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.footer-copyright {
   font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.footer-links {
+  display: flex;
+  gap: 24px;
+}
+
+.footer-link {
+  font-size: 14px;
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: color 0.2s ease;
+}
+
+.footer-link:hover {
+  color: var(--accent-cta);
 }
 
 /* Custom styling for Ant Design menu */
 :deep(.custom-menu) {
-  background-color: var(--primary-color);
+  background-color: var(--primary-ui);
   border-right: none;
 }
 
 :deep(.custom-menu .ant-menu-item) {
-  color: var(--neutral-300);
+  margin: 4px 8px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
   transition: all 0.3s;
+  height: 40px;
+  line-height: 40px;
+  padding-left: 16px !important;
 }
 
 :deep(.custom-menu .ant-menu-submenu-title) {
-  color: var(--neutral-300);
+  margin: 4px 8px;
+  border-radius: 8px;
+  color: rgba(255, 255, 255, 0.7);
   transition: all 0.3s;
+  height: 40px;
+  line-height: 40px;
+  padding-left: 16px !important;
 }
 
 :deep(.custom-menu .ant-menu-item-active),
 :deep(.custom-menu .ant-menu-item-selected) {
   color: white !important;
-  background-color: var(--primary-light) !important;
+  background-color: var(--accent-cta) !important;
 }
 
 :deep(.custom-menu .ant-menu-submenu-active > .ant-menu-submenu-title),
 :deep(.custom-menu .ant-menu-submenu-open > .ant-menu-submenu-title) {
-  background-color: var(--primary-light) !important;
   color: white !important;
 }
 
+:deep(.custom-menu .ant-menu-submenu-selected > .ant-menu-submenu-title) {
+  color: white !important;
+  background-color: var(--accent-cta) !important;
+  border-radius: 8px;
+}
+
 :deep(.custom-menu .ant-menu-sub) {
-  background-color: var(--primary-dark);
+  background-color: rgba(0, 0, 0, 0.2);
+  padding: 4px;
+  border-radius: 8px;
+  margin: 0 8px;
+}
+
+:deep(.custom-menu .ant-menu-sub .ant-menu-item) {
+  margin: 4px 0;
+  padding-left: 12px !important;
+  height: 36px;
+  line-height: 36px;
 }
 
 /* Collapsed menu styles */
 :deep(.ant-menu-inline-collapsed) {
-  width: 80px;
+  width: 64px;
 }
 
 :deep(.ant-menu-inline-collapsed .ant-menu-item),
 :deep(.ant-menu-inline-collapsed .ant-menu-submenu-title) {
   padding: 0 calc(50% - 16px / 2) !important;
+  margin: 4px 8px !important;
 }
 
 :deep(.ant-menu-inline-collapsed .ant-menu-item .anticon),
@@ -775,6 +1013,12 @@ watch(
   max-width: 0;
 }
 
+/* Badge styling */
+:deep(.ant-badge .ant-badge-count) {
+  background-color: var(--error);
+  box-shadow: 0 0 0 1px white;
+}
+
 /* Responsive styles */
 @media (min-width: 769px) {
   .desktop-only {
@@ -791,8 +1035,8 @@ watch(
   /* Mobile sidebar */
   .sidebar {
     transform: translateX(-100%);
-    box-shadow: 2px 0 8px rgba(0, 0, 0, 0.15);
-    width: 250px !important; /* Force full width on mobile */
+    box-shadow: 2px 0 20px rgba(0, 0, 0, 0.2);
+    width: 280px !important; /* Force full width on mobile */
   }
 
   /* Show sidebar when visible */
@@ -819,12 +1063,24 @@ watch(
   /* Adjust content padding */
   .content {
     padding: 16px;
-    padding-top: 80px; /* 64px header height + 16px original padding */
+    padding-top: 86px; /* 70px header height + 16px original padding */
   }
 
   /* Hide username on mobile */
   .hide-on-mobile {
     display: none;
+  }
+
+  /* Footer adjustments */
+  .footer-content {
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    gap: 12px;
+  }
+
+  .footer-links {
+    gap: 16px;
   }
 }
 
@@ -834,9 +1090,12 @@ watch(
     padding: 0 16px;
   }
 
-  .page-title {
-    font-size: 16px;
+  .breadcrumb {
+    font-size: 13px;
     max-width: 150px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .header-right {
@@ -845,22 +1104,16 @@ watch(
 
   .content {
     padding: 12px;
-    padding-top: 76px;
+    padding-top: 82px;
   }
-}
 
-/* Medium screens */
-@media (min-width: 481px) and (max-width: 768px) {
-  .page-title {
-    max-width: 250px;
+  .footer {
+    padding: 16px;
   }
-}
 
-/* Large screens */
-@media (min-width: 1200px) {
-  .content {
-    padding: 32px;
-    padding-top: 96px;
+  .footer-links {
+    flex-direction: column;
+    gap: 12px;
   }
 }
 </style>

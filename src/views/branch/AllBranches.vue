@@ -1,112 +1,166 @@
 <template>
-  <div
-    class="branch-management-container"
-    :class="{ 'modal-open': modalVisible }"
-  >
-    <!-- Header Section -->
-    <div class="header-section">
-      <div class="header-content">
-        <div class="header-title-container">
-          <h1 class="header-title">Branch Management</h1>
-          <p class="header-subtitle">View and manage all bank branches</p>
-        </div>
-        <div class="header-actions">
-          <a-button
-            type="primary"
-            class="add-branch-btn"
-            @click="showModal('add')"
-          >
-            <template #icon><PlusOutlined /></template>
-            Add New Branch
-          </a-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-container">
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-info">
-            <p class="stats-label">Total Branches</p>
-            <p class="stats-value">{{ branches.length }}</p>
-          </div>
-          <div class="stats-icon">
-            <BranchesOutlined />
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-info">
-            <p class="stats-label">Active Branches</p>
-            <p class="stats-value">{{ activeCount }}</p>
-          </div>
-          <div class="stats-icon stats-icon-navy">
-            <CheckCircleOutlined />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Branch Map Section
-    <div class="map-container">
-      <div class="map-header">
-        <h2 class="map-title">Branch Locations</h2>
-        <a-select
-          v-model:value="selectedRegion"
-          placeholder="Filter by region"
-          class="region-filter"
-          allowClear
+  <div class="bg-background min-h-screen">
+    <!-- Professional Hero Header Section -->
+    <div class="bg-card border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
-          <a-select-option value="north">North Region</a-select-option>
-          <a-select-option value="south">South Region</a-select-option>
-          <a-select-option value="east">East Region</a-select-option>
-          <a-select-option value="west">West Region</a-select-option>
-          <a-select-option value="central">Central Region</a-select-option>
-        </a-select>
-      </div>
-      <div class="map-placeholder">
-        <EnvironmentOutlined class="map-icon" />
-        <p class="map-text">Interactive branch map will be displayed here</p>
-      </div>
-    </div> -->
-
-    <!-- Table Section -->
-    <div class="table-container">
-      <div class="table-header">
-        <h2 class="table-title">All Branch List</h2>
-        <div class="table-actions">
-          <a-input-search
-            v-model:value="searchText"
-            placeholder="Search branches..."
-            class="search-input"
-            @search="onSearch"
-            allow-clear
-          />
-          <a-select
-            v-model:value="statusFilter"
-            placeholder="Status"
-            class="status-filter"
-            allowClear
-          >
-            <a-select-option value="active">Active</a-select-option>
-            <a-select-option value="inactive">Inactive</a-select-option>
-          </a-select>
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent rounded-md p-2">
+                <BranchesOutlined class="h-6 w-6 text-white" />
+              </div>
+              <h1 class="ml-3 text-2xl font-semibold text-primary">
+                Branch Management
+              </h1>
+            </div>
+            <p class="mt-2 text-sm text-secondary max-w-2xl">
+              View and manage all bank branches in one centralized dashboard.
+            </p>
+          </div>
+          <div class="mt-4 md:mt-0 md:ml-4">
+            <a-button
+              type="primary"
+              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+              @click="showModal('add')"
+            >
+              <template #icon><PlusOutlined /></template>
+              Add New Branch
+            </a-button>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="table-responsive">
+    <!-- Simplified Stats Section -->
+    <div class="max-w-7xl py-6">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Total Branches Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent bg-opacity-10 rounded-md p-3">
+                <BranchesOutlined class="h-6 w-6 text-white" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Total Branches
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ branches.length }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Branches Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 bg-success bg-opacity-10 rounded-md p-3"
+              >
+                <CheckCircleOutlined class="h-6 w-6 text-white" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Active Branches
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ activeCount }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inactive Branches Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-error-light rounded-md p-3">
+                <CloseCircleOutlined class="h-6 w-6 text-error" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Inactive Branches
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ branches.length - activeCount }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Branch Table Section -->
+    <div class="max-w-7xl pb-8">
+      <div class="bg-card shadow-md rounded-md overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <h2 class="text-lg font-medium text-primary">All Branch List</h2>
+              <p class="mt-1 text-sm text-secondary">
+                A complete list of all bank branches in the system
+              </p>
+            </div>
+            <div
+              class="mt-4 md:mt-0 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3"
+            >
+              <a-select
+                v-model:value="statusFilter"
+                placeholder="Filter by status"
+                class="w-full sm:w-40"
+                allowClear
+                @change="onFilterChange"
+              >
+                <a-select-option value="active">Active</a-select-option>
+                <a-select-option value="inactive">Inactive</a-select-option>
+              </a-select>
+              <a-input-search
+                v-model:value="searchText"
+                placeholder="Search branches..."
+                class="w-full sm:w-64"
+                @search="onSearch"
+                allow-clear
+              >
+                <template #prefix>
+                  <SearchOutlined class="text-secondary" />
+                </template>
+              </a-input-search>
+            </div>
+          </div>
+        </div>
+
         <a-table
           :dataSource="filteredBranches"
           :columns="columns"
           :pagination="{
             pageSize: 10,
             showTotal: (total:number) => `Total ${total} branches`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50'],
           }"
           :loading="loading"
-          :rowClassName="rowClassName"
+          :rowClassName="() => 'hover:bg-background'"
           class="custom-table"
           :scroll="{ x: 1000 }"
         >
@@ -114,47 +168,50 @@
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'bankName'">
               <div class="flex items-center">
-                <BankOutlined class="mr-2 text-gray-500" />
+                <BankOutlined class="mr-2 text-secondary" />
                 {{ record.bankName }}
               </div>
             </template>
+
             <template v-if="column.key === 'branchName'">
-              <div class="branch-name-cell">
-                <div class="branch-icon">
-                  <BranchesOutlined />
-                </div>
-                <span>{{ record.branchName }}</span>
+              <div class="flex items-center">
+                <span class="ml-2 font-medium">{{ record.branchName }}</span>
               </div>
             </template>
 
             <!-- Status Column -->
             <template v-if="column.key === 'status'">
-              <a-tag :color="record.status === 'active' ? 'success' : 'error'">
+              <a-tag
+                :color="record.status === 'active' ? 'success' : 'error'"
+                class="px-3 py-1 rounded-md text-xs font-medium"
+              >
                 {{ record.status === "active" ? "Active" : "Inactive" }}
               </a-tag>
             </template>
 
             <!-- Action Column -->
             <template v-if="column.key === 'action'">
-              <div class="action-buttons">
+              <div class="flex justify-center space-x-2">
                 <a-tooltip title="Edit Branch">
                   <a-button
                     type="primary"
-                    size="small"
-                    class="edit-btn"
+                    shape="circle"
+                    class="flex items-center justify-center bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
                     @click="showModal('edit', record)"
                   >
-                    <template #icon>
-                      <EditOutlined class="btn-icon" />
-                    </template>
+                    <EditOutlined />
                   </a-button>
                 </a-tooltip>
 
                 <a-tooltip title="Delete Branch">
-                  <a-button type="primary" size="small" class="delete-btn">
-                    <template #icon>
-                      <DeleteOutlined class="btn-icon" />
-                    </template>
+                  <a-button
+                    type="primary"
+                    shape="circle"
+                    danger
+                    class="flex items-center justify-center"
+                    @click="showDeleteConfirm(record)"
+                  >
+                    <DeleteOutlined />
                   </a-button>
                 </a-tooltip>
               </div>
@@ -164,68 +221,33 @@
       </div>
     </div>
 
-    <!-- Enhanced Professional Branch Modal -->
+    <!-- Branch Modal -->
     <a-modal
       v-model:visible="modalVisible"
-      :title="null"
+      :title="modalMode === 'add' ? 'Add New Branch' : 'Edit Branch'"
+      :width="720"
       :footer="null"
-      :width="800"
-      :bodyStyle="{ padding: '0' }"
-      style="top: 20px"
-      :maskClosable="false"
-      :zIndex="100"
-      :maskStyle="{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }"
       class="branch-modal"
     >
-      <!-- Custom Header -->
-      <div class="modal-custom-header">
-        <div class="modal-header-content">
-          <div class="modal-icon">
-            <template v-if="modalMode === 'add'">
-              <PlusOutlined />
-            </template>
-            <template v-else>
-              <EditOutlined />
-            </template>
-          </div>
-          <div>
-            <h3 class="modal-title">
-              {{ modalMode === "add" ? "Add New Branch" : "Edit Branch" }}
-            </h3>
-            <p class="modal-subtitle">
-              {{
-                modalMode === "add"
-                  ? "Create a new branch with the form below"
-                  : "Update branch information"
-              }}
-            </p>
-          </div>
-        </div>
-        <a-button
-          type="text"
-          @click="modalVisible = false"
-          class="modal-close-btn"
-        >
-          <template #icon><CloseOutlined /></template>
-        </a-button>
-      </div>
-
-      <!-- Form Content -->
-      <div class="modal-content">
+      <div class="p-4">
         <a-form
           :model="formState"
           layout="vertical"
           :rules="rules"
           ref="formRef"
         >
-          <div class="form-section">
-            <h4 class="form-section-title">Basic Information</h4>
-
-            <div class="form-row">
-              <a-form-item label="Bank Name" name="bankName" class="form-item">
+          <div class="mb-6 pb-4 border-b border-gray-200">
+            <h3
+              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
+            >
+              Basic Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <a-form-item label="Bank Name" name="bankName">
                 <a-select
                   v-model:value="formState.bankName"
                   placeholder="Select bank"
+                  class="rounded-md w-full"
                 >
                   <a-select-option value="">Select bank</a-select-option>
                   <a-select-option value="Public Bank"
@@ -237,46 +259,36 @@
                   <a-select-option value="City Bank">City Bank</a-select-option>
                 </a-select>
               </a-form-item>
-              <a-form-item
-                label="Branch Name"
-                name="branchName"
-                class="form-item"
-              >
+
+              <a-form-item label="Branch Name" name="branchName">
                 <a-input
                   v-model:value="formState.branchName"
                   placeholder="Enter branch name"
+                  class="rounded-md"
                 />
               </a-form-item>
-            </div>
-            <div class="form-row">
-              <a-form-item
-                label="Branch Code"
-                name="branchCode"
-                class="form-item"
-              >
+
+              <a-form-item label="Branch Code" name="branchCode">
                 <a-input
                   v-model:value="formState.branchCode"
                   placeholder="Enter branch code"
+                  class="rounded-md"
                 />
               </a-form-item>
 
-              <a-form-item
-                label="Routing Number"
-                name="routingNumber"
-                class="form-item"
-              >
+              <a-form-item label="Routing Number" name="routingNumber">
                 <a-input
                   v-model:value="formState.routingNumber"
                   placeholder="Enter routing number"
+                  class="rounded-md"
                 />
               </a-form-item>
-            </div>
 
-            <div class="form-row">
-              <a-form-item label="Status" name="status" class="form-item">
+              <a-form-item label="Status" name="status">
                 <a-select
                   v-model:value="formState.status"
                   placeholder="Select status"
+                  class="rounded-md w-full"
                 >
                   <a-select-option value="active">Active</a-select-option>
                   <a-select-option value="inactive">Inactive</a-select-option>
@@ -285,95 +297,104 @@
             </div>
           </div>
 
-          <div class="form-section">
-            <h4 class="form-section-title">Contact Information</h4>
-
-            <div class="form-row">
-              <a-form-item
-                label="Branch Email"
-                name="branchEmail"
-                class="form-item"
-              >
+          <div class="mb-4">
+            <h3
+              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
+            >
+              Contact Information
+            </h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <a-form-item label="Branch Email" name="branchEmail">
                 <a-input
                   v-model:value="formState.branchEmail"
                   placeholder="Enter email address"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <MailOutlined class="site-form-item-icon" />
+                    <MailOutlined class="text-secondary" />
+                  </template>
+                </a-input>
+              </a-form-item>
+
+              <a-form-item label="Branch Phone" name="branchPhone">
+                <a-input
+                  v-model:value="formState.branchPhone"
+                  placeholder="Enter phone number"
+                  class="rounded-md"
+                >
+                  <template #prefix>
+                    <PhoneOutlined class="text-secondary" />
                   </template>
                 </a-input>
               </a-form-item>
 
               <a-form-item
-                label="Branch Phone"
-                name="branchPhone"
-                class="form-item"
+                label="Branch Address"
+                name="branchAddress"
+                class="md:col-span-2"
               >
-                <a-input
-                  v-model:value="formState.branchPhone"
-                  placeholder="Enter phone number"
-                >
-                  <template #prefix>
-                    <PhoneOutlined class="site-form-item-icon" />
-                  </template>
-                </a-input>
+                <a-textarea
+                  v-model:value="formState.branchAddress"
+                  placeholder="Enter complete address"
+                  :rows="3"
+                  class="rounded-md"
+                />
               </a-form-item>
             </div>
+          </div>
 
-            <a-form-item label="Branch Address" name="branchAddress">
-              <a-textarea
-                v-model:value="formState.branchAddress"
-                placeholder="Enter complete address"
-                :rows="3"
-                :autoSize="{ minRows: 3, maxRows: 5 }"
-              />
-            </a-form-item>
+          <div
+            class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100"
+          >
+            <a-button @click="modalVisible = false"> Cancel </a-button>
+            <a-button
+              type="primary"
+              @click="handleModalSubmit"
+              :loading="submitting"
+              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+            >
+              {{ modalMode === "add" ? "Create Branch" : "Save Changes" }}
+            </a-button>
           </div>
         </a-form>
       </div>
-
-      <!-- Custom Footer -->
-      <div class="modal-footer">
-        <a-button @click="modalVisible = false" class="cancel-btn">
-          Cancel
-        </a-button>
-        <a-button type="primary" @click="handleModalSubmit" class="submit-btn">
-          <template v-if="submitting">
-            <LoadingOutlined />
-            {{ modalMode === "add" ? "Creating..." : "Updating..." }}
-          </template>
-          <template v-else>
-            {{ modalMode === "add" ? "Create Branch" : "Save Changes" }}
-          </template>
-        </a-button>
-      </div>
     </a-modal>
+
+    <!-- Toast Notifications -->
+    <div class="toast-container">
+      <a-alert
+        v-for="(toast, index) in toasts"
+        :key="index"
+        :message="toast.message"
+        :type="toast.type"
+        showIcon
+        closable
+        class="mb-3 shadow-sm rounded-md"
+        @close="removeToast(index)"
+      />
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from "vue";
 import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  EyeOutlined,
+  BankOutlined,
   BranchesOutlined,
   CheckCircleOutlined,
-  CloseOutlined,
+  CloseCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
   MailOutlined,
   PhoneOutlined,
-  LoadingOutlined,
-  ClockCircleOutlined,
-  EnvironmentOutlined,
-  TeamOutlined,
-  UserOutlined,
+  PlusOutlined,
+  SearchOutlined,
 } from "@ant-design/icons-vue";
+import { Modal } from "ant-design-vue";
+import { computed, onMounted, reactive, ref } from "vue";
 
 // Search and filter states
 const searchText = ref("");
 const statusFilter = ref("");
-const selectedRegion = ref("");
 const loading = ref(false);
 const modalVisible = ref(false);
 const modalMode = ref<"add" | "edit">("add");
@@ -381,10 +402,14 @@ const currentBranchId = ref<string | null>(null);
 const submitting = ref(false);
 const formRef = ref();
 
-// Function for row class name
-const rowClassName = (record: any, index: number) => {
-  return index % 2 === 0 ? "table-row-light" : "table-row-dark";
-};
+// Toast notifications
+interface Toast {
+  message: string;
+  type: "success" | "error" | "info" | "warning";
+  duration: number;
+}
+
+const toasts = ref<Toast[]>([]);
 
 // Form state for modal
 const formState = reactive({
@@ -420,17 +445,48 @@ const columns = [
     key: "id",
     width: 80,
   },
-  { title: "Bank Name", dataIndex: "bankName", key: "bankName" },
+  {
+    title: "Bank Name",
+    dataIndex: "bankName",
+    key: "bankName",
+    sorter: (a: any, b: any) => a.bankName.localeCompare(b.bankName),
+  },
   {
     title: "Branch Name",
     dataIndex: "branchName",
     key: "branchName",
+    sorter: (a: any, b: any) => a.branchName.localeCompare(b.branchName),
   },
-  { title: "Branch Code", dataIndex: "branchCode", key: "branchCode" },
-  { title: "Routing Number", dataIndex: "routingNumber", key: "routingNumber" },
-  { title: "Status", dataIndex: "status", key: "status" },
-  { title: "Branch Email", dataIndex: "branchEmail", key: "branchEmail" },
-  { title: "Branch Phone", dataIndex: "branchPhone", key: "branchPhone" },
+  {
+    title: "Branch Code",
+    dataIndex: "branchCode",
+    key: "branchCode",
+  },
+  {
+    title: "Routing Number",
+    dataIndex: "routingNumber",
+    key: "routingNumber",
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    filters: [
+      { text: "Active", value: "active" },
+      { text: "Inactive", value: "inactive" },
+    ],
+    onFilter: (value: string, record: any) => record.status === value,
+  },
+  {
+    title: "Branch Email",
+    dataIndex: "branchEmail",
+    key: "branchEmail",
+  },
+  {
+    title: "Branch Phone",
+    dataIndex: "branchPhone",
+    key: "branchPhone",
+  },
   {
     title: "Branch Address",
     dataIndex: "branchAddress",
@@ -441,12 +497,13 @@ const columns = [
     title: "Action",
     key: "action",
     fixed: "right",
-    width: 150,
+    width: 120,
+    align: "center",
   },
 ];
 
 // Sample data
-const branches = [
+const branches = ref([
   {
     id: "1",
     bankName: "Public Bank",
@@ -502,16 +559,16 @@ const branches = [
     branchAddress: "Banani, Dhaka, Bangladesh",
     status: "active",
   },
-];
+]);
 
 // Computed properties
 const activeCount = computed(() => {
-  return branches.filter((branch) => branch.status === "active").length;
+  return branches.value.filter((branch) => branch.status === "active").length;
 });
 
 // Filtered data based on search and filters
 const filteredBranches = computed(() => {
-  let result = [...branches];
+  let result = [...branches.value];
 
   // Apply search filter
   if (searchText.value) {
@@ -537,8 +594,12 @@ const filteredBranches = computed(() => {
 });
 
 // Search function
-const onSearch = (value: string) => {
-  searchText.value = value;
+const onSearch = () => {
+  simulateLoading();
+};
+
+// Filter change function
+const onFilterChange = () => {
   simulateLoading();
 };
 
@@ -560,11 +621,11 @@ const showModal = (mode: "add" | "edit", record?: any) => {
       bankName: "",
       branchName: "",
       branchCode: "",
-      status: "active",
+      routingNumber: "",
       branchEmail: "",
       branchPhone: "",
       branchAddress: "",
-      routingNumber: "",
+      status: "active",
     });
     currentBranchId.value = null;
   } else if (mode === "edit" && record) {
@@ -574,6 +635,7 @@ const showModal = (mode: "add" | "edit", record?: any) => {
       branchName: record.branchName,
       branchCode: record.branchCode,
       routingNumber: record.routingNumber,
+      branchEmail: record.branchEmail,
       branchPhone: record.branchPhone,
       branchAddress: record.branchAddress,
       status: record.status || "active",
@@ -582,8 +644,29 @@ const showModal = (mode: "add" | "edit", record?: any) => {
   }
 
   modalVisible.value = true;
-  // Set body z-index to -1 when modal opens
-  document.body.style.zIndex = "-1";
+};
+
+// Show delete confirmation
+const showDeleteConfirm = (record: any) => {
+  Modal.confirm({
+    title: "Are you sure you want to delete this branch?",
+    content: `You are about to delete "${record.branchName}". This action cannot be undone.`,
+    okText: "Yes, Delete",
+    okType: "danger",
+    cancelText: "Cancel",
+    onOk() {
+      // Simulate delete API call
+      setTimeout(() => {
+        const index = branches.value.findIndex(
+          (branch) => branch.id === record.id
+        );
+        if (index !== -1) {
+          branches.value.splice(index, 1);
+          showToast("Branch deleted successfully", "success");
+        }
+      }, 1000);
+    },
+  });
 };
 
 // Handle modal submit
@@ -595,22 +678,30 @@ const handleModalSubmit = () => {
 
       // Simulate API call
       setTimeout(() => {
-        console.log("Form submitted:", formState);
-
         if (modalMode.value === "add") {
-          // Logic to add new branch
-          console.log("Adding new branch:", formState);
-          // You would typically make an API call here
+          // Add new branch
+          const newBranch = {
+            id: (branches.value.length + 1).toString(),
+            ...formState,
+          };
+          branches.value.push(newBranch);
+          showToast("Branch added successfully", "success");
         } else {
-          // Logic to update existing branch
-          console.log("Updating branch ID:", currentBranchId.value, formState);
-          // You would typically make an API call here
+          // Update existing branch
+          const index = branches.value.findIndex(
+            (branch) => branch.id === currentBranchId.value
+          );
+          if (index !== -1) {
+            branches.value[index] = {
+              ...branches.value[index],
+              ...formState,
+            };
+            showToast("Branch updated successfully", "success");
+          }
         }
 
         submitting.value = false;
         modalVisible.value = false;
-        // Reset body z-index when modal closes
-        document.body.style.zIndex = "";
       }, 1000);
     })
     .catch((error: any) => {
@@ -618,590 +709,289 @@ const handleModalSubmit = () => {
     });
 };
 
-// Watch for modal visibility changes to update body z-index
-watch(modalVisible, (isVisible) => {
-  if (isVisible) {
-    document.body.style.zIndex = "-1";
-  } else {
-    document.body.style.zIndex = "";
+// Toast notifications
+const showToast = (
+  message: string,
+  type: "success" | "error" | "info" | "warning" = "info",
+  duration: number = 3000
+) => {
+  const toast: Toast = {
+    message,
+    type,
+    duration,
+  };
+
+  toasts.value.push(toast);
+
+  // Auto remove toast after duration
+  setTimeout(() => {
+    removeToast(toasts.value.indexOf(toast));
+  }, duration);
+};
+
+const removeToast = (index: number) => {
+  if (index > -1) {
+    toasts.value.splice(index, 1);
   }
+};
+
+// Lifecycle hooks
+onMounted(() => {
+  // Simulate initial loading
+  loading.value = true;
+  setTimeout(() => {
+    loading.value = false;
+  }, 1000);
 });
 </script>
 
-<style scoped>
-/* Base container */
-.branch-management-container {
-  padding: 0;
-  background-color: var(--neutral-50);
-  min-height: 100vh;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  position: relative;
+<style>
+:root {
+  /* Color Palette */
+  --primary-ui: #2e2e2e;
+  --accent-cta: #6b8e23;
+  --success: #228b22;
+  --error: #c0392b;
+  --error-light: #fadbd8;
+  --background: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6e6e6e;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
 }
 
-/* Header Section */
-.header-section {
-  background: linear-gradient(
-    135deg,
-    var(--secondary-color) 0%,
-    var(--secondary-light) 100%
-  );
-  padding: 2rem;
-  color: white;
-  border-radius: 0 0 1rem 1rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Custom colors */
+.bg-primary {
+  background-color: var(--primary-ui) !important;
 }
 
-.header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.bg-accent {
+  background-color: var(--accent-cta) !important;
 }
 
-@media (min-width: 768px) {
-  .header-content {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
+.bg-success {
+  background-color: var(--success) !important;
 }
 
-.header-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
+.bg-error {
+  background-color: var(--error) !important;
 }
 
-.header-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin: 0.5rem 0 0 0;
+.bg-error-light {
+  background-color: var(--error-light) !important;
 }
 
-/* Add Branch Button */
-.add-branch-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+.bg-background {
+  background-color: var(--background) !important;
+}
+
+.bg-card {
+  background-color: var(--card-bg) !important;
+}
+
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-accent {
+  color: var(--accent-cta) !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-error {
+  color: var(--error) !important;
+}
+
+.border-accent {
+  border-color: var(--accent-cta) !important;
+}
+
+.bg-accent-dark {
+  background-color: #5a7a1f !important;
+}
+
+.border-accent-dark {
+  border-color: #5a7a1f !important;
+}
+
+/* Custom table styles */
+.custom-table .ant-table-thead > tr > th {
+  background-color: var(--background);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 16px;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  color: var(--text-primary);
+}
+
+.custom-table .ant-table-tbody > tr:hover > td {
+  background-color: var(--background);
+}
+
+/* Custom modal styles */
+.branch-modal .ant-modal-content {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.branch-modal .ant-modal-header {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--background);
+  padding: 16px 24px;
+}
+
+.branch-modal .ant-modal-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+/* Custom form styles */
+.ant-form-item-label > label {
   font-weight: 500;
-  height: 40px;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  color: var(--text-primary);
 }
 
-.add-branch-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-  transform: translateY(-1px);
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector {
+  border-color: #e5e7eb !important;
+  border-radius: var(--radius-sm) !important;
 }
 
-/* Stats Cards */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-  padding: 0 1.5rem;
-  margin-bottom: 1.5rem;
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover {
+  border-color: var(--accent-cta) !important;
 }
 
-@media (min-width: 640px) {
-  .stats-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus {
+  border-color: var(--accent-cta) !important;
+  box-shadow: 0 0 0 2px rgba(107, 142, 35, 0.2) !important;
 }
 
-@media (min-width: 1024px) {
-  .stats-container {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* Custom tag styles */
+.ant-tag-success {
+  background-color: rgba(34, 139, 34, 0.1) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 
-/* Stats Card */
-.stats-card {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border-left: 4px solid var(--secondary-color);
+.ant-tag-error {
+  background-color: var(--error-light) !important;
+  border-color: var(--error) !important;
+  color: var(--error) !important;
 }
 
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* Toast container */
+.toast-container {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 1000;
+  max-width: 350px;
 }
 
-.stats-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
+/* Center icons in buttons */
+.ant-btn-circle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
-.stats-info {
-  display: flex;
-  flex-direction: column;
+/* Ant Design button overrides */
+.ant-btn-primary {
+  background-color: var(--accent-cta) !important;
+  border-color: var(--accent-cta) !important;
+  border-radius: var(--radius-md) !important;
 }
 
-.stats-label {
-  font-size: 0.875rem;
-  color: var(--neutral-500);
-  margin: 0 0 0.25rem 0;
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: #5a7a1f !important;
+  border-color: #5a7a1f !important;
 }
 
-.stats-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--neutral-800);
-  margin: 0;
+/* Exception for danger buttons */
+.ant-btn-dangerous.ant-btn-primary {
+  background-color: var(--error) !important;
+  border-color: var(--error) !important;
 }
 
-/* Stats Icons */
-.stats-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  background-color: rgba(13, 148, 136, 0.1);
-  color: var(--secondary-color);
-  font-size: 1.5rem;
+.ant-btn-dangerous.ant-btn-primary:hover,
+.ant-btn-dangerous.ant-btn-primary:focus {
+  background-color: #a93226 !important;
+  border-color: #a93226 !important;
 }
 
-.stats-icon-navy {
-  background-color: rgba(10, 25, 47, 0.1);
-  color: var(--primary-color);
+/* Shadow utilities */
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
 }
 
-.stats-icon-teal-light {
-  background-color: rgba(20, 184, 166, 0.1);
-  color: var(--secondary-light);
+.shadow-md {
+  box-shadow: var(--shadow-md) !important;
 }
 
-/* Map Section */
-.map-container {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  margin: 0 1.5rem 1.5rem 1.5rem;
-  overflow: hidden;
+.shadow-lg {
+  box-shadow: var(--shadow-lg) !important;
 }
 
-.map-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--neutral-200);
+/* Rounded utilities */
+.rounded-sm {
+  border-radius: var(--radius-sm) !important;
 }
 
-@media (min-width: 768px) {
-  .map-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
+.rounded-md {
+  border-radius: var(--radius-md) !important;
 }
 
-.map-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.region-filter {
-  width: 100%;
-  max-width: 200px;
-}
-
-.map-placeholder {
-  height: 300px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  background-color: var(--neutral-100);
-  color: var(--neutral-500);
-  padding: 2rem;
-}
-
-.map-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  color: var(--secondary-color);
-}
-
-.map-text {
-  font-size: 1rem;
-  text-align: center;
-}
-
-/* Table Section */
-.table-container {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  margin: 0 1.5rem 1.5rem 1.5rem;
-  overflow: hidden;
-}
-
-.table-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-@media (min-width: 768px) {
-  .table-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.table-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.table-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .table-actions {
-    flex-direction: row;
-    width: auto;
-  }
-}
-
-.search-input {
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .search-input {
-    width: 250px;
-  }
-}
-
-.status-filter {
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .status-filter {
-    width: 150px;
-  }
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-/* Custom Table Styling */
-:deep(.custom-table .ant-table) {
-  background-color: transparent;
-}
-
-:deep(.custom-table .ant-table-thead > tr > th) {
-  background-color: var(--neutral-100);
-  color: var(--neutral-700);
-  font-weight: 600;
-  border-bottom: 2px solid var(--neutral-200);
-  padding: 1rem 1rem;
-}
-
-:deep(.custom-table .ant-table-tbody > tr > td) {
-  padding: 1rem 1rem;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-:deep(.table-row-light) {
-  background-color: #ffffff;
-}
-
-:deep(.table-row-dark) {
-  background-color: var(--neutral-50);
-}
-
-/* Table hover */
-:deep(.custom-table .ant-table-tbody > tr.ant-table-row:hover > td) {
-  background-color: rgba(10, 25, 47, 0.05) !important;
-}
-
-/* Pagination */
-:deep(.ant-pagination-item-active) {
-  border-color: var(--secondary-color);
-}
-
-:deep(.ant-pagination-item-active a) {
-  color: var(--secondary-color);
-}
-
-/* Search button */
-:deep(.ant-input-search-button) {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
-}
-
-:deep(.ant-input-search-button:hover) {
-  background-color: var(--secondary-light);
-  border-color: var(--secondary-light);
-}
-
-/* Branch Name Cell */
-.branch-name-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.branch-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 0.5rem;
-  background-color: rgba(13, 148, 136, 0.1);
-  color: var(--secondary-color);
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.view-btn {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
-}
-
-.view-btn:hover {
-  background-color: var(--secondary-light);
-  border-color: var(--secondary-light);
-}
-
-.edit-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.edit-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-}
-
-.delete-btn {
-  background-color: #ef4444;
-  border-color: #ef4444;
-}
-
-.delete-btn:hover {
-  background-color: #dc2626;
-  border-color: #dc2626;
-}
-
-/* Modal Styling */
-.branch-modal :deep(.ant-modal-content) {
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Enhanced modal mask (backdrop) */
-:deep(.ant-modal-mask) {
-  background-color: rgba(0, 0, 0, 0.65) !important;
-}
-
-/* Modal wrapper */
-:deep(.ant-modal-wrap) {
-  z-index: 100 !important;
-}
-
-.modal-custom-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background-color: var(--neutral-100);
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.modal-header-content {
-  display: flex;
-  align-items: center;
-}
-
-/* Modal icon */
-.modal-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  background-color: var(--primary-color);
-  color: white;
-  margin-right: 1rem;
-  font-size: 1.25rem;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.modal-subtitle {
-  font-size: 0.875rem;
-  color: var(--neutral-500);
-  margin: 0.25rem 0 0 0;
-}
-
-.modal-close-btn {
-  color: var(--neutral-500);
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-  background-color: var(--neutral-200);
-  color: var(--neutral-800);
-}
-
-.modal-content {
-  padding: 1.5rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.form-section {
-  margin-bottom: 1.5rem;
-}
-
-.form-section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--neutral-700);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.form-item {
-  margin-bottom: 1rem;
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background-color: var(--neutral-100);
-  border-top: 1px solid var(--neutral-200);
-}
-
-.cancel-btn {
-  border-radius: 0.5rem;
-}
-
-/* Submit button */
-.submit-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  border-radius: 0.5rem;
-  font-weight: 500;
-}
-
-.submit-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-}
-
-:deep(.site-form-item-icon) {
-  color: var(--neutral-400);
-}
-
-/* Fix for button icon alignment */
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.rounded-lg {
+  border-radius: var(--radius-lg) !important;
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
-  .header-section {
-    padding: 1.5rem;
+@media (max-width: 640px) {
+  .ant-table {
+    font-size: 0.875rem;
   }
 
-  .header-title {
-    font-size: 1.5rem;
-  }
-
-  .stats-container,
-  .map-container,
-  .table-container {
-    margin: 0 1rem 1rem 1rem;
-  }
-
-  .table-header,
-  .map-header {
-    padding: 1rem;
-  }
-
-  .modal-content {
-    padding: 1rem;
-  }
-
-  .map-placeholder {
-    height: 200px;
-  }
-}
-
-@media (min-width: 1280px) {
-  .header-section {
-    padding: 2.5rem;
-  }
-
-  .stats-container,
-  .map-container,
-  .table-container {
-    margin: 0 2rem 2rem 2rem;
-  }
-
-  .map-placeholder {
-    height: 400px;
+  .ant-btn-circle {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.875rem !important;
   }
 }
 </style>

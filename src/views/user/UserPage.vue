@@ -1,171 +1,241 @@
 <template>
-  <div
-    class="user-management-container"
-    :class="{ 'modal-open': modalVisible }"
-  >
-    <!-- Header Section -->
-    <div class="header-section">
-      <div class="header-content">
-        <div class="header-title-container">
-          <h1 class="header-title">User Management</h1>
-          <p class="header-subtitle">View and manage all system users</p>
-        </div>
-        <div class="header-actions">
-          <a-button
-            type="primary"
-            class="add-user-btn"
-            @click="showModal('add')"
-          >
-            <template #icon><PlusOutlined /></template>
-            Add New User
-          </a-button>
-        </div>
-      </div>
-    </div>
-
-    <!-- Stats Cards -->
-    <div class="stats-container">
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-info">
-            <p class="stats-label">Total Users</p>
-            <p class="stats-value">{{ users.length }}</p>
+  <div class="bg-background min-h-screen">
+    <!-- Professional Hero Header Section -->
+    <div class="bg-card border-b border-gray-200">
+      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent rounded-md p-2">
+                <UsergroupAddOutlined class="h-6 w-6 text-white" />
+              </div>
+              <h1 class="ml-3 text-2xl font-semibold text-primary">
+                User Management
+              </h1>
+            </div>
+            <p class="mt-2 text-sm text-secondary max-w-2xl">
+              View and manage all system users in one centralized dashboard.
+            </p>
           </div>
-          <div class="stats-icon">
-            <UsergroupAddOutlined />
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-info">
-            <p class="stats-label">Active Users</p>
-            <p class="stats-value">{{ activeUsers }}</p>
-          </div>
-          <div class="stats-icon stats-icon-navy">
-            <CheckCircleOutlined />
-          </div>
-        </div>
-      </div>
-
-      <div class="stats-card">
-        <div class="stats-content">
-          <div class="stats-info">
-            <p class="stats-label">Inactive Users</p>
-            <p class="stats-value">{{ inactiveUsers }}</p>
-          </div>
-          <div class="stats-icon stats-icon-red">
-            <CloseCircleOutlined />
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <!-- Table Section -->
-    <div class="table-container">
-      <div class="table-header">
-        <h2 class="table-title">All Users List</h2>
-        <div class="table-actions">
-          <a-input-search
-            v-model:value="searchText"
-            placeholder="Search users..."
-            class="search-input"
-            @search="onSearch"
-            allow-clear
-          />
-          <a-select
-            v-model:value="roleFilter"
-            placeholder="Filter by Role"
-            class="role-filter"
-            allowClear
-            @change="handleRoleFilterChange"
-          >
-            <a-select-option value="All">All Users</a-select-option>
-            <a-select-option value="BankAdmin">Bank Admin</a-select-option>
-            <a-select-option value="BranchUser">Branch User</a-select-option>
-            <a-select-option value="BranchOfficer"
-              >Branch Officer</a-select-option
+          <div class="mt-4 md:mt-0 md:ml-4">
+            <a-button
+              type="primary"
+              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+              @click="showModal('add')"
             >
-            <a-select-option value="VendorAdmin">Vendor Admin</a-select-option>
-          </a-select>
+              <template #icon><PlusOutlined /></template>
+              Add New User
+            </a-button>
+          </div>
         </div>
       </div>
+    </div>
 
-      <div class="table-responsive">
+    <!-- Simplified Stats Section -->
+    <div class="max-w-7xl py-6">
+      <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+        <!-- Total Users Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent bg-opacity-10 rounded-md p-3">
+                <UsergroupAddOutlined class="h-6 w-6 text-white" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Total Users
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ users.length }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Active Users Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div
+                class="flex-shrink-0 bg-success bg-opacity-10 rounded-md p-3"
+              >
+                <CheckCircleOutlined class="h-6 w-6 text-white" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Active Users
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ activeUsers }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Inactive Users Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
+          <div class="px-4 py-5 sm:p-6">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-error-light rounded-md p-3">
+                <CloseCircleOutlined class="h-6 w-6 text-error" />
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Inactive Users
+                  </dt>
+                  <dd>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ inactiveUsers }}
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- User Table Section -->
+    <div class="max-w-7xl pb-8">
+      <div class="bg-card shadow-md rounded-md overflow-hidden">
+        <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
+          <div
+            class="flex flex-col md:flex-row md:items-center md:justify-between"
+          >
+            <div>
+              <h2 class="text-lg font-medium text-primary">All Users List</h2>
+              <p class="mt-1 text-sm text-secondary">
+                A complete list of all system users
+              </p>
+            </div>
+            <div
+              class="mt-4 md:mt-0 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3"
+            >
+              <a-select
+                v-model:value="roleFilter"
+                placeholder="Filter by Role"
+                class="w-full sm:w-40"
+                allowClear
+                @change="handleRoleFilterChange"
+              >
+                <a-select-option value="All">All Users</a-select-option>
+                <a-select-option value="BankAdmin">Bank Admin</a-select-option>
+                <a-select-option value="BranchUser"
+                  >Branch User</a-select-option
+                >
+                <a-select-option value="BranchOfficer"
+                  >Branch Officer</a-select-option
+                >
+                <a-select-option value="VendorAdmin"
+                  >Vendor Admin</a-select-option
+                >
+              </a-select>
+              <a-input-search
+                v-model:value="searchText"
+                placeholder="Search users..."
+                class="w-full sm:w-64"
+                @search="onSearch"
+                allow-clear
+              >
+                <template #prefix>
+                  <SearchOutlined class="text-secondary" />
+                </template>
+              </a-input-search>
+            </div>
+          </div>
+        </div>
+
         <a-table
           :dataSource="filteredUsers"
           :columns="columns"
           :pagination="{
             pageSize: 10,
-            showTotal: (total) => `Total ${total} users`,
+            showTotal: (total:any) => `Total ${total} users`,
+            showSizeChanger: true,
+            pageSizeOptions: ['10', '20', '50'],
           }"
           :loading="loading"
-          :rowClassName="rowClassName"
+          :rowClassName="() => 'hover:bg-background'"
           class="custom-table"
           :scroll="{ x: 1000 }"
         >
           <!-- User Name Column -->
           <template #bodyCell="{ column, record }">
             <template v-if="column.key === 'name'">
-              <div class="user-name-cell">
+              <div class="flex items-center">
                 <a-avatar
                   :src="record.ImagePath || ''"
                   :style="{
                     backgroundColor: !record.ImagePath
-                      ? 'var(--secondary-color)'
+                      ? 'var(--accent-cta)'
                       : 'transparent',
                   }"
-                  class="user-avatar"
+                  class="mr-3"
                 >
                   {{
                     !record.ImagePath ? record.Name.charAt(0).toUpperCase() : ""
                   }}
                 </a-avatar>
-                <span>{{ record.Name }}</span>
+                <span class="font-medium">{{ record.Name }}</span>
               </div>
             </template>
 
             <!-- Role Column -->
             <template v-if="column.key === 'role'">
-              <a-tag :color="getRoleColor(record.Role)">{{
-                record.Role
-              }}</a-tag>
+              <a-tag
+                :color="getRoleColor(record.Role)"
+                class="px-3 py-1 rounded-md text-xs font-medium"
+              >
+                {{ record.Role }}
+              </a-tag>
             </template>
 
             <!-- Status Column -->
             <template v-if="column.key === 'status'">
-              <a-tag :color="record.IsActive ? 'success' : 'error'">
+              <a-tag
+                :color="record.IsActive ? 'success' : 'error'"
+                class="px-3 py-1 rounded-md text-xs font-medium"
+              >
                 {{ record.IsActive ? "Active" : "Inactive" }}
               </a-tag>
             </template>
 
             <!-- Action Column -->
             <template v-if="column.key === 'action'">
-              <div class="action-buttons">
+              <div class="flex justify-center space-x-2">
                 <a-tooltip title="Change Password">
                   <a-button
                     type="primary"
-                    size="small"
-                    class="password-btn"
+                    shape="circle"
+                    class="flex items-center justify-center bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600"
                     @click="showPasswordModal(record)"
                   >
-                    <template #icon>
-                      <LockOutlined class="btn-icon" />
-                    </template>
+                    <LockOutlined />
                   </a-button>
                 </a-tooltip>
 
                 <a-tooltip title="Edit User">
                   <a-button
                     type="primary"
-                    size="small"
-                    class="edit-btn"
+                    shape="circle"
+                    class="flex items-center justify-center bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
                     @click="showModal('edit', record)"
                   >
-                    <template #icon>
-                      <EditOutlined class="btn-icon" />
-                    </template>
+                    <EditOutlined />
                   </a-button>
                 </a-tooltip>
 
@@ -176,10 +246,13 @@
                     cancel-text="No"
                     @confirm="deleteUser(record.id)"
                   >
-                    <a-button type="primary" size="small" class="delete-btn">
-                      <template #icon>
-                        <DeleteOutlined class="btn-icon" />
-                      </template>
+                    <a-button
+                      type="primary"
+                      shape="circle"
+                      danger
+                      class="flex items-center justify-center"
+                    >
+                      <DeleteOutlined />
                     </a-button>
                   </a-popconfirm>
                 </a-tooltip>
@@ -190,69 +263,35 @@
       </div>
     </div>
 
-    <!-- Enhanced Professional User Modal -->
+    <!-- User Modal -->
     <a-modal
       v-model:visible="modalVisible"
-      :title="null"
+      :title="modalMode === 'add' ? 'Add New User' : 'Edit User'"
+      :width="720"
       :footer="null"
-      :width="800"
-      :bodyStyle="{ padding: '0' }"
-      style="top: 20px"
-      :maskClosable="false"
-      :zIndex="100"
-      :maskStyle="{ backgroundColor: 'rgba(0, 0, 0, 0.65)' }"
       class="user-modal"
     >
-      <!-- Custom Header -->
-      <div class="modal-custom-header">
-        <div class="modal-header-content">
-          <div class="modal-icon">
-            <template v-if="modalMode === 'add'">
-              <PlusOutlined />
-            </template>
-            <template v-else>
-              <EditOutlined />
-            </template>
-          </div>
-          <div>
-            <h3 class="modal-title">
-              {{ modalMode === "add" ? "Add New User" : "Edit User" }}
-            </h3>
-            <p class="modal-subtitle">
-              {{
-                modalMode === "add"
-                  ? "Create a new user with the form below"
-                  : "Update user information"
-              }}
-            </p>
-          </div>
-        </div>
-        <a-button
-          type="text"
-          @click="modalVisible = false"
-          class="modal-close-btn"
-        >
-          <template #icon><CloseOutlined /></template>
-        </a-button>
-      </div>
-
-      <!-- Form Content -->
-      <div class="modal-content">
+      <div class="p-4">
         <a-form
           :model="formState"
           layout="vertical"
           :rules="rules"
           ref="formRef"
         >
-          <div class="form-section">
-            <h4 class="form-section-title">Basic Information</h4>
+          <div class="mb-6 pb-4 border-b border-gray-100">
+            <h3
+              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
+            >
+              Basic Information
+            </h3>
 
             <!-- Role Selection -->
-            <div class="form-row">
-              <a-form-item label="Role" name="role" class="form-item">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <a-form-item label="Role" name="role">
                 <a-select
                   v-model:value="formState.role"
                   placeholder="Select role"
+                  class="rounded-md w-full"
                   @change="handleRoleChange"
                 >
                   <a-select-option value="BankAdmin"
@@ -269,10 +308,12 @@
                   >
                 </a-select>
               </a-form-item>
-              <a-form-item label="Status" name="isActive" class="form-item">
+
+              <a-form-item label="Status" name="isActive">
                 <a-select
                   v-model:value="formState.isActive"
                   placeholder="Select status"
+                  class="rounded-md w-full"
                 >
                   <a-select-option :value="true">Active</a-select-option>
                   <a-select-option :value="false">Inactive</a-select-option>
@@ -281,11 +322,15 @@
             </div>
 
             <!-- Bank and Branch Selection (conditional based on role) -->
-            <div class="form-row" v-if="showBankField">
-              <a-form-item label="Bank" name="bankAdmin" class="form-item">
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"
+              v-if="showBankField"
+            >
+              <a-form-item label="Bank" name="bankAdmin">
                 <a-select
                   v-model:value="formState.bankAdmin"
                   placeholder="Select bank"
+                  class="rounded-md w-full"
                   :disabled="formState.role === 'VendorAdmin'"
                 >
                   <a-select-option
@@ -297,15 +342,16 @@
                   </a-select-option>
                 </a-select>
               </a-form-item>
+
               <a-form-item
                 label="Branch"
                 name="branchId"
-                class="form-item"
                 v-if="showBranchField"
               >
                 <a-select
                   v-model:value="formState.branchId"
                   placeholder="Select branch"
+                  class="rounded-md w-full"
                 >
                   <a-select-option
                     v-for="branch in branches"
@@ -319,46 +365,47 @@
             </div>
 
             <!-- User Details -->
-            <div class="form-row">
-              <a-form-item label="Full Name" name="name" class="form-item">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <a-form-item label="Full Name" name="name">
                 <a-input
                   v-model:value="formState.name"
                   placeholder="Enter full name"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <UserOutlined class="site-form-item-icon" />
+                    <UserOutlined class="text-secondary" />
                   </template>
                 </a-input>
               </a-form-item>
-              <a-form-item label="Email" name="email" class="form-item">
+
+              <a-form-item label="Email" name="email">
                 <a-input
                   v-model:value="formState.email"
                   placeholder="Enter email"
                   type="email"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <MailOutlined class="site-form-item-icon" />
+                    <MailOutlined class="text-secondary" />
                   </template>
                 </a-input>
               </a-form-item>
             </div>
 
-            <div class="form-row">
-              <a-form-item label="Username" name="userName" class="form-item">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
+              <a-form-item label="Username" name="userName">
                 <a-input
                   v-model:value="formState.userName"
                   placeholder="Enter username"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <UserOutlined class="site-form-item-icon" />
+                    <UserOutlined class="text-secondary" />
                   </template>
                 </a-input>
               </a-form-item>
-              <a-form-item
-                label="Profile Image"
-                name="imagePath"
-                class="form-item"
-              >
+
+              <a-form-item label="Profile Image" name="imagePath">
                 <div class="profile-image-upload">
                   <a-upload
                     v-model:fileList="fileList"
@@ -366,6 +413,7 @@
                     :show-upload-list="false"
                     :before-upload="beforeUpload"
                     @change="handleImageChange"
+                    class="rounded-md overflow-hidden"
                   >
                     <div v-if="imageUrl" class="image-preview">
                       <img :src="imageUrl" alt="avatar" class="preview-img" />
@@ -384,28 +432,30 @@
             </div>
 
             <!-- Password fields (only for create mode) -->
-            <div class="form-row" v-if="modalMode === 'add'">
-              <a-form-item label="Password" name="password" class="form-item">
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-6"
+              v-if="modalMode === 'add'"
+            >
+              <a-form-item label="Password" name="password">
                 <a-input-password
                   v-model:value="formState.password"
                   placeholder="Enter password"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <LockOutlined class="site-form-item-icon" />
+                    <LockOutlined class="text-secondary" />
                   </template>
                 </a-input-password>
               </a-form-item>
-              <a-form-item
-                label="Confirm Password"
-                name="confirmPassword"
-                class="form-item"
-              >
+
+              <a-form-item label="Confirm Password" name="confirmPassword">
                 <a-input-password
                   v-model:value="formState.confirmPassword"
                   placeholder="Confirm password"
+                  class="rounded-md"
                 >
                   <template #prefix>
-                    <LockOutlined class="site-form-item-icon" />
+                    <LockOutlined class="text-secondary" />
                   </template>
                 </a-input-password>
               </a-form-item>
@@ -413,11 +463,17 @@
           </div>
 
           <!-- Menu Permissions Section -->
-          <div class="form-section">
-            <h4 class="form-section-title">Menu Permissions</h4>
-            <div class="permissions-container">
+          <div class="mb-4">
+            <h3
+              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
+            >
+              Menu Permissions
+            </h3>
+            <div class="bg-background p-4 rounded-md">
               <a-checkbox-group v-model:value="formState.permissions">
-                <div class="permissions-grid">
+                <div
+                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
+                >
                   <div
                     v-for="(permission, index) in availablePermissions"
                     :key="index"
@@ -431,60 +487,40 @@
               </a-checkbox-group>
             </div>
           </div>
-        </a-form>
-      </div>
 
-      <!-- Custom Footer -->
-      <div class="modal-footer">
-        <a-button @click="modalVisible = false" class="cancel-btn">
-          Cancel
-        </a-button>
-        <a-button type="primary" @click="handleModalSubmit" class="submit-btn">
-          <template v-if="submitting">
-            <LoadingOutlined />
-            {{ modalMode === "add" ? "Creating..." : "Updating..." }}
-          </template>
-          <template v-else>
-            {{ modalMode === "add" ? "Create User" : "Save Changes" }}
-          </template>
-        </a-button>
+          <div
+            class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100"
+          >
+            <a-button @click="modalVisible = false"> Cancel </a-button>
+            <a-button
+              type="primary"
+              @click="handleModalSubmit"
+              :loading="submitting"
+              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+            >
+              {{ modalMode === "add" ? "Create User" : "Save Changes" }}
+            </a-button>
+          </div>
+        </a-form>
       </div>
     </a-modal>
 
     <!-- Change Password Modal -->
     <a-modal
       v-model:visible="passwordModalVisible"
-      :title="null"
-      :footer="null"
+      title="Change Password"
       :width="500"
-      :bodyStyle="{ padding: '0' }"
-      :maskClosable="false"
+      :footer="null"
       class="password-modal"
     >
-      <!-- Custom Header -->
-      <div class="modal-custom-header">
-        <div class="modal-header-content">
-          <div class="modal-icon">
-            <LockOutlined />
-          </div>
-          <div>
-            <h3 class="modal-title">Change Password</h3>
-            <p class="modal-subtitle">
-              Update password for {{ currentPasswordUser?.Name }}
-            </p>
-          </div>
-        </div>
-        <a-button
-          type="text"
-          @click="passwordModalVisible = false"
-          class="modal-close-btn"
-        >
-          <template #icon><CloseOutlined /></template>
-        </a-button>
-      </div>
+      <div class="p-4">
+        <p class="mb-4 text-secondary">
+          Update password for
+          <span class="font-medium text-primary">{{
+            currentPasswordUser?.Name
+          }}</span>
+        </p>
 
-      <!-- Password Form Content -->
-      <div class="modal-content">
         <a-form
           :model="passwordForm"
           layout="vertical"
@@ -495,65 +531,60 @@
             <a-input-password
               v-model:value="passwordForm.newPassword"
               placeholder="Enter new password"
+              class="rounded-md"
             >
               <template #prefix>
-                <LockOutlined class="site-form-item-icon" />
+                <LockOutlined class="text-secondary" />
               </template>
             </a-input-password>
           </a-form-item>
+
           <a-form-item label="Confirm New Password" name="confirmPassword">
             <a-input-password
               v-model:value="passwordForm.confirmPassword"
               placeholder="Confirm new password"
+              class="rounded-md"
             >
               <template #prefix>
-                <LockOutlined class="site-form-item-icon" />
+                <LockOutlined class="text-secondary" />
               </template>
             </a-input-password>
           </a-form-item>
-        </a-form>
-      </div>
 
-      <!-- Custom Footer -->
-      <div class="modal-footer">
-        <a-button @click="passwordModalVisible = false" class="cancel-btn">
-          Cancel
-        </a-button>
-        <a-button
-          type="primary"
-          @click="handlePasswordChange"
-          class="submit-btn"
-        >
-          <template v-if="passwordSubmitting">
-            <LoadingOutlined />
-            Updating...
-          </template>
-          <template v-else> Update Password </template>
-        </a-button>
+          <div
+            class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100"
+          >
+            <a-button @click="passwordModalVisible = false"> Cancel </a-button>
+            <a-button
+              type="primary"
+              @click="handlePasswordChange"
+              :loading="passwordSubmitting"
+              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+            >
+              Update Password
+            </a-button>
+          </div>
+        </a-form>
       </div>
     </a-modal>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, computed, reactive, watch } from "vue";
 import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  LockOutlined,
-  UserOutlined,
-  UsergroupAddOutlined,
   CheckCircleOutlined,
   CloseCircleOutlined,
-  CloseOutlined,
-  UploadOutlined,
-  LoadingOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  LockOutlined,
   MailOutlined,
-  PhoneOutlined,
-  BankOutlined,
-  BranchesOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  UploadOutlined,
+  UserOutlined,
+  UsergroupAddOutlined,
 } from "@ant-design/icons-vue";
+import { computed, reactive, ref, watch } from "vue";
 
 // Search and filter states
 const searchText = ref("");
@@ -631,11 +662,6 @@ watch(
   }
 );
 
-// Function for row class name
-const rowClassName = (record, index) => {
-  return index % 2 === 0 ? "table-row-light" : "table-row-dark";
-};
-
 // Form validation rules
 const rules = {
   name: [{ required: true, message: "Please enter full name" }],
@@ -648,7 +674,7 @@ const rules = {
     {
       required: true,
       message: "Please enter password",
-      validator: (rule, value) => {
+      validator: (rule: any, value: any) => {
         if (modalMode.value === "add" && !value) {
           return Promise.reject("Please enter password");
         }
@@ -658,7 +684,7 @@ const rules = {
   ],
   confirmPassword: [
     {
-      validator: (rule, value) => {
+      validator: (rule: any, value: any) => {
         if (modalMode.value === "add") {
           if (!value) {
             return Promise.reject("Please confirm your password");
@@ -674,7 +700,7 @@ const rules = {
   role: [{ required: true, message: "Please select a role" }],
   bankAdmin: [
     {
-      validator: (rule, value) => {
+      validator: (rule: any, value: any) => {
         if (
           (formState.role === "BankAdmin" ||
             formState.role === "BranchUser" ||
@@ -689,7 +715,7 @@ const rules = {
   ],
   branchId: [
     {
-      validator: (rule, value) => {
+      validator: (rule: any, value: any) => {
         if (
           (formState.role === "BranchUser" ||
             formState.role === "BranchOfficer") &&
@@ -712,7 +738,7 @@ const passwordRules = {
   confirmPassword: [
     { required: true, message: "Please confirm your password" },
     {
-      validator: (rule, value) => {
+      validator: (rule: any, value: any) => {
         if (value !== passwordForm.newPassword) {
           return Promise.reject("Passwords do not match");
         }
@@ -770,6 +796,7 @@ const columns = [
     key: "action",
     fixed: "right",
     width: 150,
+    align: "center",
   },
 ];
 
@@ -892,7 +919,7 @@ const filteredUsers = computed(() => {
 });
 
 // Get color for role tag
-const getRoleColor = (role) => {
+const getRoleColor = (role: any) => {
   const roleColors = {
     BankAdmin: "blue",
     BranchUser: "green",
@@ -903,7 +930,7 @@ const getRoleColor = (role) => {
 };
 
 // Search function
-const onSearch = (value) => {
+const onSearch = (value: any) => {
   searchText.value = value;
   simulateLoading();
 };
@@ -914,7 +941,7 @@ const handleRoleFilterChange = () => {
 };
 
 // Role change in form
-const handleRoleChange = (value) => {
+const handleRoleChange = (value: any) => {
   formState.role = value;
 };
 
@@ -927,7 +954,7 @@ const simulateLoading = () => {
 };
 
 // Image upload handling
-const beforeUpload = (file) => {
+const beforeUpload = (file: any) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) {
     console.error("You can only upload JPG/PNG file!");
@@ -941,28 +968,28 @@ const beforeUpload = (file) => {
   return false; // Return false to prevent auto upload
 };
 
-const handleImageChange = (info) => {
+const handleImageChange = (info: any) => {
   if (info.file.status === "uploading") {
     return;
   }
   if (info.file.status === "done") {
     // This would normally be handled by your backend
     // For demo purposes, we're just using a local URL
-    getBase64(info.file.originFileObj, (url) => {
+    getBase64(info.file.originFileObj, (url: any) => {
       imageUrl.value = url;
       formState.imagePath = url; // In real app, this would be the path returned from server
     });
   }
 };
 
-const getBase64 = (img, callback) => {
+const getBase64 = (img: any, callback: any) => {
   const reader = new FileReader();
   reader.addEventListener("load", () => callback(reader.result));
   reader.readAsDataURL(img);
 };
 
 // Show modal for adding or editing
-const showModal = (mode, record) => {
+const showModal = (mode: any, record = null) => {
   modalMode.value = mode;
 
   if (mode === "add") {
@@ -1016,7 +1043,7 @@ const showModal = (mode, record) => {
 };
 
 // Show password change modal
-const showPasswordModal = (record) => {
+const showPasswordModal = (record: any) => {
   passwordForm.newPassword = "";
   passwordForm.confirmPassword = "";
   currentPasswordUser.value = record;
@@ -1130,439 +1157,235 @@ const deleteUser = (userId) => {
 };
 </script>
 
-<style scoped>
-/* Base container */
-.user-management-container {
-  padding: 0;
-  background-color: var(--neutral-50);
-  min-height: 100vh;
-  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
-  position: relative;
+<style>
+:root {
+  /* Color Palette */
+  --primary-ui: #2e2e2e;
+  --accent-cta: #6b8e23;
+  --success: #228b22;
+  --error: #c0392b;
+  --error-light: #fadbd8;
+  --background: #f5f5f5;
+  --card-bg: #ffffff;
+  --text-primary: #1a1a1a;
+  --text-secondary: #6e6e6e;
+
+  /* Shadows */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+
+  /* Border radius */
+  --radius-sm: 0.25rem;
+  --radius-md: 0.375rem;
+  --radius-lg: 0.5rem;
 }
 
-/* Header Section */
-.header-section {
-  background: linear-gradient(
-    135deg,
-    var(--secondary-color) 0%,
-    var(--secondary-light) 100%
-  );
-  padding: 2rem;
-  color: white;
-  border-radius: 0 0 1rem 1rem;
-  margin-bottom: 1.5rem;
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
-    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+/* Custom colors */
+.bg-primary {
+  background-color: var(--primary-ui) !important;
 }
 
-.header-content {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
+.bg-accent {
+  background-color: var(--accent-cta) !important;
 }
 
-@media (min-width: 768px) {
-  .header-content {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
+.bg-success {
+  background-color: var(--success) !important;
 }
 
-.header-title {
-  font-size: 1.875rem;
-  font-weight: 700;
-  margin: 0;
-  line-height: 1.2;
+.bg-error {
+  background-color: var(--error) !important;
 }
 
-.header-subtitle {
-  font-size: 1rem;
-  opacity: 0.9;
-  margin: 0.5rem 0 0 0;
+.bg-error-light {
+  background-color: var(--error-light) !important;
 }
 
-/* Add User Button */
-.add-user-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
+.bg-background {
+  background-color: var(--background) !important;
+}
+
+.bg-card {
+  background-color: var(--card-bg) !important;
+}
+
+.text-primary {
+  color: var(--text-primary) !important;
+}
+
+.text-secondary {
+  color: var(--text-secondary) !important;
+}
+
+.text-accent {
+  color: var(--accent-cta) !important;
+}
+
+.text-success {
+  color: var(--success) !important;
+}
+
+.text-error {
+  color: var(--error) !important;
+}
+
+.border-accent {
+  border-color: var(--accent-cta) !important;
+}
+
+.bg-accent-dark {
+  background-color: #5a7a1f !important;
+}
+
+.border-accent-dark {
+  border-color: #5a7a1f !important;
+}
+
+/* Custom table styles */
+.custom-table .ant-table-thead > tr > th {
+  background-color: var(--background);
+  font-weight: 600;
+  color: var(--text-primary);
+  padding: 16px;
+}
+
+.custom-table .ant-table-tbody > tr > td {
+  padding: 16px;
+  color: var(--text-primary);
+}
+
+.custom-table .ant-table-tbody > tr:hover > td {
+  background-color: var(--background);
+}
+
+/* Custom modal styles */
+.user-modal .ant-modal-content,
+.password-modal .ant-modal-content {
+  border-radius: var(--radius-md);
+  overflow: hidden;
+  box-shadow: var(--shadow-md);
+}
+
+.user-modal .ant-modal-header,
+.password-modal .ant-modal-header {
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--background);
+  padding: 16px 24px;
+}
+
+.user-modal .ant-modal-title,
+.password-modal .ant-modal-title {
+  font-weight: 600;
+  font-size: 18px;
+  color: var(--text-primary);
+}
+
+/* Custom form styles */
+.ant-form-item-label > label {
   font-weight: 500;
-  height: 40px;
-  border-radius: 0.5rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  transition: all 0.2s ease;
+  color: var(--text-primary);
 }
 
-.add-user-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-  transform: translateY(-1px);
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector {
+  border-color: #e5e7eb !important;
+  border-radius: var(--radius-sm) !important;
 }
 
-/* Stats Cards */
-.stats-container {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 1rem;
-  padding: 0 1.5rem;
-  margin-bottom: 1.5rem;
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover {
+  border-color: var(--accent-cta) !important;
 }
 
-@media (min-width: 640px) {
-  .stats-container {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus {
+  border-color: var(--accent-cta) !important;
+  box-shadow: 0 0 0 2px rgba(107, 142, 35, 0.2) !important;
 }
 
-@media (min-width: 1024px) {
-  .stats-container {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* Custom tag styles */
+.ant-tag-success {
+  background-color: rgba(34, 139, 34, 0.1) !important;
+  border-color: var(--success) !important;
+  color: var(--success) !important;
 }
 
-/* Stats Card */
-.stats-card {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  overflow: hidden;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
-  border-left: 4px solid var(--secondary-color);
+.ant-tag-error {
+  background-color: var(--error-light) !important;
+  border-color: var(--error) !important;
+  color: var(--error) !important;
 }
 
-.stats-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1),
-    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+/* Ant Design button overrides */
+.ant-btn-primary {
+  background-color: var(--accent-cta) !important;
+  border-color: var(--accent-cta) !important;
+  border-radius: var(--radius-md) !important;
 }
 
-.stats-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: #5a7a1f !important;
+  border-color: #5a7a1f !important;
 }
 
-.stats-info {
-  display: flex;
-  flex-direction: column;
+/* Exception for danger buttons */
+.ant-btn-dangerous.ant-btn-primary {
+  background-color: var(--error) !important;
+  border-color: var(--error) !important;
 }
 
-.stats-label {
-  font-size: 0.875rem;
-  color: var(--neutral-500);
-  margin: 0 0 0.25rem 0;
+.ant-btn-dangerous.ant-btn-primary:hover,
+.ant-btn-dangerous.ant-btn-primary:focus {
+  background-color: #a93226 !important;
+  border-color: #a93226 !important;
 }
 
-.stats-value {
-  font-size: 1.875rem;
-  font-weight: 700;
-  color: var(--neutral-800);
-  margin: 0;
+/* Shadow utilities */
+.shadow-sm {
+  box-shadow: var(--shadow-sm) !important;
 }
 
-/* Stats Icons */
-.stats-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  background-color: rgba(13, 148, 136, 0.1);
-  color: var(--secondary-color);
-  font-size: 1.5rem;
+.shadow-md {
+  box-shadow: var(--shadow-md) !important;
 }
 
-.stats-icon-navy {
-  background-color: rgba(10, 25, 47, 0.1);
-  color: var(--primary-color);
+.shadow-lg {
+  box-shadow: var(--shadow-lg) !important;
 }
 
-.stats-icon-red {
-  background-color: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
+/* Rounded utilities */
+.rounded-sm {
+  border-radius: var(--radius-sm) !important;
 }
 
-/* Table Section */
-.table-container {
-  background-color: white;
-  border-radius: 1rem;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
-  margin: 0 1.5rem 1.5rem 1.5rem;
-  overflow: hidden;
+.rounded-md {
+  border-radius: var(--radius-md) !important;
 }
 
-.table-header {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-  padding: 1.5rem;
-  border-bottom: 1px solid var(--neutral-200);
+.rounded-lg {
+  border-radius: var(--radius-lg) !important;
 }
 
-@media (min-width: 768px) {
-  .table-header {
-    flex-direction: row;
-    justify-content: space-between;
-    align-items: center;
-  }
-}
-
-.table-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.table-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .table-actions {
-    flex-direction: row;
-    width: auto;
-  }
-}
-
-.search-input {
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .search-input {
-    width: 250px;
-  }
-}
-
-.role-filter {
-  width: 100%;
-}
-
-@media (min-width: 768px) {
-  .role-filter {
-    width: 180px;
-  }
-}
-
-.table-responsive {
-  overflow-x: auto;
-}
-
-/* Custom Table Styling */
-:deep(.custom-table .ant-table) {
-  background-color: transparent;
-}
-
-:deep(.custom-table .ant-table-thead > tr > th) {
-  background-color: var(--neutral-100);
-  color: var(--neutral-700);
-  font-weight: 600;
-  border-bottom: 2px solid var(--neutral-200);
-  padding: 1rem 1rem;
-}
-
-:deep(.custom-table .ant-table-tbody > tr > td) {
-  padding: 1rem 1rem;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-:deep(.table-row-light) {
-  background-color: #ffffff;
-}
-
-:deep(.table-row-dark) {
-  background-color: var(--neutral-50);
-}
-
-/* Table hover */
-:deep(.custom-table .ant-table-tbody > tr.ant-table-row:hover > td) {
-  background-color: rgba(10, 25, 47, 0.05) !important;
-}
-
-/* Pagination */
-:deep(.ant-pagination-item-active) {
-  border-color: var(--secondary-color);
-}
-
-:deep(.ant-pagination-item-active a) {
-  color: var(--secondary-color);
-}
-
-/* Search button */
-:deep(.ant-input-search-button) {
-  background-color: var(--secondary-color);
-  border-color: var(--secondary-color);
-}
-
-:deep(.ant-input-search-button:hover) {
-  background-color: var(--secondary-light);
-  border-color: var(--secondary-light);
-}
-
-/* User Name Cell */
-.user-name-cell {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.user-avatar {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  font-size: 1rem;
-  font-weight: 600;
-}
-
-/* Action Buttons */
-.action-buttons {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.password-btn {
-  background-color: #4096ff;
-  border-color: #4096ff;
-}
-
-.password-btn:hover {
-  background-color: #1677ff;
-  border-color: #1677ff;
-}
-
-.edit-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-}
-
-.edit-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-}
-
-.delete-btn {
-  background-color: #ef4444;
-  border-color: #ef4444;
-}
-
-.delete-btn:hover {
-  background-color: #dc2626;
-  border-color: #dc2626;
-}
-
-/* Modal Styling */
-.user-modal :deep(.ant-modal-content),
-.password-modal :deep(.ant-modal-content) {
-  border-radius: 1rem;
-  overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
-}
-
-/* Enhanced modal mask (backdrop) */
-:deep(.ant-modal-mask) {
-  background-color: rgba(0, 0, 0, 0.65) !important;
-}
-
-/* Modal wrapper */
-:deep(.ant-modal-wrap) {
-  z-index: 100 !important;
-}
-
-.modal-custom-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1.5rem;
-  background-color: var(--neutral-100);
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.modal-header-content {
-  display: flex;
-  align-items: center;
-}
-
-/* Modal icon */
-.modal-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 3rem;
-  height: 3rem;
-  border-radius: 0.75rem;
-  background-color: var(--primary-color);
-  color: white;
-  margin-right: 1rem;
-  font-size: 1.25rem;
-}
-
-.modal-title {
-  font-size: 1.25rem;
-  font-weight: 600;
-  color: var(--neutral-800);
-  margin: 0;
-}
-
-.modal-subtitle {
-  font-size: 0.875rem;
-  color: var(--neutral-500);
-  margin: 0.25rem 0 0 0;
-}
-
-.modal-close-btn {
-  color: var(--neutral-500);
-  border-radius: 0.5rem;
-  transition: all 0.2s ease;
-}
-
-.modal-close-btn:hover {
-  background-color: var(--neutral-200);
-  color: var(--neutral-800);
-}
-
-.modal-content {
-  padding: 1.5rem;
-  max-height: 60vh;
-  overflow-y: auto;
-}
-
-.form-section {
-  margin-bottom: 1.5rem;
-}
-
-.form-section-title {
-  font-size: 1rem;
-  font-weight: 600;
-  color: var(--neutral-700);
-  margin-bottom: 1rem;
-  padding-bottom: 0.5rem;
-  border-bottom: 1px solid var(--neutral-200);
-}
-
-.form-row {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-}
-
-@media (min-width: 640px) {
-  .form-row {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-.form-item {
-  margin-bottom: 1rem;
+/* Center icons in buttons */
+.ant-btn-circle {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
 }
 
 /* Profile Image Upload */
@@ -1577,7 +1400,7 @@ const deleteUser = (userId) => {
   width: 104px;
   height: 104px;
   overflow: hidden;
-  border-radius: 0.5rem;
+  border-radius: var(--radius-sm);
 }
 
 .preview-img {
@@ -1610,10 +1433,10 @@ const deleteUser = (userId) => {
   justify-content: center;
   width: 104px;
   height: 104px;
-  border-radius: 0.5rem;
-  border: 1px dashed var(--neutral-300);
-  background-color: var(--neutral-50);
-  color: var(--neutral-500);
+  border-radius: var(--radius-sm);
+  border: 1px dashed #d1d5db;
+  background-color: var(--background);
+  color: var(--text-secondary);
 }
 
 .upload-text {
@@ -1623,129 +1446,30 @@ const deleteUser = (userId) => {
 
 .upload-hint {
   font-size: 0.75rem;
-  color: var(--neutral-500);
+  color: var(--text-secondary);
 }
 
-/* Permissions Section */
-.permissions-container {
-  padding: 1rem;
-  background-color: var(--neutral-50);
-  border-radius: 0.5rem;
-}
-
-.permissions-grid {
-  display: grid;
-  grid-template-columns: repeat(1, 1fr);
-  gap: 0.75rem;
-}
-
-@media (min-width: 640px) {
-  .permissions-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 1024px) {
-  .permissions-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
+/* Permission item */
 .permission-item {
   padding: 0.5rem;
   transition: background-color 0.2s ease;
-  border-radius: 0.25rem;
+  border-radius: var(--radius-sm);
 }
 
 .permission-item:hover {
-  background-color: var(--neutral-100);
-}
-
-.modal-footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  padding: 1rem 1.5rem;
-  background-color: var(--neutral-100);
-  border-top: 1px solid var(--neutral-200);
-}
-
-.cancel-btn {
-  border-radius: 0.5rem;
-}
-
-/* Submit button */
-.submit-btn {
-  background-color: var(--primary-color);
-  border-color: var(--primary-color);
-  border-radius: 0.5rem;
-  font-weight: 500;
-}
-
-.submit-btn:hover {
-  background-color: var(--primary-light);
-  border-color: var(--primary-light);
-}
-
-:deep(.site-form-item-icon) {
-  color: var(--neutral-400);
-}
-
-/* Fix for button icon alignment */
-.btn-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  background-color: rgba(107, 142, 35, 0.05);
 }
 
 /* Responsive adjustments */
-@media (max-width: 480px) {
-  .header-section {
-    padding: 1.5rem;
+@media (max-width: 640px) {
+  .ant-table {
+    font-size: 0.875rem;
   }
 
-  .header-title {
-    font-size: 1.5rem;
+  .ant-btn-circle {
+    width: 32px !important;
+    height: 32px !important;
+    font-size: 0.875rem !important;
   }
-
-  .stats-container,
-  .table-container {
-    margin: 0 1rem 1rem 1rem;
-  }
-
-  .table-header {
-    padding: 1rem;
-  }
-
-  .modal-content {
-    padding: 1rem;
-  }
-}
-
-@media (min-width: 1280px) {
-  .header-section {
-    padding: 2.5rem;
-  }
-
-  .stats-container,
-  .table-container {
-    margin: 0 2rem 2rem 2rem;
-  }
-}
-
-/* CSS Variables */
-:root {
-  --primary-color: #0a192f;
-  --primary-light: #172a46;
-  --secondary-color: #0d9488;
-  --secondary-light: #14b8a6;
-  --neutral-50: #f9fafb;
-  --neutral-100: #f3f4f6;
-  --neutral-200: #e5e7eb;
-  --neutral-300: #d1d5db;
-  --neutral-400: #9ca3af;
-  --neutral-500: #6b7280;
-  --neutral-700: #374151;
-  --neutral-800: #1f2937;
 }
 </style>
