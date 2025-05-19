@@ -1,12 +1,12 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { useUserStore } from "@/stores/userStore";
-import MainLayout from "@/layouts/MainLayout.vue";
 import AuthLayout from "@/layouts/AuthLayout.vue";
+import MainLayout from "@/layouts/MainLayout.vue";
+import { useUserStore } from "@/stores/userStore";
 import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 import AllBranches from "@/views/branch/AllBranches.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
+import { createRouter, createWebHistory } from "vue-router";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -55,16 +55,26 @@ const router = createRouter({
           name: "All Branches",
           component: AllBranches, // Placeholder, would be a real page in production
         },
-        { path: "/user-profile", name: "User Profile", component: () => import("@/views/user/UserProfile.vue") },
+        {
+          path: "/user-profile",
+          name: "User Profile",
+          component: () => import("@/views/user/UserProfile.vue"),
+        },
         {
           path: "/users",
           name: "Users",
           component: () => import("@/views/user/userPage.vue"), // Placeholder, would be a real page in production
         },
         {
+          path: "/manage-serial-no",
+          name: "Manage Serial No",
+          component: () => import("@/views/serial/ManageSerial.vue"),
+        },
+        {
           path: "/upload-requisition",
           name: "Upload Requisition Excel File",
-          component: () => import("@/views/LocalFileUpload/UploadRequisitionExcel.vue"), // Placeholder, would be a real page in production
+          component: () =>
+            import("@/views/LocalFileUpload/UploadRequisitionExcel.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/new",
@@ -113,7 +123,8 @@ const router = createRouter({
         {
           path: "/requisitions/delivered",
           name: " Requisition/ Delivered Requisitions",
-          component: () => import("@/views/requisition/DeliveredRequisition.vue"), // Placeholder, would be a real page in production
+          component: () =>
+            import("@/views/requisition/DeliveredRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/reports/make-challan",

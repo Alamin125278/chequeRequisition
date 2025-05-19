@@ -1,15 +1,16 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
 import {
+  BankOutlined,
+  BarChartOutlined,
+  BarcodeOutlined,
+  BranchesOutlined,
+  CloudDownloadOutlined,
   DashboardOutlined,
   FormOutlined,
   SettingOutlined,
-  BarChartOutlined,
-  BankOutlined,
-  BranchesOutlined,
   UsergroupAddOutlined,
-  CloudDownloadOutlined
 } from "@ant-design/icons-vue";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 export interface MenuItem {
   key: string;
@@ -42,7 +43,13 @@ export const useMenuStore = defineStore("menu", () => {
       icon: BranchesOutlined,
       path: "/branches",
       permissions: ["manage-branches"],
-
+    },
+    {
+      key: "manage serial",
+      title: "Manage Serial No",
+      icon: BarcodeOutlined,
+      path: "/manage-serial-no",
+      permissions: ["manage-serial-no"],
     },
     {
       key: "users",
@@ -52,9 +59,9 @@ export const useMenuStore = defineStore("menu", () => {
       permissions: ["manage-users"],
     },
     {
-      key:"upload requisition",
-      title:"Upload Requisition Excel File",
-      icon: CloudDownloadOutlined ,
+      key: "upload requisition",
+      title: "Upload Requisition Excel File",
+      icon: CloudDownloadOutlined,
       path: "/upload-requisition",
       permissions: ["upload-requisition"],
     },
@@ -177,32 +184,35 @@ export const useMenuStore = defineStore("menu", () => {
     }
   };
 
-    // Permission-based filter function
-function filterMenuByPermissions(items: MenuItem[], userPermissions: string[]): MenuItem[] {
-  return items
-    .filter((item) => {
-      // ✅ শুধু তখনই থাকবে, যখন permissions আছে এবং তা userPermissions-এ মিলে
-      return (
-        item.permissions &&
-        item.permissions.length > 0 &&
-        item.permissions.some((perm) => userPermissions.includes(perm))
-      );
-    })
-    .map((item) => ({
-      ...item,
-      children: item.children ? filterMenuByPermissions(item.children, userPermissions) : undefined,
-    }))
-    .filter((item) => {
-      // ✅ যদি children থাকে, সেগুলো ফিল্টার করার পর অন্তত একটি থাকতে হবে
-      return !item.children || item.children.length > 0;
-    });
-}
-
-
-  const getFilteredMenu = (userPermissions: string[]) => {
-    return filterMenuByPermissions(menuItems.value, userPermissions)
+  // Permission-based filter function
+  function filterMenuByPermissions(
+    items: MenuItem[],
+    userPermissions: string[]
+  ): MenuItem[] {
+    return items
+      .filter((item) => {
+        // ✅ শুধু তখনই থাকবে, যখন permissions আছে এবং তা userPermissions-এ মিলে
+        return (
+          item.permissions &&
+          item.permissions.length > 0 &&
+          item.permissions.some((perm) => userPermissions.includes(perm))
+        );
+      })
+      .map((item) => ({
+        ...item,
+        children: item.children
+          ? filterMenuByPermissions(item.children, userPermissions)
+          : undefined,
+      }))
+      .filter((item) => {
+        // ✅ যদি children থাকে, সেগুলো ফিল্টার করার পর অন্তত একটি থাকতে হবে
+        return !item.children || item.children.length > 0;
+      });
   }
 
+  const getFilteredMenu = (userPermissions: string[]) => {
+    return filterMenuByPermissions(menuItems.value, userPermissions);
+  };
 
   return {
     menuItems,

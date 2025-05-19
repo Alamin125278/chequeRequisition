@@ -1,27 +1,73 @@
-import { defineStore } from "pinia"
-import { ref, computed } from "vue"
+import { defineStore } from "pinia";
+import { computed, ref } from "vue";
 
 interface User {
-  id: number
-  name: string
-  username: string
-  email: string
-  password?: string // Only used for local match
-  avatar: string
-  role: string
+  id: number;
+  name: string;
+  username: string;
+  email: string;
+  password?: string; // Only used for local match
+  avatar: string;
+  role: string;
 }
 
 const rolePermissionsMap: Record<string, string[]> = {
-  "Vendor Admin": ["view-dashboard", "manage-users","upload-requisition", "manage-banks","view-requisitions", "all-requisitions","ordered-requisitions","downloaded-requisitions","dispatched-requisitions","delivered-requisitions","view-reports","all-challans", "view-settings"],
-  "Bank Admin": ["view-dashboard", "manage-branches", "manage-users", "view-requisitions", "all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions","view-reports","all-challans", "view-settings"],
-  "Branch Officer": ["view-dashboard","manage-users","view-requisitions","new-requisition","all-requisitions","pending-requisitions","approved-requisitions","confirmed-delivery-requisitions","delivered-requisitions","view-reports","all-challans",],
-  "Branch User": ["view-dashboard", "view-requisitions","new-requisition","all-requisitions","pending-requisitions"],
-}
+  "Vendor Admin": [
+    "view-dashboard",
+    "manage-users",
+    "upload-requisition",
+    "manage-banks",
+    "view-requisitions",
+    "all-requisitions",
+    "ordered-requisitions",
+    "downloaded-requisitions",
+    "dispatched-requisitions",
+    "delivered-requisitions",
+    "view-reports",
+    "all-challans",
+    "view-settings",
+    "manage-serial-no",
+  ],
+  "Bank Admin": [
+    "view-dashboard",
+    "manage-branches",
+    "manage-users",
+    "view-requisitions",
+    "all-requisitions",
+    "pending-requisitions",
+    "approved-requisitions",
+    "confirmed-delivery-requisitions",
+    "delivered-requisitions",
+    "view-reports",
+    "all-challans",
+    "view-settings",
+  ],
+  "Branch Officer": [
+    "view-dashboard",
+    "manage-users",
+    "view-requisitions",
+    "new-requisition",
+    "all-requisitions",
+    "pending-requisitions",
+    "approved-requisitions",
+    "confirmed-delivery-requisitions",
+    "delivered-requisitions",
+    "view-reports",
+    "all-challans",
+  ],
+  "Branch User": [
+    "view-dashboard",
+    "view-requisitions",
+    "new-requisition",
+    "all-requisitions",
+    "pending-requisitions",
+  ],
+};
 
 export const useUserStore = defineStore("user", () => {
-  const user = ref<User | null>(null)
-  const isLoggedIn = ref(false)
-  const errorMessage = ref("")
+  const user = ref<User | null>(null);
+  const isLoggedIn = ref(false);
+  const errorMessage = ref("");
 
   const allUsers: User[] = [
     {
@@ -60,53 +106,53 @@ export const useUserStore = defineStore("user", () => {
       avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
       role: "Branch User",
     },
-  ]
+  ];
 
   const initializeFromStorage = () => {
-    const storedUser = localStorage.getItem("user")
-    const storedLoginState = localStorage.getItem("isLoggedIn")
+    const storedUser = localStorage.getItem("user");
+    const storedLoginState = localStorage.getItem("isLoggedIn");
     if (storedUser && storedLoginState === "true") {
-      user.value = JSON.parse(storedUser)
-      isLoggedIn.value = true
+      user.value = JSON.parse(storedUser);
+      isLoggedIn.value = true;
     }
-  }
+  };
 
-  initializeFromStorage()
+  initializeFromStorage();
 
   const login = (identifier: string, password: string) => {
     const foundUser = allUsers.find(
       (u) =>
         (u.email === identifier || u.username === identifier) &&
         u.password === password
-    )
+    );
 
     if (foundUser) {
-      user.value = { ...foundUser }
-      delete user.value.password // Don't store password
-      isLoggedIn.value = true
-      errorMessage.value = ""
-      localStorage.setItem("user", JSON.stringify(user.value))
-      localStorage.setItem("isLoggedIn", "true")
+      user.value = { ...foundUser };
+      delete user.value.password; // Don't store password
+      isLoggedIn.value = true;
+      errorMessage.value = "";
+      localStorage.setItem("user", JSON.stringify(user.value));
+      localStorage.setItem("isLoggedIn", "true");
     } else {
-      errorMessage.value = "Invalid email/username or password"
+      errorMessage.value = "Invalid email/username or password";
     }
-  }
+  };
 
   const logout = () => {
-    user.value = null
-    isLoggedIn.value = false
-    localStorage.removeItem("user")
-    localStorage.removeItem("isLoggedIn")
-  }
+    user.value = null;
+    isLoggedIn.value = false;
+    localStorage.removeItem("user");
+    localStorage.removeItem("isLoggedIn");
+  };
 
   const permissions = computed(() => {
-    if (!user.value) return []
-    return rolePermissionsMap[user.value.role] || []
-  })
+    if (!user.value) return [];
+    return rolePermissionsMap[user.value.role] || [];
+  });
 
   const canAccess = (permission: string): boolean => {
-    return permissions.value.includes(permission)
-  }
+    return permissions.value.includes(permission);
+  };
 
   return {
     user,
@@ -116,5 +162,5 @@ export const useUserStore = defineStore("user", () => {
     permissions,
     canAccess,
     errorMessage,
-  }
-})
+  };
+});
