@@ -129,6 +129,9 @@
                     placeholder="Select receiving branch"
                     class="w-full"
                   >
+                    <a-select-option value=""
+                      >Select Receiving Branch</a-select-option
+                    >
                     <a-select-option value="Main Branch"
                       >Main Branch</a-select-option
                     >
@@ -258,6 +261,57 @@
                     </a-input>
                   </a-form-item>
                 </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <!-- MICR Number -->
+                  <a-form-item label="MICR Number" name="micrNumber">
+                    <a-input
+                      v-model:value="formState.micrNumber"
+                      placeholder="MICR number"
+                      :disabled="true"
+                    >
+                      <template #prefix>
+                        <NumberOutlined class="text-secondary" />
+                      </template>
+                    </a-input>
+                  </a-form-item>
+
+                  <!-- TR Code -->
+                  <a-form-item label="TR Code" name="trCode">
+                    <a-input
+                      v-model:value="formState.trCode"
+                      placeholder="TR code"
+                      :disabled="true"
+                    >
+                      <template #prefix>
+                        <NumberOutlined class="text-secondary" />
+                      </template>
+                    </a-input>
+                  </a-form-item>
+
+                  <!-- Cheque Prefix -->
+                  <a-form-item label="Cheque Prefix" name="chequePrefix">
+                    <a-input
+                      v-model:value="formState.chequePrefix"
+                      placeholder="Cheque prefix"
+                      :disabled="true"
+                    >
+                      <template #prefix>
+                        <NumberOutlined class="text-secondary" />
+                      </template>
+                    </a-input>
+                  </a-form-item>
+                </div>
+                <div class="grid grid-cols-1">
+                  <a-form-item label="Customer Address" name="customerAddress">
+                    <a-textarea
+                      v-model:value="formState.customerAddress"
+                      placeholder="Enter customer address"
+                      :rows="4"
+                      class="rounded-md"
+                      :disabled="true"
+                    />
+                  </a-form-item>
+                </div>
               </div>
             </div>
 
@@ -269,7 +323,7 @@
                 <BookOutlined class="mr-2 text-accent" /> Cheque Details
               </h3>
 
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <!-- Cheque Leaves Option -->
                 <a-form-item
                   label="Cheque Leaves Option"
@@ -285,7 +339,9 @@
                     v-model:value="formState.chequeLeaves"
                     placeholder="Select cheque leaves"
                     class="w-full"
+                    @change="handleSerialNumberChange"
                   >
+                    <a-select-option value="">Select Leaves</a-select-option>
                     <template v-if="formState.accountType === 'Savings'">
                       <a-select-option value="10">10 Leaves</a-select-option>
                       <a-select-option value="25">25 Leaves</a-select-option>
@@ -312,53 +368,61 @@
                     { required: true, message: 'Book quantity is required' },
                   ]"
                 >
-                  <a-input-number
+                  <a-input
                     v-model:value="formState.bookQuantity"
                     :min="1"
                     :max="10"
-                    class="w-full"
+                    @change="handleSerialNumberChange"
                   />
                 </a-form-item>
-              </div>
-
-              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
-                <!-- First Leaf Number -->
-                <a-form-item
-                  label="First Leaf Number"
-                  name="firstLeafNumber"
-                  :rules="[
-                    {
-                      required: true,
-                      message: 'First leaf number is required',
-                    },
-                  ]"
-                >
-                  <a-input
-                    v-model:value="formState.firstLeafNumber"
-                    placeholder="Enter first leaf number"
-                  />
-                </a-form-item>
-
                 <!-- Series -->
                 <a-form-item
                   label="Series"
                   name="series"
                   :rules="[{ required: true, message: 'Please select series' }]"
                 >
-                  <a-radio-group
+                  <a-input
+                    :disabled="true"
                     v-model:value="formState.series"
-                    class="flex space-x-6"
-                  >
-                    <a-radio value="A">
-                      <span class="font-medium">Series A</span>
-                    </a-radio>
-                    <a-radio value="B">
-                      <span class="font-medium">Series B</span>
-                    </a-radio>
-                    <a-radio value="C">
-                      <span class="font-medium">Series C</span>
-                    </a-radio>
-                  </a-radio-group>
+                    placeholder="Series"
+                  />
+                </a-form-item>
+              </div>
+
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+                <!-- Starting Serial Number -->
+                <a-form-item
+                  label="Starting Serial Number"
+                  name="startingSerialNumber"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Starting serial number is required',
+                    },
+                  ]"
+                >
+                  <a-input
+                    v-model:value="formState.startingSerialNumber"
+                    placeholder="Starting serial number"
+                    :disabled="true"
+                  />
+                </a-form-item>
+                <!-- End Serial Number -->
+                <a-form-item
+                  label="Ending Serial Number"
+                  name="endingSerialNumber"
+                  :rules="[
+                    {
+                      required: true,
+                      message: 'Ending serial number is required',
+                    },
+                  ]"
+                >
+                  <a-input
+                    v-model:value="formState.endingSerialNumber"
+                    :disabled="true"
+                    placeholder="Ending serial number"
+                  />
                 </a-form-item>
               </div>
             </div>
@@ -385,6 +449,7 @@
                     placeholder="Select courier"
                     class="w-full"
                   >
+                    <a-select-option value="">Select Courier</a-select-option>
                     <a-select-option value="DHL">DHL</a-select-option>
                     <a-select-option value="FedEx">FedEx</a-select-option>
                     <a-select-option value="UPS">UPS</a-select-option>
@@ -406,16 +471,15 @@
                     v-model:value="formState.severity"
                     class="flex space-x-6"
                   >
-                    <a-radio value="High">
+                    <a-radio value="Urgent">
                       <span class="text-error font-medium flex items-center">
-                        <ThunderboltOutlined class="mr-1" /> High
+                        <ThunderboltOutlined class="mr-1" /> Urgent
                       </span>
                     </a-radio>
-                    <a-radio value="Medium">
-                      <span class="text-warning font-medium">Medium</span>
-                    </a-radio>
-                    <a-radio value="Low">
-                      <span class="text-success font-medium">Low</span>
+                    <a-radio value="Normal">
+                      <span class="text-warning font-medium flex items-center">
+                        <WarningOutlined class="mr-1" /> Normal
+                      </span>
                     </a-radio>
                   </a-radio-group>
                 </a-form-item>
@@ -526,13 +590,12 @@
               <p
                 class="font-medium flex items-center"
                 :class="{
-                  'text-error': formState.severity === 'High',
-                  'text-warning': formState.severity === 'Medium',
-                  'text-success': formState.severity === 'Low',
+                  'text-error': formState.severity === 'Urgent',
+                  'text-warning': formState.severity === 'Normal',
                 }"
               >
                 <ThunderboltOutlined
-                  v-if="formState.severity === 'High'"
+                  v-if="formState.severity === 'Urgent'"
                   class="mr-1"
                 />
                 {{ formState.severity }}
@@ -570,6 +633,30 @@
                 {{ formState.accountType }}
               </p>
             </div>
+            <div>
+              <p class="text-sm text-secondary">MICR Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.micrNumber }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">TR Code</p>
+              <p class="font-medium text-primary">
+                {{ formState.trCode }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">Cheque Prefix</p>
+              <p class="font-medium text-primary">
+                {{ formState.chequePrefix }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">Customer Address</p>
+              <p class="font-medium text-primary">
+                {{ formState.customerAddress }}
+              </p>
+            </div>
           </div>
         </div>
 
@@ -591,15 +678,21 @@
               </p>
             </div>
             <div>
-              <p class="text-sm text-secondary">First Leaf Number</p>
-              <p class="font-medium text-primary">
-                {{ formState.firstLeafNumber }}
-              </p>
-            </div>
-            <div>
               <p class="text-sm text-secondary">Series</p>
               <p class="font-medium text-primary">
                 Series {{ formState.series }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">Starting Serial Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.startingSerialNumber }}
+              </p>
+            </div>
+            <div>
+              <p class="text-sm text-secondary">Ending Serial Number</p>
+              <p class="font-medium text-primary">
+                {{ formState.endingSerialNumber }}
               </p>
             </div>
             <div>
@@ -720,10 +813,15 @@ const formState = reactive({
   customerName: "",
   routingNumber: "",
   accountType: "",
+  micrNumber: "",
+  trCode: "",
+  chequePrefix: "",
+  customerAddress: "",
   chequeLeaves: "",
   bookQuantity: 1,
-  firstLeafNumber: "",
-  severity: "Medium",
+  startingSerialNumber: "0775001",
+  endingSerialNumber: "",
+  severity: "Urgent",
   courierName: "",
   series: "A",
   remarks: "",
@@ -736,30 +834,50 @@ const accountDatabase = [
     customerName: "John Smith",
     routingNumber: "RT-123456",
     accountType: "Savings",
+    micrNumber: "123456789",
+    trCode: "123456",
+    chequePrefix: "SB",
+    customerAddress: "123 Main St, Anytown, USA",
   },
   {
     accountNumber: "AC-100002",
     customerName: "Jane Doe",
     routingNumber: "RT-654321",
     accountType: "Current",
+    micrNumber: "123456789",
+    trCode: "123456",
+    chequePrefix: "CD",
+    customerAddress: "456 Main St, Anytown, USA",
   },
   {
     accountNumber: "AC-100003",
     customerName: "Robert Johnson",
     routingNumber: "RT-567890",
     accountType: "Savings",
+    micrNumber: "123456789",
+    trCode: "123456",
+    chequePrefix: "SB",
+    customerAddress: "789 Main St, Anytown, USA",
   },
   {
     accountNumber: "AC-100004",
     customerName: "Emily Williams",
     routingNumber: "RT-246801",
     accountType: "Current",
+    micrNumber: "123456789",
+    trCode: "123456",
+    chequePrefix: "CD",
+    customerAddress: "1011 Main St, Anytown, USA",
   },
   {
     accountNumber: "AC-100005",
     customerName: "Michael Brown",
     routingNumber: "RT-135792",
     accountType: "Savings",
+    micrNumber: "123456789",
+    trCode: "123456",
+    chequePrefix: "SB",
+    customerAddress: "321 Main St, Anytown, USA",
   },
 ];
 
@@ -794,11 +912,25 @@ const handleAccountSelect = (value: string) => {
     formState.customerName = account.customerName;
     formState.routingNumber = account.routingNumber;
     formState.accountType = account.accountType;
+    formState.micrNumber = account.micrNumber;
+    formState.trCode = account.trCode;
+    formState.chequePrefix = account.chequePrefix;
+    formState.customerAddress = account.customerAddress;
 
     // Reset cheque leaves when account type changes
     formState.chequeLeaves = "";
 
     message.success("Account information loaded successfully");
+  }
+};
+const handleSerialNumberChange = (value: number) => {
+  const chequeLeaves = formState.chequeLeaves;
+  const bookQuantity = formState.bookQuantity;
+  const firstLeafNumber = Number(formState.startingSerialNumber);
+  if (value && chequeLeaves) {
+    const chequeLeavesNumber = Number(chequeLeaves);
+    const Qty = chequeLeavesNumber * bookQuantity;
+    formState.endingSerialNumber = String(firstLeafNumber + (Qty - 1));
   }
 };
 
