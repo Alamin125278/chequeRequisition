@@ -233,7 +233,7 @@
                   <a-button
                     type="primary"
                     shape="circle"
-                    class="bg-success border-success hover:bg-success-dark hover:border-success-dark"
+                    class="btn-pending"
                     @click="approveItem(record)"
                   >
                     <CheckOutlined />
@@ -1007,6 +1007,18 @@ onMounted(() => {
 .ant-btn-primary:focus {
   background-color: #5a7a1f !important;
   border-color: #5a7a1f !important;
+}
+
+/* Exception for Pending buttons */
+.ant-btn-primary.btn-pending {
+  background-color: var(--color-purple-500) !important;
+  border-color: var(--color-purple-500) !important;
+}
+
+.ant-btn-primary.btn-pending:hover,
+.ant-btn-primary.btn-pending:focus {
+  background-color: var(--color-purple-700) !important;
+  border-color: var(--color-purple-700) !important;
 }
 
 /* Exception for danger buttons */

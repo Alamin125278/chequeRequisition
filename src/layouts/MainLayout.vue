@@ -966,7 +966,7 @@ watch(
 
 :deep(.custom-menu .ant-menu-submenu-selected > .ant-menu-submenu-title) {
   color: white !important;
-  background-color: var(--accent-cta) !important;
+  background-color: var(--teal-dark) !important;
   border-radius: 8px;
 }
 

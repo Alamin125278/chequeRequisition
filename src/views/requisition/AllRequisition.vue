@@ -177,7 +177,7 @@
                   <a-button
                     type="primary"
                     shape="circle"
-                    class="bg-success border-success hover:bg-success-dark hover:border-success-dark"
+                    class="btn-pending"
                     @click="updateItemStatus(record, 'Approved')"
                   >
                     <CheckOutlined />
@@ -255,9 +255,15 @@
                 <div class="flex gap-1 ml-1">
                   <a-tooltip title="Edit">
                     <a-button
-                      type="primary"
+                      :type="
+                        isEditDeleteDisabled(record) ? 'default' : 'primary'
+                      "
                       shape="circle"
-                      class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+                      :class="
+                        isEditDeleteDisabled(record)
+                          ? ''
+                          : 'bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark'
+                      "
                       :disabled="isEditDeleteDisabled(record)"
                       @click="editItem(record)"
                     >
@@ -267,7 +273,9 @@
 
                   <a-tooltip title="Delete">
                     <a-button
-                      type="primary"
+                      :type="
+                        isEditDeleteDisabled(record) ? 'default' : 'primary'
+                      "
                       shape="circle"
                       danger
                       :disabled="isEditDeleteDisabled(record)"
@@ -635,6 +643,7 @@ const chequeItemColumns = [
     dataIndex: "severity",
     key: "severity",
     width: 120,
+    align: "center",
     filters: [
       { text: "High", value: "High" },
       { text: "Medium", value: "Medium" },
@@ -1154,6 +1163,17 @@ onMounted(() => {
   border-color: #5a7a1f !important;
 }
 
+/* Exception for Pending buttons */
+.ant-btn-primary.btn-pending {
+  background-color: var(--color-purple-500) !important;
+  border-color: var(--color-purple-500) !important;
+}
+
+.ant-btn-primary.btn-pending:hover,
+.ant-btn-primary.btn-pending:focus {
+  background-color: var(--color-purple-700) !important;
+  border-color: var(--color-purple-700) !important;
+}
 /* Exception for Approve buttons */
 .ant-btn-primary.btn-blue {
   background-color: var(--blue) !important;
