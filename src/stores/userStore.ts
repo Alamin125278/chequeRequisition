@@ -1,3 +1,5 @@
+import {  checkIsLoggedInService, loginService } from "@/services/auth/auth.service";
+import { removeAuthorizationTokenService } from "@/services/auth/token.service";
 import { defineStore } from "pinia";
 import { computed, ref } from "vue";
 
@@ -65,97 +67,43 @@ const rolePermissionsMap: Record<string, string[]> = {
 };
 
 export const useUserStore = defineStore("user", () => {
-  const user = ref<User | null>(null);
-  const isLoggedIn = ref(false);
+  const isLoggedIn = ref<boolean>(false);
+  const user = ref<User[] | null>(null);
   const errorMessage = ref("");
 
-  const allUsers: User[] = [
-    {
-      id: 1,
-      name: "Vendor Admin",
-      username: "vendoradmin",
-      email: "vendor@example.com",
-      password: "vendor123",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Vendor",
-      role: "Vendor Admin",
-    },
-    {
-      id: 2,
-      name: "Bank Admin",
-      username: "bankadmin",
-      email: "bank@example.com",
-      password: "bank123",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Bank",
-      role: "Bank Admin",
-    },
-    {
-      id: 3,
-      name: "Branch Officer",
-      username: "branchofficer",
-      email: "officer@example.com",
-      password: "officer123",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=Officer",
-      role: "Branch Officer",
-    },
-    {
-      id: 4,
-      name: "Branch User",
-      username: "branchuser",
-      email: "user@example.com",
-      password: "user123",
-      avatar: "https://api.dicebear.com/7.x/avataaars/svg?seed=User",
-      role: "Branch User",
-    },
-  ];
-
   const initializeFromStorage = () => {
-    const storedUser = localStorage.getItem("user");
-    const storedLoginState = localStorage.getItem("isLoggedIn");
-    if (storedUser && storedLoginState === "true") {
-      user.value = JSON.parse(storedUser);
-      isLoggedIn.value = true;
-    }
+    isLoggedIn.value = checkIsLoggedInService()
   };
 
   initializeFromStorage();
 
-  const login = (identifier: string, password: string) => {
-    const foundUser = allUsers.find(
-      (u) =>
-        (u.email === identifier || u.username === identifier) &&
-        u.password === password
-    );
-
-    if (foundUser) {
-      user.value = { ...foundUser };
-      delete user.value.password; // Don't store password
-      isLoggedIn.value = true;
-      errorMessage.value = "";
-      localStorage.setItem("user", JSON.stringify(user.value));
-      localStorage.setItem("isLoggedIn", "true");
-    } else {
-      errorMessage.value = "Invalid email/username or password";
-    }
+  const login = async(identifier: string, password: string) => {
+    await loginService({ userNameOrEmail: identifier, password }).then(()=>{
+        isLoggedIn.value = true;
+      }).catch((error: any) => {
+       isLoggedIn.value = false;
+       errorMessage.value = error?.message || "Login failed";
+      })  
   };
 
   const logout = () => {
-    user.value = null;
-    isLoggedIn.value = false;
-    localStorage.removeItem("user");
-    localStorage.removeItem("isLoggedIn");
+    try{
+      removeAuthorizationTokenService();
+    }catch (error) {
+      console.error('Error during logout:', error);
+      errorMessage.value = 'Logout failed';
+    }
   };
 
   const permissions = computed(() => {
-    if (!user.value) return [];
-    return rolePermissionsMap[user.value.role] || [];
+    return true;
   });
 
   const canAccess = (permission: string): boolean => {
-    return permissions.value.includes(permission);
+    return true;
   };
 
   return {
-    user,
     isLoggedIn,
     login,
     logout,

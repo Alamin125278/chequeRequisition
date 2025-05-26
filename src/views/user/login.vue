@@ -154,7 +154,7 @@ const validateMessages = {
 };
 
 // Form submission
-const onFinish = async (values: any) => {
+const onFinish = async (values: { username: string; password: string }) => {
   loading.value = true;
   errorMessage.value = "";
   showAlert.value = false;

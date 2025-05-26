@@ -115,33 +115,29 @@ const validateMessages = {
 
 // Form submission
 const onFinish = async (values: any) => {
-  loading.value = true
-  errorMessage.value = ""
-  showAlert.value = false
+  loading.value = true;
+  errorMessage.value = "";
+  showAlert.value = false;
 
   try {
-    // Simulate API delay
-    await new Promise((resolve) => setTimeout(resolve, 1000))
-
     // Try logging in with Pinia store
-    userStore.login(values.username, values.password)
-
-    if (userStore.isLoggedIn) {
-      message.success("Login successful!")
-      router.push("/dashboard")
-    } else {
-      errorMessage.value = userStore.errorMessage || "Invalid credentials"
-      showAlert.value = true
-    }
+    userStore.login(values.username, values.password).then(() => {
+      if (userStore.isLoggedIn) {
+        message.success("Login successful!");
+        router.push("/dashboard");
+      } else {
+        errorMessage.value = userStore.errorMessage || "Invalid credentials";
+        showAlert.value = true;
+      }
+    });
   } catch (error) {
-    console.error(error)
-    errorMessage.value = "An error occurred. Please try again later."
-    showAlert.value = true
+    console.error(error);
+    errorMessage.value = "An error occurred. Please try again later.";
+    showAlert.value = true;
   } finally {
-    loading.value = false
+    loading.value = false;
   }
-}
-
+};
 
 onMounted(() => {
   showAlert.value = false; // Initialize showAlert in onMounted
