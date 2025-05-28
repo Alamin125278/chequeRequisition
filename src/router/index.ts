@@ -1,5 +1,6 @@
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import MainLayout from "@/layouts/MainLayout.vue";
+import { CheckRoutePermission } from "@/services/Route/checkRoute.service";
 import { useUserStore } from "@/stores/userStore";
 import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
@@ -34,11 +35,16 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/404",
+      name: "404",
+      component: () => import("@/views/404.vue"),
+    },
     // App routes
     {
       path: "/",
       component: MainLayout,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresPermission: true },
       children: [
         {
           path: "/dashboard",
@@ -147,10 +153,15 @@ const router = createRouter({
 });
 
 // Navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const requirePermission = to.matched.some(
+    (record) => record.meta.requiresPermission
+  );
 
+  const hasPermission = await CheckRoutePermission(to.path, requiresAuth);
+  console.log(hasPermission);
   // If route requires auth and user is not logged in, redirect to login
   if (requiresAuth && !userStore.isLoggedIn) {
     next("/login");
@@ -161,6 +172,10 @@ router.beforeEach((to, from, next) => {
     (to.path === "/login" || to.path === "/register")
   ) {
     next("/dashboard");
+  } else if (requirePermission && !hasPermission) {
+    console.log(hasPermission);
+
+    next("/404");
   } else {
     next();
   }

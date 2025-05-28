@@ -2,7 +2,7 @@
   <div class="dashboard-page">
     <div class="page-header mb-6">
       <h1 class="text-2xl font-semibold">Dashboard</h1>
-      <p class="text-gray-500">Welcome back, {{ userStore.user.name }}</p>
+      <p class="text-gray-500">Welcome back, AL AMIN</p>
     </div>
 
     <!-- Stats Row -->
@@ -84,17 +84,16 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
-import {
-  FormOutlined,
-  ClockCircleOutlined,
-  CheckCircleOutlined,
-  CloseCircleOutlined,
-} from "@ant-design/icons-vue";
-import StatCard from "@/components/dashboard/StatCard.vue";
 import RecentActivity from "@/components/dashboard/RecentActivity.vue";
 import RequisitionStatus from "@/components/dashboard/RequisitionStatus.vue";
+import StatCard from "@/components/dashboard/StatCard.vue";
 import { useUserStore } from "@/stores/userStore";
+import {
+  CheckCircleOutlined,
+  ClockCircleOutlined,
+  CloseCircleOutlined,
+  FormOutlined,
+} from "@ant-design/icons-vue";
 
 const userStore = useUserStore();
 

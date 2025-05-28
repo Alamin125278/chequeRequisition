@@ -32,20 +32,21 @@
           :inline-collapsed="isSidebarCollapsed"
           class="custom-menu"
         >
-          <template v-for="item in filteredMenu" :key="item.key">
+          <template v-for="item in menus" :key="item.id">
             <!-- Menu item with children -->
             <a-sub-menu
               v-if="item.children && item.children.length > 0"
-              :key="item.key"
+              :key="item.id"
             >
               <template #icon>
-                <component :is="item.icon" />
+                <component :is="getIconComponent(item.icon)" />
               </template>
               <template #title>{{ item.title }}</template>
 
               <a-menu-item
                 v-for="child in item.children"
-                :key="child.key"
+                :key="child.id"
+                class="sb-menu-item"
                 @click="navigateTo(child.path)"
               >
                 {{ child.title }}
@@ -53,9 +54,9 @@
             </a-sub-menu>
 
             <!-- Menu item without children -->
-            <a-menu-item v-else :key="item.key" @click="navigateTo(item.path)">
+            <a-menu-item v-else :key="item?.id" @click="navigateTo(item.path)">
               <template #icon>
-                <component :is="item.icon" />
+                <component :is="getIconComponent(item.icon)" />
               </template>
               {{ item.title }}
             </a-menu-item>
@@ -174,16 +175,10 @@
 
           <a-dropdown placement="bottomRight">
             <a class="user-dropdown" @click.prevent>
-              <a-avatar class="user-avatar" :src="userStore.user?.avatar">
-                {{ userStore.user?.name?.charAt(0) || "U" }}
-              </a-avatar>
+              <a-avatar class="user-avatar" src="avatar"> AL AMIN </a-avatar>
               <div class="user-info hide-on-mobile">
-                <span class="username">{{
-                  userStore.user?.name || "User"
-                }}</span>
-                <span class="user-role">{{
-                  userStore.user?.role || "Member"
-                }}</span>
+                <span class="username">AL AMIN </span>
+                <span class="user-role"> Super Admin </span>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -252,6 +247,7 @@
 <script setup lang="ts">
 import {
   BellOutlined,
+  DashboardOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuOutlined,
@@ -260,21 +256,45 @@ import {
   UserOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import type { Component } from "vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import { useMenuStore } from "../stores/menuStore";
 import { useUserStore } from "../stores/userStore";
 
-// Router
+const iconMap: Record<string, Component> = {
+  DashboardOutlined,
+  UserOutlined,
+  SettingOutlined,
+};
+function getIconComponent(iconName: string): Component | null {
+  return iconMap[iconName] || null;
+}
+
+// Router and stores
 const router = useRouter();
 const route = useRoute();
 const menuStore = useMenuStore();
 const userStore = useUserStore();
 
-const filteredMenu = computed(() =>
-  menuStore.getFilteredMenu(userStore.permissions)
-);
-const selectedKeys = ref<string[]>(["dashboard"]);
+// Get menus from store using computed for reactivity
+const menus = computed(() => menuStore.menus);
+console.log(menus);
+
+// Initialize menu data on component mount
+onMounted(async () => {
+  await menuStore.fetchMenus();
+  updateSelectedKeys();
+
+  // Check if sidebar was collapsed in previous session
+  const savedCollapsedState = localStorage.getItem("sidebar-collapsed");
+  if (savedCollapsedState === "true") {
+    isSidebarCollapsed.value = true;
+  }
+});
+
+// Menu state
+const selectedKeys = ref<number[]>([1]);
 const openKeys = ref<string[]>([]);
 
 // Page title
@@ -322,16 +342,16 @@ const viewAllNotifications = () => {
 
 // Update selected keys based on current route
 const updateSelectedKeys = () => {
-  // Find the menu item that matches the current path
-  const findMenuItem = (items: any[]): string | null => {
+  // মেনু আইটেম খুঁজবে যেটার path route.path এর সাথে মিলে
+  const findMenuItem = (items: any[]): number | null => {
     for (const item of items) {
       if (item.path === route.path) {
-        return item.key;
+        return item.id; // int হিসেবে id রিটার্ন করো
       }
       if (item.children) {
         const key = findMenuItem(item.children);
-        if (key) {
-          openKeys.value = [item.key];
+        if (key !== null) {
+          openKeys.value = [item.id]; // প্যারেন্ট মেনুর id int হিসেবেই রাখো
           return key;
         }
       }
@@ -339,27 +359,25 @@ const updateSelectedKeys = () => {
     return null;
   };
 
-  const key = findMenuItem(menuStore.menuItems);
-  if (key) {
+  const key = findMenuItem(menus.value);
+
+  if (key !== null) {
     selectedKeys.value = [key];
+  } else {
+    // কোন মেনু আইটেম না পেলে ডিফল্ট 1 সেট করবে
+    selectedKeys.value = [1];
   }
 };
 
-// Call on component mount
-onMounted(() => {
-  updateSelectedKeys();
-
-  // Check if sidebar was collapsed in previous session
-  const savedCollapsedState = localStorage.getItem("sidebar-collapsed");
-  if (savedCollapsedState === "true") {
-    isSidebarCollapsed.value = true;
-  }
-});
-
+// Watch for route changes to update active menu
 watch(
   () => route.path,
   () => {
     updateSelectedKeys();
+    // Close mobile sidebar on route change
+    if (isMobile.value) {
+      isSidebarVisible.value = false;
+    }
   }
 );
 
@@ -408,15 +426,10 @@ const checkIfMobile = () => {
   const mobileBreakpoint = 768;
   isMobile.value = window.innerWidth < mobileBreakpoint;
 
-  // Handle responsive behavior
   if (isMobile.value) {
-    // Don't auto-hide sidebar on resize if it's already visible
     if (!isSidebarVisible.value) {
       isSidebarVisible.value = false;
     }
-
-    // On mobile, we want the sidebar to be full width when visible
-    // but we don't want to auto-collapse it if it's already expanded
     if (!isSidebarCollapsed.value && !isSidebarVisible.value) {
       isSidebarCollapsed.value = false;
     }
@@ -427,10 +440,12 @@ const checkIfMobile = () => {
 onMounted(() => {
   checkIfMobile();
   window.addEventListener("resize", checkIfMobile);
+  document.addEventListener("click", handleClickOutside);
 });
 
 onUnmounted(() => {
   window.removeEventListener("resize", checkIfMobile);
+  document.removeEventListener("click", handleClickOutside);
 });
 
 // Close sidebar when clicking outside on mobile
@@ -449,25 +464,6 @@ const handleClickOutside = (event: MouseEvent) => {
     isSidebarVisible.value = false;
   }
 };
-
-onMounted(() => {
-  document.addEventListener("click", handleClickOutside);
-});
-
-onUnmounted(() => {
-  document.removeEventListener("click", handleClickOutside);
-});
-
-// Watch for route changes to update active menu
-watch(
-  () => route.path,
-  () => {
-    // Close mobile sidebar on route change
-    if (isMobile.value) {
-      isSidebarVisible.value = false;
-    }
-  }
-);
 </script>
 
 <style scoped>
@@ -554,7 +550,6 @@ watch(
   animation: fadeIn 0.3s ease;
   backdrop-filter: blur(2px);
 }
-
 @keyframes fadeIn {
   from {
     opacity: 0;
