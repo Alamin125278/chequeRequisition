@@ -245,6 +245,7 @@
 </template>
 
 <script setup lang="ts">
+import { removeAuthorizationTokenService } from "@/services/auth/token.service";
 import {
   BellOutlined,
   DashboardOutlined,
@@ -279,7 +280,6 @@ const userStore = useUserStore();
 
 // Get menus from store using computed for reactivity
 const menus = computed(() => menuStore.menus);
-console.log(menus);
 
 // Initialize menu data on component mount
 onMounted(async () => {
@@ -416,7 +416,8 @@ const navigateTo = (path: string) => {
 
 // Logout function
 const logout = () => {
-  userStore.logout();
+  userStore.isLoggedIn = false;
+  removeAuthorizationTokenService();
   message.success("Logged out successfully");
   router.push("/login");
 };
