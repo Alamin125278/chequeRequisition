@@ -48,158 +48,75 @@
     </div>
 
     <!-- Clean Stats Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="max-w-7xl py-6">
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Total Banks Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
           <div class="px-4 py-5 sm:p-6">
             <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <BankOutlined class="h-6 w-6 text-blue-600" />
+              <div class="flex-shrink-0 bg-accent bg-opacity-10 rounded-md p-3">
+                <BankOutlined class="h-6 w-6 text-white" />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
+                  <dt class="text-sm font-medium text-secondary truncate">
                     Total Banks
                   </dt>
                   <dd>
-                    <div class="text-lg font-semibold text-gray-900">
-                      {{ banks.length }}
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ totalBanks }}
                     </div>
                   </dd>
                 </dl>
-              </div>
-            </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-4 sm:px-6">
-            <div class="text-sm">
-              <div class="flex justify-between items-center">
-                <div class="text-green-600 font-medium flex items-center">
-                  <ArrowUpOutlined class="mr-1" />
-                  <span>12% increase</span>
-                </div>
-                <span class="text-gray-500">from last month</span>
               </div>
             </div>
           </div>
         </div>
 
         <!-- Active Banks Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
           <div class="px-4 py-5 sm:p-6">
             <div class="flex items-center">
-              <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <CheckCircleOutlined class="h-6 w-6 text-green-600" />
+              <div
+                class="flex-shrink-0 bg-success bg-opacity-10 rounded-md p-3"
+              >
+                <CheckCircleOutlined class="h-6 w-6 text-white" />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
+                  <dt class="text-sm font-medium text-secondary truncate">
                     Active Banks
                   </dt>
                   <dd>
-                    <div class="text-lg font-semibold text-gray-900">
-                      {{
-                        banks.filter((bank) => bank.status === "active").length
-                      }}
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ activeBanks }}
                     </div>
                   </dd>
                 </dl>
               </div>
             </div>
-            <div class="mt-4">
-              <div class="relative pt-1">
-                <div class="flex mb-2 items-center justify-between">
-                  <div>
-                    <span
-                      class="text-xs font-semibold inline-block text-green-600"
-                    >
-                      {{
-                        Math.round(
-                          (banks.filter((bank) => bank.status === "active")
-                            .length /
-                            banks.length) *
-                            100
-                        )
-                      }}% Active Rate
-                    </span>
-                  </div>
-                </div>
-                <div
-                  class="overflow-hidden h-2 text-xs flex rounded bg-green-100"
-                >
-                  <div
-                    class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-green-600"
-                    :style="`width: ${Math.round(
-                      (banks.filter((bank) => bank.status === 'active').length /
-                        banks.length) *
-                        100
-                    )}%`"
-                  ></div>
-                </div>
-              </div>
-            </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-4 sm:px-6">
-            <div class="text-sm flex justify-between">
-              <span class="text-gray-500"
-                >Active:
-                {{
-                  banks.filter((bank) => bank.status === "active").length
-                }}</span
-              >
-              <span class="text-gray-500"
-                >Inactive:
-                {{
-                  banks.filter((bank) => bank.status === "inactive").length
-                }}</span
-              >
-            </div>
           </div>
         </div>
 
-        <!-- Last Updated Card -->
-        <div class="bg-white overflow-hidden shadow rounded-lg">
+        <!-- Inactive Banks Card -->
+        <div class="bg-card overflow-hidden shadow-md rounded-md">
           <div class="px-4 py-5 sm:p-6">
             <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <ClockCircleOutlined class="h-6 w-6 text-blue-600" />
+              <div class="flex-shrink-0 bg-error-light rounded-md p-3">
+                <CloseCircleOutlined class="h-6 w-6 text-error" />
               </div>
               <div class="ml-5 w-0 flex-1">
                 <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">
-                    Last Updated
+                  <dt class="text-sm font-medium text-secondary truncate">
+                    Inactive Banks
                   </dt>
                   <dd>
-                    <div class="text-lg font-semibold text-gray-900">Today</div>
+                    <div class="text-2xl font-semibold text-primary">
+                      {{ totalBanks - activeBanks }}
+                    </div>
                   </dd>
                 </dl>
               </div>
-            </div>
-            <div class="mt-4 flex flex-col space-y-2">
-              <div class="flex items-center text-sm text-gray-500">
-                <CalendarOutlined class="mr-2" />
-                <span>{{
-                  new Date().toLocaleDateString("en-US", {
-                    year: "numeric",
-                    month: "long",
-                    day: "numeric",
-                  })
-                }}</span>
-              </div>
-              <div class="flex items-center text-sm text-gray-500">
-                <ClockCircleOutlined class="mr-2" />
-                <span>{{
-                  new Date().toLocaleTimeString("en-US", {
-                    hour: "2-digit",
-                    minute: "2-digit",
-                  })
-                }}</span>
-              </div>
-            </div>
-          </div>
-          <div class="bg-gray-50 px-4 py-4 sm:px-6">
-            <div class="text-sm">
-              <span class="text-gray-500">System time synchronized</span>
             </div>
           </div>
         </div>
@@ -207,7 +124,7 @@
     </div>
 
     <!-- Bank Table Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-8">
+    <div class="max-w-7xl pb-8">
       <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
           <div
@@ -221,20 +138,20 @@
             </div>
             <div class="mt-4 md:mt-0 flex items-center space-x-3">
               <a-select
-                v-model:value="filterStatus"
+                v-model:value="bankStore.status"
                 placeholder="Filter by status"
                 class="w-40"
-                @change="onFilterChange"
+                @change="bankStore.setStatus"
               >
                 <a-select-option value="">All Status</a-select-option>
-                <a-select-option value="active">Active</a-select-option>
-                <a-select-option value="inactive">Inactive</a-select-option>
+                <a-select-option value="Active">Active</a-select-option>
+                <a-select-option value="InActive">Inactive</a-select-option>
               </a-select>
               <a-input-search
-                v-model:value="searchText"
-                placeholder="Search banks..."
                 class="w-full md:w-64"
-                @search="onSearch"
+                v-model:value="bankStore.search"
+                @search="bankStore.setSearch"
+                placeholder="Search banks..."
                 allow-clear
               >
                 <template #prefix>
@@ -246,46 +163,37 @@
         </div>
 
         <a-table
-          :dataSource="filteredBanks"
+          :dataSource="bankStore.banks"
           :columns="columns"
-          :pagination="{
-            pageSize: 10,
-            showTotal: (total) => `Total ${total} banks`,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
+          :pagination="pagination"
           :loading="loading"
+          @change="(p:any) => bankStore.setPagination(p.current, p.pageSize)"
           :rowClassName="() => 'hover:bg-gray-50'"
           class="custom-table"
           :scroll="{ x: 1000 }"
         >
           <!-- Bank Name Column -->
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <template v-if="column.key === 'bankName'">
               <div class="flex items-center">
-                <div
-                  class="flex-shrink-0 h-10 w-10 rounded-md bg-blue-600 flex items-center justify-center text-white font-medium text-lg"
-                >
-                  {{ record.bankName.charAt(0) }}
-                </div>
                 <div class="ml-4">
                   <div class="text-sm font-medium text-gray-900">
                     {{ record.bankName }}
-                  </div>
-                  <div class="text-xs text-gray-500">
-                    Code: {{ record.bankCode }}
                   </div>
                 </div>
               </div>
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'IsActive'">
               <a-tag
-                :color="record.status === 'active' ? 'success' : 'error'"
+                :color="record.isActive == true ? 'success' : 'error'"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                {{ record.status === "active" ? "Active" : "Inactive" }}
+                {{ record.isActive == true ? "Active" : "Inactive" }}
               </a-tag>
             </template>
 
@@ -337,6 +245,22 @@
           ref="formRef"
         >
           <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <a-form-item label="Select Vendor" name="vendorId">
+              <a-select
+                v-model:value="formState.vendorId"
+                placeholder="Select vendor"
+                class="rounded-md w-full"
+              >
+                <a-select-option value="">Select Vendor</a-select-option>
+                <a-select-option
+                  v-for="vendor in vendors"
+                  :key="vendor.id"
+                  :value="vendor.id"
+                >
+                  {{ vendor.vendorName }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
             <a-form-item label="Bank Name" name="bankName">
               <a-input
                 v-model:value="formState.bankName"
@@ -391,8 +315,8 @@
                 placeholder="Select status"
                 class="rounded-md w-full"
               >
-                <a-select-option value="active">Active</a-select-option>
-                <a-select-option value="inactive">Inactive</a-select-option>
+                <a-select-option value="Active">Active</a-select-option>
+                <a-select-option value="InActive">Inactive</a-select-option>
               </a-select>
             </a-form-item>
 
@@ -445,11 +369,9 @@
 
 <script setup lang="ts">
 import {
-  ArrowUpOutlined,
   BankOutlined,
-  CalendarOutlined,
   CheckCircleOutlined,
-  ClockCircleOutlined,
+  CloseCircleOutlined,
   DeleteOutlined,
   EditOutlined,
   MailOutlined,
@@ -457,18 +379,27 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons-vue";
-import { Modal } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import { computed, onMounted, reactive, ref } from "vue";
+import {
+  deleteBankService,
+  getBankCountService,
+  saveBankService,
+} from "../../services/bank/bank.service";
+import { getVendorForBankService } from "../../services/vendor/vendor.service";
+import { useBankStore } from "../../stores/bankStore";
 
 // Search and filter states
-const searchText = ref("");
-const filterStatus = ref("");
+
+const vendorLoading = ref(false);
 const loading = ref(false);
 const modalVisible = ref(false);
 const modalMode = ref<"add" | "edit">("add");
-const currentBankId = ref<string | null>(null);
+const currentBankId = ref<number | null>(null);
 const submitting = ref(false);
 const formRef = ref();
+const totalBanks = ref(0);
+const activeBanks = ref(0);
 
 // Toast notifications
 interface Toast {
@@ -477,21 +408,42 @@ interface Toast {
   duration: number;
 }
 
+interface Vendor {
+  id: number;
+  vendorName: string;
+}
+const vendors = ref<Vendor[]>([]);
+
 const toasts = ref<Toast[]>([]);
+
+// Vendors
+const featchVendors = async () => {
+  vendorLoading.value = true;
+  try {
+    const result = await getVendorForBankService();
+    vendors.value = result;
+  } catch (e) {
+    console.error("Error fetching vendors", e);
+  } finally {
+    vendorLoading.value = false;
+  }
+};
 
 // Form state for modal
 const formState = reactive({
+  vendorId: "",
   bankName: "",
   bankCode: "",
   routingNumber: "",
   bankEmail: "",
   bankPhone: "",
   bankAddress: "",
-  status: "active",
+  status: "",
 });
 
 // Form validation rules
 const rules = {
+  vendorId: [{ required: true, message: "Please select vendor!" }],
   bankName: [{ required: true, message: "Please input bank name!" }],
   bankCode: [{ required: true, message: "Please input bank code!" }],
   routingNumber: [{ required: true, message: "Please input routing number!" }],
@@ -507,10 +459,27 @@ const rules = {
 // Table columns
 const columns = [
   {
+    title: "Sl.No",
+    key: "id",
+    width: 70,
+    align: "center",
+  },
+  {
+    title: "Vendor Name",
+    dataIndex: "vendorName",
+    key: "vendorName",
+    sorter: (a: any, b: any) => a.vendorName.localeCompare(b.vendorName),
+  },
+  {
     title: "Bank Name",
     dataIndex: "bankName",
     key: "bankName",
     sorter: (a: any, b: any) => a.bankName.localeCompare(b.bankName),
+  },
+  {
+    title: "Bank Code",
+    dataIndex: "bankCode",
+    key: "bankCode",
   },
   {
     title: "Routing Number",
@@ -528,14 +497,14 @@ const columns = [
     key: "bankPhone",
   },
   {
+    title: "Bank Address",
+    dataIndex: "bankAddress",
+    key: "bankAddress",
+  },
+  {
     title: "Status",
-    dataIndex: "status",
-    key: "status",
-    filters: [
-      { text: "Active", value: "active" },
-      { text: "Inactive", value: "inactive" },
-    ],
-    onFilter: (value: string, record: any) => record.status === value,
+    dataIndex: "IsActive",
+    key: "IsActive",
   },
   {
     title: "Action",
@@ -546,129 +515,60 @@ const columns = [
   },
 ];
 
-// Sample data
-const banks = ref([
-  {
-    id: "1",
-    bankName: "Public Bank",
-    bankCode: "PB",
-    routingNumber: "123456789",
-    bankEmail: "publicbank@gmail.com",
-    bankPhone: "1234567890",
-    bankAddress: "Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "2",
-    bankName: "Commercial Bank",
-    bankCode: "CB",
-    routingNumber: "123456789",
-    bankEmail: "commercialbank@gmail.com",
-    bankPhone: "1234567890",
-    bankAddress: "Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "3",
-    bankName: "City Bank",
-    bankCode: "CB",
-    routingNumber: "123456789",
-    bankEmail: "citybank@gmail.com",
-    bankPhone: "1234567890",
-    bankAddress: "Dhaka, Bangladesh",
-    status: "inactive",
-  },
-  {
-    id: "4",
-    bankName: "National Bank",
-    bankCode: "NB",
-    routingNumber: "987654321",
-    bankEmail: "nationalbank@gmail.com",
-    bankPhone: "9876543210",
-    bankAddress: "Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "5",
-    bankName: "International Bank",
-    bankCode: "IB",
-    routingNumber: "456789123",
-    bankEmail: "internationalbank@gmail.com",
-    bankPhone: "4567891230",
-    bankAddress: "Dhaka, Bangladesh",
-    status: "active",
-  },
-]);
-
-// Filtered data based on search and filters
-const filteredBanks = computed(() => {
-  let result = [...banks.value];
-
-  // Apply search filter
-  if (searchText.value) {
-    const search = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.bankName.toLowerCase().includes(search) ||
-        item.bankCode.toLowerCase().includes(search) ||
-        item.bankEmail.toLowerCase().includes(search) ||
-        item.bankPhone.toLowerCase().includes(search) ||
-        item.bankAddress.toLowerCase().includes(search)
-    );
-  }
-
-  // Apply status filter
-  if (filterStatus.value) {
-    result = result.filter((item) => item.status === filterStatus.value);
-  }
-
-  return result;
+const bankStore = useBankStore();
+onMounted(() => {
+  bankStore.fetchBanks();
+  getBankCountService().then((res) => {
+    totalBanks.value = res.data.totalBank;
+    activeBanks.value = res.data.activeBank;
+  });
 });
-
-// Search function
-const onSearch = () => {
-  simulateLoading();
-};
-
-// Filter change function
-const onFilterChange = () => {
-  simulateLoading();
-};
-
-// Simulate loading for better UX
-const simulateLoading = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
-};
+const pagination = computed(() => ({
+  current: Math.floor(bankStore.skip / bankStore.limit) + 1,
+  pageSize: bankStore.limit,
+  total: bankStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} banks`,
+}));
 
 // Show modal for adding or editing
 const showModal = (mode: "add" | "edit", record?: any) => {
   modalMode.value = mode;
+  featchVendors();
 
   if (mode === "add") {
     // Reset form for adding new bank
     Object.assign(formState, {
+      vendorId: "",
       bankName: "",
       bankCode: "",
       routingNumber: "",
       bankEmail: "",
       bankPhone: "",
       bankAddress: "",
-      status: "active",
+      status: "Active",
     });
     currentBankId.value = null;
   } else if (mode === "edit" && record) {
+    var activeStatus = "";
+    if (record.isActive === true) {
+      activeStatus = "Active";
+    } else {
+      activeStatus = "InActive";
+    }
+
+    console.log(activeStatus);
     // Populate form with bank data for editing
     Object.assign(formState, {
+      vendorId: record.vendorId,
       bankName: record.bankName,
       bankCode: record.bankCode,
       routingNumber: record.routingNumber,
       bankEmail: record.bankEmail,
       bankPhone: record.bankPhone,
       bankAddress: record.bankAddress,
-      status: record.status || "active",
+      status: activeStatus,
     });
     currentBankId.value = record.id;
   }
@@ -676,7 +576,7 @@ const showModal = (mode: "add" | "edit", record?: any) => {
   modalVisible.value = true;
 };
 
-// Show delete confirmation
+// // Show delete confirmation
 const showDeleteConfirm = (record: any) => {
   Modal.confirm({
     title: "Are you sure you want to delete this bank?",
@@ -684,56 +584,57 @@ const showDeleteConfirm = (record: any) => {
     okText: "Yes, Delete",
     okType: "danger",
     cancelText: "Cancel",
-    onOk() {
-      // Simulate delete API call
+    async onOk() {
+      await deleteBankService(record.id);
+      // refresh Banks list
+      await bankStore.fetchBanks();
       setTimeout(() => {
-        const index = banks.value.findIndex((bank) => bank.id === record.id);
-        if (index !== -1) {
-          banks.value.splice(index, 1);
-          showToast("Bank deleted successfully", "success");
-        }
+        message.success("Bank deleted successfully!");
       }, 1000);
     },
   });
 };
 
-// Handle modal submit
+// // Handle modal submit
 const handleModalSubmit = () => {
   formRef.value
     .validate()
-    .then(() => {
+    .then(async () => {
       submitting.value = true;
 
-      // Simulate API call
-      setTimeout(() => {
-        if (modalMode.value === "add") {
-          // Add new bank
-          const newBank = {
-            id: (banks.value.length + 1).toString(),
-            ...formState,
-          };
-          banks.value.push(newBank);
-          showToast("Bank added successfully", "success");
-        } else {
-          // Update existing bank
-          const index = banks.value.findIndex(
-            (bank) => bank.id === currentBankId.value
-          );
-          if (index !== -1) {
-            banks.value[index] = {
-              ...banks.value[index],
-              ...formState,
-            };
-            showToast("Bank updated successfully", "success");
-          }
-        }
+      const payload = {
+        id: currentBankId.value, // required for update
+        vendorId: Number(formState.vendorId),
+        bankName: formState.bankName,
+        bankCode: formState.bankCode,
+        routingNumber: formState.routingNumber,
+        bankEmail: formState.bankEmail,
+        bankPhone: formState.bankPhone,
+        bankAddress: formState.bankAddress,
+        isActive: formState.status,
+      };
 
-        submitting.value = false;
+      try {
+        await saveBankService(payload, modalMode.value === "edit");
+        message.success(
+          modalMode.value === "edit"
+            ? "Bank updated successfully"
+            : "Bank created successfully"
+        );
+
+        // refresh Banks list
+        await bankStore.fetchBanks();
+
         modalVisible.value = false;
-      }, 1000);
+      } catch (error) {
+        console.error("API error:", error);
+        message.error("Something went wrong. Please try again.");
+      } finally {
+        submitting.value = false;
+      }
     })
-    .catch((error: any) => {
-      console.log("Validation failed:", error);
+    .catch((err: any) => {
+      console.warn("Validation error:", err);
     });
 };
 
@@ -763,7 +664,7 @@ const removeToast = (index: number) => {
   }
 };
 
-// Lifecycle hooks
+// // Lifecycle hooks
 onMounted(() => {
   // Simulate initial loading
   loading.value = true;
@@ -852,7 +753,7 @@ onMounted(() => {
 /* Toast container */
 .toast-container {
   position: fixed;
-  bottom: 20px;
+  top: 20px;
   right: 20px;
   z-index: 1000;
   max-width: 350px;

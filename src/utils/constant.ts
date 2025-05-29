@@ -8,5 +8,11 @@ export default {
     changePassword: "/api/user/change-password",
     menuInfo: "api/Get-menus-by-user",
     routePermission: "api/check-route-permission",
+    banks: "/api/banks",
+    getVendorForBankInfo: "/api/vendor/getallforbank",
+    createBank: "/api/bank",
+    updateBank: "/api/bank",
+    deleteBank: "/api/bank",
+    countBank: "/api/bank/count",
   },
 };
