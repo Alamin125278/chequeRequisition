@@ -14,5 +14,12 @@ export default {
     updateBank: "/api/bank",
     deleteBank: "/api/bank",
     countBank: "/api/bank/count",
+    bankForBranch: "/api/banks/for-branch",
+    branches: "/api/branches",
+    getVendorForBranchInfo: "/api/vendor/getallforbranch",
+    createBranch: "/api/branch",
+    updateBranch: "/api/branch",
+    deleteBranch: "/api/branch",
+    countBranch: "/api/branch/count",
   },
 };

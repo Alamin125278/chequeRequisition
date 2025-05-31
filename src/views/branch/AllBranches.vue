@@ -50,7 +50,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ branches.length }}
+                      {{ totalBranches }}
                     </div>
                   </dd>
                 </dl>
@@ -75,7 +75,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ activeCount }}
+                      {{ activeBranches }}
                     </div>
                   </dd>
                 </dl>
@@ -98,7 +98,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ branches.length - activeCount }}
+                      {{ totalBranches - activeBranches }}
                     </div>
                   </dd>
                 </dl>
@@ -130,16 +130,17 @@
                 placeholder="Filter by status"
                 class="w-full sm:w-40"
                 allowClear
-                @change="onFilterChange"
+                @change="branchStore.setStatus"
               >
-                <a-select-option value="active">Active</a-select-option>
-                <a-select-option value="inactive">Inactive</a-select-option>
+                <a-select-option value="">All Status</a-select-option>
+                <a-select-option value="Active">Active</a-select-option>
+                <a-select-option value="InActive">Inactive</a-select-option>
               </a-select>
               <a-input-search
                 v-model:value="searchText"
                 placeholder="Search branches..."
                 class="w-full sm:w-64"
-                @search="onSearch"
+                @search="branchStore.setSearch"
                 allow-clear
               >
                 <template #prefix>
@@ -151,21 +152,20 @@
         </div>
 
         <a-table
-          :dataSource="filteredBranches"
+          :dataSource="branchStore.branches"
           :columns="columns"
-          :pagination="{
-            pageSize: 10,
-            showTotal: (total:number) => `Total ${total} branches`,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
+          :pagination="pagination"
           :loading="loading"
+          @change="(p) => branchStore.setPagination(p.current, p.pageSize)"
           :rowClassName="() => 'hover:bg-background'"
           class="custom-table"
           :scroll="{ x: 1000 }"
         >
           <!-- Branch Name Column -->
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <template v-if="column.key === 'bankName'">
               <div class="flex items-center">
                 <BankOutlined class="mr-2 text-secondary" />
@@ -180,12 +180,12 @@
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'IsActive'">
               <a-tag
-                :color="record.status === 'active' ? 'success' : 'error'"
+                :color="record.isActive == true ? 'success' : 'error'"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                {{ record.status === "active" ? "Active" : "Inactive" }}
+                {{ record.isActive == true ? "Active" : "Inactive" }}
               </a-tag>
             </template>
 
@@ -244,20 +244,32 @@
             </h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
               <a-form-item label="Bank Name" name="bankName">
-                <a-select
-                  v-model:value="formState.bankName"
-                  placeholder="Select bank"
-                  class="rounded-md w-full"
-                >
-                  <a-select-option value="">Select bank</a-select-option>
-                  <a-select-option value="Public Bank"
-                    >Public Bank</a-select-option
+                <template v-if="banks.length === 1">
+                  <a-input
+                    :value="banks[0].bankName"
+                    disabled
+                    class="w-full"
+                    style="background-color: #fff; color: #000; cursor: default"
+                  />
+                </template>
+
+                <!-- If more than 1, show dropdown -->
+                <template v-else>
+                  <a-select
+                    v-model:value="formState.bankId"
+                    placeholder="Select bank"
+                    class="rounded-md w-full"
                   >
-                  <a-select-option value="Commercial Bank"
-                    >Commercial Bank</a-select-option
-                  >
-                  <a-select-option value="City Bank">City Bank</a-select-option>
-                </a-select>
+                    <a-select-option value="">Select bank</a-select-option>
+                    <a-select-option
+                      v-for="bank in banks"
+                      :key="bank.id"
+                      :value="bank.id"
+                    >
+                      {{ bank.bankName }}
+                    </a-select-option>
+                  </a-select>
+                </template>
               </a-form-item>
 
               <a-form-item label="Branch Name" name="branchName">
@@ -276,9 +288,9 @@
                 />
               </a-form-item>
 
-              <a-form-item label="Routing Number" name="routingNumber">
+              <a-form-item label="Routing Number" name="routingNo">
                 <a-input
-                  v-model:value="formState.routingNumber"
+                  v-model:value="formState.routingNo"
                   placeholder="Enter routing number"
                   class="rounded-md"
                 />
@@ -290,8 +302,8 @@
                   placeholder="Select status"
                   class="rounded-md w-full"
                 >
-                  <a-select-option value="active">Active</a-select-option>
-                  <a-select-option value="inactive">Inactive</a-select-option>
+                  <a-select-option value="Active">Active</a-select-option>
+                  <a-select-option value="InActive">Inactive</a-select-option>
                 </a-select>
               </a-form-item>
             </div>
@@ -389,8 +401,15 @@ import {
   PlusOutlined,
   SearchOutlined,
 } from "@ant-design/icons-vue";
-import { Modal } from "ant-design-vue";
+import { message, Modal } from "ant-design-vue";
 import { computed, onMounted, reactive, ref } from "vue";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import {
+  deleteBranchService,
+  getBranchCountService,
+  saveBranchService,
+} from "../../services/branch/branch.service";
+import { useBranchStore } from "../../stores/branchStore";
 
 // Search and filter states
 const searchText = ref("");
@@ -401,6 +420,8 @@ const modalMode = ref<"add" | "edit">("add");
 const currentBranchId = ref<string | null>(null);
 const submitting = ref(false);
 const formRef = ref();
+const totalBranches = ref(0);
+const activeBranches = ref(0);
 
 // Toast notifications
 interface Toast {
@@ -408,40 +429,60 @@ interface Toast {
   type: "success" | "error" | "info" | "warning";
   duration: number;
 }
+interface Bank {
+  id: number;
+  bankName: string;
+}
 
+const banks = ref<Bank[]>([]);
 const toasts = ref<Toast[]>([]);
+//Get the banks from the database
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+    if (result.length === 1) {
+      formState.bankId = result[0].id;
+    }
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Form state for modal
 const formState = reactive({
-  bankName: "",
+  bankId: "",
   branchName: "",
   branchCode: "",
-  routingNumber: "",
+  routingNo: "",
   branchEmail: "",
   branchPhone: "",
   branchAddress: "",
-  status: "active",
+  status: "",
 });
 
 // Form validation rules
 const rules = {
-  bankName: [{ required: true, message: "Please select a bank" }],
+  bankId: [{ required: true, message: "Please select a bank" }],
   branchName: [{ required: true, message: "Please enter branch name" }],
   branchCode: [{ required: true, message: "Please enter branch code" }],
   branchEmail: [
     { required: true, message: "Please enter branch email" },
     { type: "email", message: "Please enter a valid email address" },
   ],
-  routingNumber: [{ required: true, message: "Please enter routing number" }],
+  routingNo: [{ required: true, message: "Please enter routing number" }],
   branchPhone: [{ required: true, message: "Please enter branch phone" }],
   branchAddress: [{ required: true, message: "Please enter branch address" }],
+  status: [{ required: true, message: "Please select status" }],
 };
 
 // Table columns
 const columns = [
   {
     title: "SL No",
-    dataIndex: "id",
     key: "id",
     width: 80,
   },
@@ -464,18 +505,8 @@ const columns = [
   },
   {
     title: "Routing Number",
-    dataIndex: "routingNumber",
-    key: "routingNumber",
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    filters: [
-      { text: "Active", value: "active" },
-      { text: "Inactive", value: "inactive" },
-    ],
-    onFilter: (value: string, record: any) => record.status === value,
+    dataIndex: "routingNo",
+    key: "routingNo",
   },
   {
     title: "Branch Email",
@@ -494,6 +525,11 @@ const columns = [
     ellipsis: true,
   },
   {
+    title: "Status",
+    dataIndex: "IsActive",
+    key: "IsActive",
+  },
+  {
     title: "Action",
     key: "action",
     fixed: "right",
@@ -501,144 +537,66 @@ const columns = [
     align: "center",
   },
 ];
+const fetchBranchCounts = async () => {
+  try {
+    const res = await getBranchCountService();
+    totalBranches.value = res.data.totalBranch;
+    activeBranches.value = res.data.activeBranch;
+  } catch (error) {
+    console.error("Error fetching Branch count:", error);
+  }
+};
 
-// Sample data
-const branches = ref([
-  {
-    id: "1",
-    bankName: "Public Bank",
-    branchName: "Mohakhali Branch",
-    branchCode: "MOH",
-    branchEmail: "mohakhalibranch@gmail.com",
-    routingNumber: "125278",
-    branchPhone: "1234567890",
-    branchAddress: "Mohakhali, Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "2",
-    bankName: "Public Bank",
-    branchName: "Tejgaon Branch",
-    branchCode: "TEJ",
-    branchEmail: "tejgaonbranch@gmail.com",
-    routingNumber: "123456789",
-    branchPhone: "1234567890",
-    branchAddress: "Tejgaon, Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "3",
-    bankName: "Public Bank",
-    branchName: "Dhaka Branch",
-    branchCode: "DHA",
-    branchEmail: "dhakabranch@gmail.com",
-    routingNumber: "123456789",
-    branchPhone: "1234567890",
-    branchAddress: "Dhaka, Bangladesh",
-    status: "active",
-  },
-  {
-    id: "4",
-    bankName: "Public Bank",
-    branchName: "Gulshan Branch",
-    branchCode: "GUL",
-    branchEmail: "gulshanbranch@gmail.com",
-    routingNumber: "987654321",
-    branchPhone: "0987654321",
-    branchAddress: "Gulshan, Dhaka, Bangladesh",
-    status: "inactive",
-  },
-  {
-    id: "5",
-    bankName: "Public Bank",
-    branchName: "Banani Branch",
-    branchCode: "BAN",
-    branchEmail: "bananibranch@gmail.com",
-    routingNumber: "456789123",
-    branchPhone: "4567891230",
-    branchAddress: "Banani, Dhaka, Bangladesh",
-    status: "active",
-  },
-]);
-
-// Computed properties
-const activeCount = computed(() => {
-  return branches.value.filter((branch) => branch.status === "active").length;
+const branchStore = useBranchStore();
+onMounted(() => {
+  branchStore.fetchBranches();
+  fetchBranchCounts();
 });
 
-// Filtered data based on search and filters
-const filteredBranches = computed(() => {
-  let result = [...branches.value];
-
-  // Apply search filter
-  if (searchText.value) {
-    const search = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.branchName.toLowerCase().includes(search) ||
-        item.branchCode.toLowerCase().includes(search) ||
-        item.branchEmail.toLowerCase().includes(search) ||
-        item.branchPhone.toLowerCase().includes(search) ||
-        item.branchAddress.toLowerCase().includes(search) ||
-        item.bankName.toLowerCase().includes(search) ||
-        item.routingNumber.toLowerCase().includes(search)
-    );
-  }
-
-  // Apply status filter
-  if (statusFilter.value) {
-    result = result.filter((item) => item.status === statusFilter.value);
-  }
-
-  return result;
-});
-
-// Search function
-const onSearch = () => {
-  simulateLoading();
-};
-
-// Filter change function
-const onFilterChange = () => {
-  simulateLoading();
-};
-
-// Simulate loading for better UX
-const simulateLoading = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
-};
+const pagination = computed(() => ({
+  current: Math.floor(branchStore.skip / branchStore.limit) + 1,
+  pageSize: branchStore.limit,
+  total: branchStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} branches`,
+}));
 
 // Show modal for adding or editing
 const showModal = (mode: "add" | "edit", record?: any) => {
   modalMode.value = mode;
+  featchBanks();
 
   if (mode === "add") {
     // Reset form for adding new branch
     Object.assign(formState, {
-      bankName: "",
+      bankId: "",
       branchName: "",
       branchCode: "",
-      routingNumber: "",
+      routingNo: "",
       branchEmail: "",
       branchPhone: "",
       branchAddress: "",
-      status: "active",
+      status: "Active",
     });
     currentBranchId.value = null;
   } else if (mode === "edit" && record) {
     // Populate form with branch data for editing
+    var activeStatus = "";
+    if (record.isActive === true) {
+      activeStatus = "Active";
+    } else {
+      activeStatus = "InActive";
+    }
     Object.assign(formState, {
-      bankName: record.bankName,
+      bankId: record.bankId,
       branchName: record.branchName,
       branchCode: record.branchCode,
-      routingNumber: record.routingNumber,
+      routingNo: record.routingNo,
       branchEmail: record.branchEmail,
       branchPhone: record.branchPhone,
       branchAddress: record.branchAddress,
-      status: record.status || "active",
+      status: activeStatus,
     });
     currentBranchId.value = record.id;
   }
@@ -654,16 +612,14 @@ const showDeleteConfirm = (record: any) => {
     okText: "Yes, Delete",
     okType: "danger",
     cancelText: "Cancel",
-    onOk() {
+    async onOk() {
       // Simulate delete API call
+      await deleteBranchService(record.id);
+      // refresh Branches list
+      await branchStore.fetchBranches();
+      await fetchBranchCounts();
       setTimeout(() => {
-        const index = branches.value.findIndex(
-          (branch) => branch.id === record.id
-        );
-        if (index !== -1) {
-          branches.value.splice(index, 1);
-          showToast("Branch deleted successfully", "success");
-        }
+        message.success("Branch deleted successfully");
       }, 1000);
     },
   });
@@ -673,60 +629,42 @@ const showDeleteConfirm = (record: any) => {
 const handleModalSubmit = () => {
   formRef.value
     .validate()
-    .then(() => {
+    .then(async () => {
       submitting.value = true;
-
+      const payload = {
+        id: currentBranchId.value, // required for update
+        BankId: Number(formState.bankId),
+        branchName: formState.branchName,
+        branchCode: formState.branchCode,
+        routingNo: formState.routingNo,
+        branchEmail: formState.branchEmail,
+        branchPhone: formState.branchPhone,
+        branchAddress: formState.branchAddress,
+        isActive: formState.status,
+      };
       // Simulate API call
-      setTimeout(() => {
-        if (modalMode.value === "add") {
-          // Add new branch
-          const newBranch = {
-            id: (branches.value.length + 1).toString(),
-            ...formState,
-          };
-          branches.value.push(newBranch);
-          showToast("Branch added successfully", "success");
-        } else {
-          // Update existing branch
-          const index = branches.value.findIndex(
-            (branch) => branch.id === currentBranchId.value
-          );
-          if (index !== -1) {
-            branches.value[index] = {
-              ...branches.value[index],
-              ...formState,
-            };
-            showToast("Branch updated successfully", "success");
-          }
-        }
+      try {
+        await saveBranchService(payload, modalMode.value === "edit");
+        message.success(
+          modalMode.value === "edit"
+            ? "Branch updated successfully"
+            : "Branch created successfully"
+        );
 
-        submitting.value = false;
+        // refresh Banks list
+        await branchStore.fetchBranches();
+        await fetchBranchCounts();
         modalVisible.value = false;
-      }, 1000);
+      } catch (error) {
+        console.error("API error:", error);
+        message.error("Something went wrong. Please try again.");
+      } finally {
+        submitting.value = false;
+      }
     })
-    .catch((error: any) => {
-      console.log("Validation failed:", error);
+    .catch((err: any) => {
+      console.warn("Validation error:", err);
     });
-};
-
-// Toast notifications
-const showToast = (
-  message: string,
-  type: "success" | "error" | "info" | "warning" = "info",
-  duration: number = 3000
-) => {
-  const toast: Toast = {
-    message,
-    type,
-    duration,
-  };
-
-  toasts.value.push(toast);
-
-  // Auto remove toast after duration
-  setTimeout(() => {
-    removeToast(toasts.value.indexOf(toast));
-  }, duration);
 };
 
 const removeToast = (index: number) => {

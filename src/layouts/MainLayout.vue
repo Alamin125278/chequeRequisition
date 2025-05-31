@@ -245,7 +245,6 @@
 </template>
 
 <script setup lang="ts">
-import { removeAuthorizationTokenService } from "@/services/auth/token.service";
 import {
   BellOutlined,
   DashboardOutlined,
@@ -260,6 +259,7 @@ import { message } from "ant-design-vue";
 import type { Component } from "vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import { removeAuthorizationTokenService } from "../services/auth/token.service";
 import { useMenuStore } from "../stores/menuStore";
 import { useUserStore } from "../stores/userStore";
 

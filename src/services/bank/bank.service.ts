@@ -53,3 +53,14 @@ export const getBankCountService = async () => {
   const response = await baseHttp().get(constant.APIs.countBank);
   return response;
 };
+
+// Get All Bank For Branch Service
+export const getBankForBranchService = async (): Promise<any> => {
+  try {
+    const response = await baseHttp().get(constant.APIs.bankForBranch);
+    console.log(response.data.bankDtos);
+    return response.data.bankDtos;
+  } catch (error: any) {
+    throw new Error(error?.message || "Bank fetch failed");
+  }
+};

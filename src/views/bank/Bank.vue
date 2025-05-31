@@ -514,14 +514,20 @@ const columns = [
     align: "center",
   },
 ];
+const fetchBankCounts = async () => {
+  try {
+    const res = await getBankCountService();
+    totalBanks.value = res.data.totalBank;
+    activeBanks.value = res.data.activeBank;
+  } catch (error) {
+    console.error("Error fetching bank count:", error);
+  }
+};
 
 const bankStore = useBankStore();
 onMounted(() => {
   bankStore.fetchBanks();
-  getBankCountService().then((res) => {
-    totalBanks.value = res.data.totalBank;
-    activeBanks.value = res.data.activeBank;
-  });
+  fetchBankCounts();
 });
 const pagination = computed(() => ({
   current: Math.floor(bankStore.skip / bankStore.limit) + 1,
@@ -588,6 +594,7 @@ const showDeleteConfirm = (record: any) => {
       await deleteBankService(record.id);
       // refresh Banks list
       await bankStore.fetchBanks();
+      await fetchBankCounts();
       setTimeout(() => {
         message.success("Bank deleted successfully!");
       }, 1000);
@@ -624,7 +631,7 @@ const handleModalSubmit = () => {
 
         // refresh Banks list
         await bankStore.fetchBanks();
-
+        await fetchBankCounts();
         modalVisible.value = false;
       } catch (error) {
         console.error("API error:", error);
