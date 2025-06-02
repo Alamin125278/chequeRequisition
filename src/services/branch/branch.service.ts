@@ -53,6 +53,12 @@ export const deleteBranchService = async (id: number) => {
 // Get All Branch Count Service
 export const getBranchCountService = async () => {
   const response = await baseHttp().get(constant.APIs.countBranch);
-  console.log(response);
   return response;
+};
+// Get All Branch For User Service
+export const getBranchForUserService = async (id: number) => {
+  const response = await baseHttp().get(
+    `${constant.APIs.getBranchForUser}/${id}`
+  );
+  return response.data.branchDtos;
 };

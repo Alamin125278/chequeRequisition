@@ -50,7 +50,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ users.length }}
+                      {{ totalUser }}
                     </div>
                   </dd>
                 </dl>
@@ -75,7 +75,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ activeUsers }}
+                      {{ activeUser }}
                     </div>
                   </dd>
                 </dl>
@@ -98,7 +98,7 @@
                   </dt>
                   <dd>
                     <div class="text-2xl font-semibold text-primary">
-                      {{ inactiveUsers }}
+                      {{ totalUser - activeUser }}
                     </div>
                   </dd>
                 </dl>
@@ -126,29 +126,35 @@
               class="mt-4 md:mt-0 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3"
             >
               <a-select
-                v-model:value="roleFilter"
+                v-model:value="userStore.status"
+                placeholder="Filter by status"
+                class="w-40"
+                @change="userStore.setStatus"
+              >
+                <a-select-option value="">All Status</a-select-option>
+                <a-select-option value="Active">Active</a-select-option>
+                <a-select-option value="InActive">Inactive</a-select-option>
+              </a-select>
+              <a-select
+                v-model:value="userStore.role"
                 placeholder="Filter by Role"
                 class="w-full sm:w-40"
                 allowClear
-                @change="handleRoleFilterChange"
+                @change="userStore.setRole"
               >
-                <a-select-option value="All">All Users</a-select-option>
-                <a-select-option value="BankAdmin">Bank Admin</a-select-option>
-                <a-select-option value="BranchUser"
-                  >Branch User</a-select-option
-                >
-                <a-select-option value="BranchOfficer"
-                  >Branch Officer</a-select-option
-                >
-                <a-select-option value="VendorAdmin"
-                  >Vendor Admin</a-select-option
+                <a-select-option value="">All Role</a-select-option>
+                <a-select-option
+                  v-for="role in roles"
+                  :key="role.id"
+                  :value="role.id"
+                  >{{ role.roleName }}</a-select-option
                 >
               </a-select>
               <a-input-search
                 v-model:value="searchText"
                 placeholder="Search users..."
                 class="w-full sm:w-64"
-                @search="onSearch"
+                @search="userStore.setSearch"
                 allow-clear
               >
                 <template #prefix>
@@ -160,57 +166,58 @@
         </div>
 
         <a-table
-          :dataSource="filteredUsers"
+          :dataSource="userStore.users"
           :columns="columns"
-          :pagination="{
-            pageSize: 10,
-            showTotal: (total:any) => `Total ${total} users`,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
+          :pagination="pagination"
+          @change="(p: any) => userStore.setPagination(p.current, p.pageSize)"
           :loading="loading"
           :rowClassName="() => 'hover:bg-background'"
           class="custom-table"
           :scroll="{ x: 1000 }"
         >
           <!-- User Name Column -->
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <template v-if="column.key === 'name'">
               <div class="flex items-center">
                 <a-avatar
-                  :src="record.ImagePath || ''"
+                  :src="baseConfig.BaseURL + record.imagePath"
                   :style="{
-                    backgroundColor: !record.ImagePath
-                      ? 'var(--accent-cta)'
-                      : 'transparent',
+                    backgroundColor:
+                      record.imagePath == null
+                        ? 'var(--accent-cta)'
+                        : 'transparent',
                   }"
-                  class="mr-3"
                 >
                   {{
-                    !record.ImagePath ? record.Name.charAt(0).toUpperCase() : ""
+                    record.imagePath == null
+                      ? record.name.charAt(0).toUpperCase()
+                      : ""
                   }}
                 </a-avatar>
-                <span class="font-medium">{{ record.Name }}</span>
+                <span class="font-medium ml-2">{{ record.name }}</span>
               </div>
             </template>
 
             <!-- Role Column -->
             <template v-if="column.key === 'role'">
               <a-tag
-                :color="getRoleColor(record.Role)"
+                :color="getRoleColor(record.role)"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                {{ record.Role }}
+                {{ record.roleName }}
               </a-tag>
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'IsActive'">
               <a-tag
-                :color="record.IsActive ? 'success' : 'error'"
+                :color="record.isActive == true ? 'success' : 'error'"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                {{ record.IsActive ? "Active" : "Inactive" }}
+                {{ record.isActive == true ? "Active" : "Inactive" }}
               </a-tag>
             </template>
 
@@ -240,21 +247,15 @@
                 </a-tooltip>
 
                 <a-tooltip title="Delete User">
-                  <a-popconfirm
-                    title="Are you sure you want to delete this user?"
-                    ok-text="Yes"
-                    cancel-text="No"
-                    @confirm="deleteUser(record.id)"
+                  <a-button
+                    type="primary"
+                    shape="circle"
+                    danger
+                    class="flex items-center justify-center"
+                    @click="showDeleteConfirm(record)"
                   >
-                    <a-button
-                      type="primary"
-                      shape="circle"
-                      danger
-                      class="flex items-center justify-center"
-                    >
-                      <DeleteOutlined />
-                    </a-button>
-                  </a-popconfirm>
+                    <DeleteOutlined />
+                  </a-button>
                 </a-tooltip>
               </div>
             </template>
@@ -294,30 +295,26 @@
                   class="rounded-md w-full"
                   @change="handleRoleChange"
                 >
-                  <a-select-option value="BankAdmin"
-                    >Bank Admin</a-select-option
-                  >
-                  <a-select-option value="BranchUser"
-                    >Branch User</a-select-option
-                  >
-                  <a-select-option value="BranchOfficer"
-                    >Branch Officer</a-select-option
-                  >
-                  <a-select-option value="VendorAdmin"
-                    >Vendor Admin</a-select-option
+                  <a-select-option value="">Select Role</a-select-option>
+                  <a-select-option
+                    v-for="role in roles"
+                    :key="role.id"
+                    :value="role.id"
+                    >{{ role.roleName }}</a-select-option
                   >
                 </a-select>
               </a-form-item>
 
-              <a-form-item label="Status" name="isActive">
-                <a-select
-                  v-model:value="formState.isActive"
-                  placeholder="Select status"
-                  class="rounded-md w-full"
+              <a-form-item label="Full Name" name="name">
+                <a-input
+                  v-model:value="formState.name"
+                  placeholder="Enter full name"
+                  class="rounded-md"
                 >
-                  <a-select-option :value="true">Active</a-select-option>
-                  <a-select-option :value="false">Inactive</a-select-option>
-                </a-select>
+                  <template #prefix>
+                    <UserOutlined class="text-secondary" />
+                  </template>
+                </a-input>
               </a-form-item>
             </div>
 
@@ -326,21 +323,34 @@
               class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"
               v-if="showBankField"
             >
-              <a-form-item label="Bank" name="bankAdmin">
-                <a-select
-                  v-model:value="formState.bankAdmin"
-                  placeholder="Select bank"
-                  class="rounded-md w-full"
-                  :disabled="formState.role === 'VendorAdmin'"
-                >
-                  <a-select-option
-                    v-for="bank in banks"
-                    :key="bank.id"
-                    :value="bank.id"
+              <a-form-item label="Bank" name="bankId">
+                <template v-if="banks.length === 1">
+                  <a-input
+                    :value="banks[0].bankName"
+                    disabled
+                    class="w-full"
+                    style="background-color: #fff; color: #000; cursor: default"
+                  />
+                </template>
+                <!-- If more than 1, show dropdown -->
+                <template v-else>
+                  <a-select
+                    v-model:value="formState.bankId"
+                    placeholder="Select bank"
+                    class="rounded-md w-full"
+                    @change="handleBankChange"
+                    :disabled="formState.role === '1' || formState.role === '2'"
                   >
-                    {{ bank.name }}
-                  </a-select-option>
-                </a-select>
+                    <a-select-option value="">Select bank</a-select-option>
+                    <a-select-option
+                      v-for="bank in banks"
+                      :key="bank.id"
+                      :value="bank.id"
+                    >
+                      {{ bank.bankName }}
+                    </a-select-option>
+                  </a-select>
+                </template>
               </a-form-item>
 
               <a-form-item
@@ -358,7 +368,7 @@
                     :key="branch.id"
                     :value="branch.id"
                   >
-                    {{ branch.name }}
+                    {{ branch.branchName }}
                   </a-select-option>
                 </a-select>
               </a-form-item>
@@ -366,10 +376,10 @@
 
             <!-- User Details -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-              <a-form-item label="Full Name" name="name">
+              <a-form-item label="Username" name="userName">
                 <a-input
-                  v-model:value="formState.name"
-                  placeholder="Enter full name"
+                  v-model:value="formState.userName"
+                  placeholder="Enter username"
                   class="rounded-md"
                 >
                   <template #prefix>
@@ -393,18 +403,16 @@
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4">
-              <a-form-item label="Username" name="userName">
-                <a-input
-                  v-model:value="formState.userName"
-                  placeholder="Enter username"
-                  class="rounded-md"
+              <a-form-item label="Status" name="isActive">
+                <a-select
+                  v-model:value="formState.isActive"
+                  placeholder="Select status"
+                  class="rounded-md w-full"
                 >
-                  <template #prefix>
-                    <UserOutlined class="text-secondary" />
-                  </template>
-                </a-input>
+                  <a-select-option value="Active">Active</a-select-option>
+                  <a-select-option value="InActive">Inactive</a-select-option>
+                </a-select>
               </a-form-item>
-
               <a-form-item label="Profile Image" name="imagePath">
                 <div class="profile-image-upload">
                   <a-upload
@@ -462,32 +470,6 @@
             </div>
           </div>
 
-          <!-- Menu Permissions Section -->
-          <div class="mb-4">
-            <h3
-              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
-            >
-              Menu Permissions
-            </h3>
-            <div class="bg-background p-4 rounded-md">
-              <a-checkbox-group v-model:value="formState.permissions">
-                <div
-                  class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3"
-                >
-                  <div
-                    v-for="(permission, index) in availablePermissions"
-                    :key="index"
-                    class="permission-item"
-                  >
-                    <a-checkbox :value="permission.value">
-                      {{ permission.label }}
-                    </a-checkbox>
-                  </div>
-                </div>
-              </a-checkbox-group>
-            </div>
-          </div>
-
           <div
             class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100"
           >
@@ -516,9 +498,9 @@
       <div class="p-4">
         <p class="mb-4 text-secondary">
           Update password for
-          <span class="font-medium text-primary">{{
-            currentPasswordUser?.Name
-          }}</span>
+          <span class="font-medium text-primary">
+            {{ currentPasswordUser?.name }}
+          </span>
         </p>
 
         <a-form
@@ -527,6 +509,18 @@
           :rules="passwordRules"
           ref="passwordFormRef"
         >
+          <a-form-item label="Current Password" name="oldPassword">
+            <a-input-password
+              v-model:value="passwordForm.oldPassword"
+              placeholder="Enter current password"
+              class="rounded-md"
+            >
+              <template #prefix>
+                <LockOutlined class="text-secondary" />
+              </template>
+            </a-input-password>
+          </a-form-item>
+
           <a-form-item label="New Password" name="newPassword">
             <a-input-password
               v-model:value="passwordForm.newPassword"
@@ -557,7 +551,7 @@
             <a-button @click="passwordModalVisible = false"> Cancel </a-button>
             <a-button
               type="primary"
-              @click="handlePasswordChange"
+              @click="handlePasswordChange(currentPasswordUser)"
               :loading="passwordSubmitting"
               class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
             >
@@ -581,10 +575,13 @@ import {
   PlusOutlined,
   SearchOutlined,
   UploadOutlined,
-  UserOutlined,
   UsergroupAddOutlined,
+  UserOutlined,
 } from "@ant-design/icons-vue";
-import { computed, reactive, ref, watch } from "vue";
+import { computed, onMounted, reactive, ref, watch } from "vue";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import { getBranchForUserService } from "../../services/branch/branch.service";
+import { getRoleForUserService } from "../../services/role/role.service";
 
 // Search and filter states
 const searchText = ref("");
@@ -595,18 +592,81 @@ const modalMode = ref<"add" | "edit">("add");
 const currentUserId = ref<string | null>(null);
 const submitting = ref(false);
 const formRef = ref();
-const imageUrl = ref("");
-const fileList = ref([]);
+const fileList = ref<UploadFile[]>([]);
+const imageUrl = ref<string | null>(null);
+const totalUser = ref<number>(0);
+const activeUser = ref<number>(0);
+
+interface Role {
+  id: number;
+  roleName: string;
+}
+interface Bank {
+  id: number;
+  bankName: string;
+}
+interface Branch {
+  id: number;
+  branchName: string;
+}
+const roles = ref<Role[]>([]);
+const banks = ref<Bank[]>([]);
+const branches = ref<Branch[]>([]);
 
 // Password modal states
 const passwordModalVisible = ref(false);
 const passwordSubmitting = ref(false);
 const passwordFormRef = ref();
 const passwordForm = reactive({
+  oldPassword: "",
   newPassword: "",
   confirmPassword: "",
 });
-const currentPasswordUser = ref(null);
+interface User {
+  id: number;
+  name: string;
+}
+const currentPasswordUser = ref<User | null>(null);
+// Get Role info from user
+const featchRoole = async () => {
+  loading.value = true;
+  try {
+    const result = await getRoleForUserService();
+    roles.value = result;
+  } catch (e) {
+    console.error("Error fetching roles", e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// Get All Bank for User
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+    if (result.length === 1) {
+      formState.bankId = result[0].id;
+    }
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
+};
+//  Get All Branch for User
+const featchBranches = async (bankId: number) => {
+  loading.value = true;
+  try {
+    const result = await getBranchForUserService(bankId);
+    branches.value = result;
+  } catch (e) {
+    console.error("Error fetching branches", e);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Form state for modal
 const formState = reactive({
@@ -615,48 +675,41 @@ const formState = reactive({
   userName: "",
   password: "",
   confirmPassword: "",
-  role: "",
-  bankAdmin: null,
+  role: null,
   branchId: null,
   imagePath: "",
-  isActive: true,
-  permissions: [], // Added for menu permissions
+  bankId: null,
+  vendorId: null,
+  isActive: "",
 });
-
-// Available permissions for menu access
-const availablePermissions = [
-  { label: "Dashboard", value: "dashboard" },
-  { label: "User Management", value: "user_management" },
-  { label: "Branch Management", value: "branch_management" },
-  { label: "Customer Management", value: "customer_management" },
-  { label: "Transaction History", value: "transaction_history" },
-  { label: "Reports", value: "reports" },
-  { label: "Settings", value: "settings" },
-  { label: "Audit Logs", value: "audit_logs" },
-  { label: "System Configuration", value: "system_config" },
-  { label: "Vendor Management", value: "vendor_management" },
-  { label: "API Access", value: "api_access" },
-  { label: "Notifications", value: "notifications" },
-];
+const handleBankChange = async () => {
+  const bankId = Number(formState.bankId);
+  await featchBranches(bankId);
+};
 
 // Computed properties for conditional field display
 const showBankField = computed(() => {
-  return formState.role !== "VendorAdmin";
+  return formState.role !== 1 && formState.role !== 2 && formState.role !== "";
 });
 
 const showBranchField = computed(() => {
-  return formState.role !== "BankAdmin" && formState.role !== "VendorAdmin";
+  return (
+    formState.role !== 1 &&
+    formState.role !== 2 &&
+    formState.role !== 3 &&
+    formState.role !== ""
+  );
 });
 
 // Watch for role changes to reset dependent fields
 watch(
   () => formState.role,
   (newRole) => {
-    if (newRole === "BankAdmin") {
+    if (newRole === 3) {
       formState.branchId = null;
     }
-    if (newRole === "VendorAdmin") {
-      formState.bankAdmin = null;
+    if (newRole === 1 || newRole === 2) {
+      formState.bankId = null;
       formState.branchId = null;
     }
   }
@@ -698,7 +751,7 @@ const rules = {
     },
   ],
   role: [{ required: true, message: "Please select a role" }],
-  bankAdmin: [
+  bankId: [
     {
       validator: (rule: any, value: any) => {
         if (
@@ -731,6 +784,7 @@ const rules = {
 
 // Password validation rules
 const passwordRules = {
+  oldPassword: [{ required: true, message: "Please enter current password" }],
   newPassword: [
     { required: true, message: "Please enter new password" },
     { min: 6, message: "Password must be at least 6 characters" },
@@ -751,45 +805,45 @@ const passwordRules = {
 // Table columns
 const columns = [
   {
-    title: "ID",
-    dataIndex: "id",
+    title: "Sl.No",
     key: "id",
-    width: 80,
+    width: 70,
+    align: "center",
   },
   {
     title: "Name",
-    dataIndex: "Name",
+    dataIndex: "name",
     key: "name",
   },
   {
     title: "Username",
-    dataIndex: "UserName",
+    dataIndex: "userName",
     key: "username",
   },
   {
     title: "Email",
-    dataIndex: "Email",
+    dataIndex: "email",
     key: "email",
   },
   {
     title: "Role",
-    dataIndex: "Role",
+    dataIndex: "roleName",
     key: "role",
   },
   {
     title: "Bank",
-    dataIndex: "BankName",
+    dataIndex: "bankName",
     key: "bank",
   },
   {
     title: "Branch",
-    dataIndex: "BranchName",
+    dataIndex: "branchName",
     key: "branch",
   },
   {
     title: "Status",
     dataIndex: "IsActive",
-    key: "status",
+    key: "IsActive",
   },
   {
     title: "Action",
@@ -799,150 +853,48 @@ const columns = [
     align: "center",
   },
 ];
-
-// Sample data for users
-const users = ref([
-  {
-    id: 1,
-    Name: "John Doe",
-    Email: "john.doe@example.com",
-    UserName: "johndoe",
-    ImagePath: "",
-    Role: "BankAdmin",
-    BankId: 1,
-    BankName: "Public Bank",
-    BranchId: null,
-    BranchName: null,
-    IsActive: true,
-    Permissions: [
-      "dashboard",
-      "user_management",
-      "branch_management",
-      "reports",
-    ],
-  },
-  {
-    id: 2,
-    Name: "Jane Smith",
-    Email: "jane.smith@example.com",
-    UserName: "janesmith",
-    ImagePath: "",
-    Role: "BranchUser",
-    BankId: 1,
-    BankName: "Public Bank",
-    BranchId: 1,
-    BranchName: "Main Branch",
-    IsActive: true,
-    Permissions: ["dashboard", "customer_management"],
-  },
-  {
-    id: 3,
-    Name: "Robert Johnson",
-    Email: "robert@example.com",
-    UserName: "robertj",
-    ImagePath: "",
-    Role: "BranchOfficer",
-    BankId: 2,
-    BankName: "Commercial Bank",
-    BranchId: 3,
-    BranchName: "Downtown Branch",
-    IsActive: false,
-    Permissions: ["dashboard", "transaction_history"],
-  },
-  {
-    id: 4,
-    Name: "Sarah Williams",
-    Email: "sarah@example.com",
-    UserName: "sarahw",
-    ImagePath: "",
-    Role: "VendorAdmin",
-    BankId: null,
-    BankName: null,
-    BranchId: null,
-    BranchName: null,
-    IsActive: true,
-    Permissions: ["dashboard", "vendor_management", "api_access"],
-  },
-]);
-
-// Sample data for banks and branches
-const banks = [
-  { id: 1, name: "Public Bank" },
-  { id: 2, name: "Commercial Bank" },
-  { id: 3, name: "City Bank" },
-];
-
-const branches = [
-  { id: 1, name: "Main Branch", bankId: 1 },
-  { id: 2, name: "North Branch", bankId: 1 },
-  { id: 3, name: "Downtown Branch", bankId: 2 },
-  { id: 4, name: "East Branch", bankId: 2 },
-  { id: 5, name: "Central Branch", bankId: 3 },
-];
-
-// Computed properties
-const activeUsers = computed(() => {
-  return users.value.filter((user) => user.IsActive).length;
-});
-
-const inactiveUsers = computed(() => {
-  return users.value.filter((user) => !user.IsActive).length;
-});
-
-// Filtered data based on search and filters
-const filteredUsers = computed(() => {
-  let result = [...users.value];
-
-  // Apply role filter
-  if (roleFilter.value) {
-    if (roleFilter.value === "All") {
-      result = result;
-    } else {
-      result = result.filter((item) => item.Role === roleFilter.value);
-    }
+// User Count
+const fetchUserCounts = async () => {
+  try {
+    const res = await getUserCountService();
+    totalUser.value = res.data.totalUser;
+    activeUser.value = res.data.activeUser;
+  } catch (error) {
+    console.error("Error fetching User count:", error);
   }
+};
 
-  // Apply search filter
-  if (searchText.value) {
-    const search = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.Name.toLowerCase().includes(search) ||
-        item.UserName.toLowerCase().includes(search) ||
-        item.Email.toLowerCase().includes(search) ||
-        (item.BankName && item.BankName.toLowerCase().includes(search)) ||
-        (item.BranchName && item.BranchName.toLowerCase().includes(search))
-    );
-  }
-
-  return result;
+// Get data for users
+const userStore = useUserStore();
+onMounted(async () => {
+  userStore.fetchUsers();
+  await featchRoole();
+  await fetchUserCounts();
 });
-
+const pagination = computed(() => ({
+  current: Math.floor(userStore.skip / userStore.limit) + 1,
+  pageSize: userStore.limit,
+  total: userStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: any) => `Total ${total} users`,
+}));
 // Get color for role tag
-const getRoleColor = (role: any) => {
-  const roleColors = {
-    BankAdmin: "blue",
-    BranchUser: "green",
-    BranchOfficer: "purple",
-    VendorAdmin: "orange",
+const getRoleColor = (role: number) => {
+  const roleColors: Record<number, string> = {
+    1: "yellow",
+    2: "orange",
+    3: "blue",
+    4: "green",
+    5: "purple",
   };
-  return roleColors[role] || "default";
-};
-
-// Search function
-const onSearch = (value: any) => {
-  searchText.value = value;
-  simulateLoading();
-};
-
-// Role filter change
-const handleRoleFilterChange = () => {
-  simulateLoading();
+  return roleColors[role] || "grey";
 };
 
 // Role change in form
 const handleRoleChange = (value: any) => {
   formState.role = value;
+  handleBankChange();
 };
 
 // Simulate loading for better UX
@@ -954,43 +906,59 @@ const simulateLoading = () => {
 };
 
 // Image upload handling
+import {
+  message,
+  Modal,
+  type UploadChangeParam,
+  type UploadFile,
+} from "ant-design-vue";
+import baseConfig from "../../config/base-config";
+import { uploadImageService } from "../../services/image/image.service";
+import {
+  deleteUserService,
+  getUserCountService,
+  saveUserService,
+} from "../../services/user/user.service";
+import { useUserStore } from "../../stores/userStore";
+const isImageChanged = ref(false);
+
 const beforeUpload = (file: any) => {
   const isJpgOrPng = file.type === "image/jpeg" || file.type === "image/png";
   if (!isJpgOrPng) {
-    console.error("You can only upload JPG/PNG file!");
+    message.error("You can only upload JPG/PNG file!");
     return false;
   }
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
-    console.error("Image must be smaller than 2MB!");
+    message.error("Image must be smaller than 2MB!");
     return false;
   }
-  return false; // Return false to prevent auto upload
+  return true; // allow upload to proceed
 };
 
-const handleImageChange = (info: any) => {
+const handleImageChange = (info: UploadChangeParam) => {
   if (info.file.status === "uploading") {
     return;
   }
-  if (info.file.status === "done") {
-    // This would normally be handled by your backend
-    // For demo purposes, we're just using a local URL
-    getBase64(info.file.originFileObj, (url: any) => {
-      imageUrl.value = url;
-      formState.imagePath = url; // In real app, this would be the path returned from server
-    });
+
+  const file = info.file.originFileObj;
+
+  try {
+    if (file) {
+      imageUrl.value = URL.createObjectURL(file);
+      fileList.value = [info.file]; // single image upload
+      isImageChanged.value = true;
+    }
+  } catch (error) {
+    console.error("Image upload failed:", error);
   }
 };
 
-const getBase64 = (img: any, callback: any) => {
-  const reader = new FileReader();
-  reader.addEventListener("load", () => callback(reader.result));
-  reader.readAsDataURL(img);
-};
-
 // Show modal for adding or editing
-const showModal = (mode: any, record = null) => {
+const showModal = (mode: any, record?: any) => {
   modalMode.value = mode;
+  featchRoole();
+  featchBanks();
 
   if (mode === "add") {
     // Reset form for adding new user
@@ -1001,32 +969,35 @@ const showModal = (mode: any, record = null) => {
       password: "",
       confirmPassword: "",
       role: "",
-      bankAdmin: null,
+      bankId: null,
       branchId: null,
       imagePath: "",
-      isActive: true,
-      permissions: [],
+      isActive: "Active",
     });
     imageUrl.value = "";
     fileList.value = [];
     currentUserId.value = null;
   } else if (mode === "edit" && record) {
-    // Populate form with user data for editing
+    // Populate form with user data for editing\
+    featchBranches(record.bankId);
+    var activeStatus = "";
+    if (record.isActive === true) {
+      activeStatus = "Active";
+    } else {
+      activeStatus = "InActive";
+    }
     Object.assign(formState, {
-      name: record.Name,
-      email: record.Email,
-      userName: record.UserName,
-      password: "", // Don't populate password for security
-      confirmPassword: "",
-      role: record.Role,
-      bankAdmin: record.BankId,
-      branchId: record.BranchId,
-      imagePath: record.ImagePath,
-      isActive: record.IsActive,
-      permissions: record.Permissions || [],
+      name: record.name,
+      email: record.email,
+      userName: record.userName,
+      role: record.role,
+      bankId: record.bankId,
+      branchId: record.branchId,
+      imagePath: record.imagePath,
+      isActive: activeStatus,
     });
-    imageUrl.value = record.ImagePath || "";
-    fileList.value = record.ImagePath
+    imageUrl.value = baseConfig.BaseURL + record.imagePath || "";
+    fileList.value = record.imagePath
       ? [
           {
             uid: "-1",
@@ -1043,7 +1014,8 @@ const showModal = (mode: any, record = null) => {
 };
 
 // Show password change modal
-const showPasswordModal = (record: any) => {
+const showPasswordModal = (record: User) => {
+  passwordForm.oldPassword = "";
   passwordForm.newPassword = "";
   passwordForm.confirmPassword = "";
   currentPasswordUser.value = record;
@@ -1051,31 +1023,28 @@ const showPasswordModal = (record: any) => {
 };
 
 // Handle password change
-const handlePasswordChange = () => {
+const handlePasswordChange = (currentPasswordUser: any) => {
   passwordFormRef.value
     .validate()
-    .then(() => {
+    .then(async () => {
       passwordSubmitting.value = true;
 
-      // Simulate API call
-      setTimeout(() => {
-        console.log(
-          "Changing password for user:",
-          currentPasswordUser.value.id
-        );
-        console.log("New password:", passwordForm.newPassword);
-
-        // In a real app, you would make an API call here
-
+      const payload = {
+        id: currentPasswordUser.id,
+        oldPassword: passwordForm.oldPassword,
+        password: passwordForm.newPassword,
+      };
+      try {
+        // await changePasswordService(payload);
+        message.success("Password changed successfully");
         passwordSubmitting.value = false;
         passwordModalVisible.value = false;
-
-        // Show success message
-        // This would be replaced with your notification system
-        alert("Password changed successfully");
-      }, 1000);
+        await userStore.fetchUsers();
+      } catch (error) {
+        message.error("Something went wrong. Please try again.");
+      }
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.log("Validation failed:", error);
     });
 };
@@ -1084,76 +1053,84 @@ const handlePasswordChange = () => {
 const handleModalSubmit = () => {
   formRef.value
     .validate()
-    .then(() => {
+    .then(async () => {
       submitting.value = true;
-
-      // Simulate API call
-      setTimeout(() => {
-        const userData = {
-          Name: formState.name,
-          Email: formState.email,
-          UserName: formState.userName,
-          Role: formState.role,
-          BankId: formState.bankAdmin,
-          BankName: formState.bankAdmin
-            ? banks.find((b) => b.id === formState.bankAdmin)?.name
-            : null,
-          BranchId: formState.branchId,
-          BranchName: formState.branchId
-            ? branches.find((b) => b.id === formState.branchId)?.name
-            : null,
-          ImagePath: formState.imagePath,
-          IsActive: formState.isActive,
-          Permissions: formState.permissions,
-        };
-
-        if (modalMode.value === "add") {
-          // Add password for new user
-          userData.PasswordHash = formState.password;
-
-          // Logic to add new user
-          console.log("Adding new user:", userData);
-
-          // In a real app, you would make an API call here
-          // After successful API call, add the new user to the list
-          const newUser = {
-            id: users.value.length + 1,
-            ...userData,
-          };
-          users.value.push(newUser);
-        } else {
-          // Logic to update existing user
-          console.log("Updating user ID:", currentUserId.value, userData);
-
-          // In a real app, you would make an API call here
-          // After successful API call, update the user in the list
-          const index = users.value.findIndex(
-            (u) => u.id === currentUserId.value
-          );
-          if (index !== -1) {
-            users.value[index] = {
-              ...users.value[index],
-              ...userData,
-            };
+      let imagePath = "";
+      if (fileList.value.length > 0 && isImageChanged.value) {
+        const file = fileList.value[0].originFileObj;
+        if (file) {
+          try {
+            const uploadResult = await uploadImageService(file);
+            imagePath = uploadResult;
+          } catch (uploadError) {
+            console.log("Image upload failed", uploadError);
+            message.error("Image upload failed. Please try again.");
+            // submitting.value = false;
+            // modalVisible.value = false;
+            return;
           }
         }
+      } else {
+        imagePath = formState.imagePath;
+      }
 
+      const payload = {
+        id: currentUserId.value, // required for update
+        name: formState.name,
+        email: formState.email,
+        userName: formState.userName,
+        passwordHash: formState.password,
+        role: formState.role,
+        bankId: formState.bankId,
+        branchId: formState.branchId,
+        vendorId: formState.vendorId,
+        imagePath: imagePath,
+        isActive: formState.isActive,
+      };
+
+      // Simulate API call
+      try {
+        await saveUserService(payload, modalMode.value === "edit");
+        message.success(
+          modalMode.value === "edit"
+            ? "User updated successfully"
+            : "User created successfully"
+        );
+        // refresh Users list
+        await userStore.fetchUsers();
+        await fetchUserCounts();
         submitting.value = false;
         modalVisible.value = false;
-      }, 1000);
+        isImageChanged.value = false;
+      } catch (error: any) {
+        console.log("API error:", error);
+        message.error("Something went wrong. Please try again.");
+      }
     })
-    .catch((error) => {
+    .catch((error: any) => {
       console.log("Validation failed:", error);
     });
 };
 
 // Delete user
-const deleteUser = (userId) => {
-  console.log("Deleting user:", userId);
-
-  // In a real app, you would make an API call here
-  // After successful API call, remove the user from the list
-  users.value = users.value.filter((user) => user.id !== userId);
+// // Show delete confirmation
+const showDeleteConfirm = (record: any) => {
+  Modal.confirm({
+    title: "Are you sure you want to delete this User?",
+    content: `You are about to delete "${record.name}". This action cannot be undone.`,
+    okText: "Yes, Delete",
+    okType: "danger",
+    cancelText: "Cancel",
+    async onOk() {
+      await deleteUserService(record.id);
+      // refresh Users list
+      await userStore.fetchUsers();
+      await fetchUserCounts();
+      setTimeout(() => {
+        message.success("User deleted successfully!");
+      }, 1000);
+    },
+  });
 };
 </script>
 
@@ -1447,17 +1424,6 @@ const deleteUser = (userId) => {
 .upload-hint {
   font-size: 0.75rem;
   color: var(--text-secondary);
-}
-
-/* Permission item */
-.permission-item {
-  padding: 0.5rem;
-  transition: background-color 0.2s ease;
-  border-radius: var(--radius-sm);
-}
-
-.permission-item:hover {
-  background-color: rgba(107, 142, 35, 0.05);
 }
 
 /* Responsive adjustments */

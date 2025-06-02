@@ -350,20 +350,6 @@
         </a-form>
       </div>
     </a-modal>
-
-    <!-- Toast Notifications -->
-    <div class="toast-container">
-      <a-alert
-        v-for="(toast, index) in toasts"
-        :key="index"
-        :message="toast.message"
-        :type="toast.type"
-        showIcon
-        closable
-        class="mb-3 shadow-sm rounded-md"
-        @close="removeToast(index)"
-      />
-    </div>
   </div>
 </template>
 
@@ -525,6 +511,7 @@ const fetchBankCounts = async () => {
 };
 
 const bankStore = useBankStore();
+console.log(bankStore.banks);
 onMounted(() => {
   bankStore.fetchBanks();
   fetchBankCounts();
@@ -563,8 +550,6 @@ const showModal = (mode: "add" | "edit", record?: any) => {
     } else {
       activeStatus = "InActive";
     }
-
-    console.log(activeStatus);
     // Populate form with bank data for editing
     Object.assign(formState, {
       vendorId: record.vendorId,
@@ -643,32 +628,6 @@ const handleModalSubmit = () => {
     .catch((err: any) => {
       console.warn("Validation error:", err);
     });
-};
-
-// Toast notifications
-const showToast = (
-  message: string,
-  type: "success" | "error" | "info" | "warning" = "info",
-  duration: number = 3000
-) => {
-  const toast: Toast = {
-    message,
-    type,
-    duration,
-  };
-
-  toasts.value.push(toast);
-
-  // Auto remove toast after duration
-  setTimeout(() => {
-    removeToast(toasts.value.indexOf(toast));
-  }, duration);
-};
-
-const removeToast = (index: number) => {
-  if (index > -1) {
-    toasts.value.splice(index, 1);
-  }
 };
 
 // // Lifecycle hooks

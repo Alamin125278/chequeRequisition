@@ -18,7 +18,6 @@ export interface FetchBankResponse {
 export const getBankService = async (
   params: FetchBankParams
 ): Promise<FetchBankResponse> => {
-  console.log(params);
   const response = await baseHttp().get(
     `${constant.APIs.banks}/?skip=${params.skip}&limit=${params.limit}&isActive=${params.status}&search=${params.search}`
   );
