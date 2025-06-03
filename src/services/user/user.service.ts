@@ -63,9 +63,9 @@ export const getUserCountService = async () => {
 };
 // Change Password
 export const changePasswordService = async (user: any) => {
-  const response = await baseHttp().patch(
-    `${constant.APIs.changePassword}/${user.id}`,
+  const response = await baseHttp().post(
+    `${constant.APIs.changePassword}`,
     user
   );
-  return response.data;
+  return response;
 };

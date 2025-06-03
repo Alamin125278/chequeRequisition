@@ -915,6 +915,7 @@ import {
 import baseConfig from "../../config/base-config";
 import { uploadImageService } from "../../services/image/image.service";
 import {
+  changePasswordService,
   deleteUserService,
   getUserCountService,
   saveUserService,
@@ -1031,17 +1032,30 @@ const handlePasswordChange = (currentPasswordUser: any) => {
 
       const payload = {
         id: currentPasswordUser.id,
-        oldPassword: passwordForm.oldPassword,
-        password: passwordForm.newPassword,
+        currentPassword: passwordForm.oldPassword,
+        newPassword: passwordForm.newPassword,
       };
       try {
-        // await changePasswordService(payload);
-        message.success("Password changed successfully");
+        var response = await changePasswordService(payload);
+        console.log(response);
+        if (response.status === 200) {
+          message.success(
+            response.data?.message || "Password changed successfully"
+          );
+        } else {
+          message.error(response.data?.message || "Failed to change password");
+        }
         passwordSubmitting.value = false;
         passwordModalVisible.value = false;
         await userStore.fetchUsers();
-      } catch (error) {
-        message.error("Something went wrong. Please try again.");
+      } catch (error: any) {
+        if (error?.response?.data?.message) {
+          message.error(error.response.data.message);
+        } else {
+          message.error("Something went wrong. Please try again.");
+        }
+      } finally {
+        passwordSubmitting.value = false;
       }
     })
     .catch((error: any) => {

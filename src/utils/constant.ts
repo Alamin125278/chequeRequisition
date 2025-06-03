@@ -6,7 +6,7 @@ export default {
     createUserInfo: "/api/user",
     getUserInfo: "/api/user/info",
     updateUserInfo: "/api/user",
-    changePassword: "/api/user/change-password",
+    changePassword: "/api/auth/change-password",
     deleteUser: "/api/user",
     countUser: "/api/user/count",
     menuInfo: "api/Get-menus-by-user",
