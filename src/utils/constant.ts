@@ -27,5 +27,6 @@ export default {
     getBranchForUser: "/api/branch/get-for-user",
     getRoleForUser: "/api/userrole/getallforuser",
     uploadImage: "/api/upload-image",
+    localFileUpload: "/api/local-file-upload",
   },
 };

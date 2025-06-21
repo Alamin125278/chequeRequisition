@@ -243,7 +243,7 @@
                   pageSize: 10,
                   showSizeChanger: true,
                   pageSizeOptions: ['10', '20', '50'],
-                  showTotal: (total) => `Total ${total} items`,
+                  showTotal: (total: number) => `Total ${total} items`,
                 }"
                 bordered
                 size="middle"
@@ -349,6 +349,7 @@ import {
 import { message } from "ant-design-vue";
 import { computed, ref } from "vue";
 import * as XLSX from "xlsx";
+import { saveLocalFileUploadService } from "../../services/localFileUpload/localFileUpload.service";
 
 // Define interfaces
 interface ImportedItem {
@@ -477,6 +478,18 @@ const columns = [
     title: "No. of Book",
     dataIndex: "bookQty",
     key: "bookQty",
+    width: 120,
+  },
+  {
+    title: "Distribution Point Name",
+    dataIndex: "distributionPointName",
+    key: "distributionPointName",
+    width: 150,
+  },
+  {
+    title: "Courier Code",
+    dataIndex: "courierCode",
+    key: "courierCode",
     width: 120,
   },
   {
@@ -626,16 +639,60 @@ const handleDiscard = () => {
 };
 
 // Handle form submission
-const handleSubmit = () => {
+const handleSubmit = async () => {
   isSubmitting.value = true;
 
   // Simulate API call to save the data
-  setTimeout(() => {
+  try {
+    for (const item of importedData.value) {
+      let chequeType = "";
+      let micrNo = "";
+      if (item.prefix == "A") {
+        chequeType = "Current";
+      } else if (item.prefix == "B") {
+        chequeType = "Savings";
+      } else if (item.prefix == "PO") {
+        chequeType = "Payment";
+      }
+
+      micrNo =
+        item.accountNo.length >= 13
+          ? item.accountNo.substring(item.accountNo.length - 13)
+          : item.accountNo;
+      const payload = {
+        bankName: selectedBank.value,
+        branchName: item.branchName,
+        accountNo: item.accountNo,
+        routingNo: item.routingNo,
+        startNo: item.startNo,
+        endNo: item.endNo,
+        chequeType: chequeType,
+        chequePrefix: item.prefix,
+        micrNo: micrNo,
+        series: item.series,
+        accountName: item.accountName,
+        cusAddress: item.distributionPointName,
+        bookQty: item.bookQty,
+        transactionCode: item.transactionCode,
+        leaves: item.leafCount,
+        courierCode: 1,
+        receivingBranchName: item.receivingBranch,
+        serverity: 1,
+      };
+      await saveLocalFileUploadService(payload);
+    }
+    setTimeout(() => {
+      isSubmitting.value = false;
+      successMessage.value = "File Uploaded Successfully!";
+      successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBank.value}.`;
+      showSuccessModal.value = true;
+    }, 1000);
+  } catch (error) {
+    console.error("Upload failed", error);
+    message.error("Failed to upload data.");
+  } finally {
     isSubmitting.value = false;
-    successMessage.value = "File Uploaded Successfully!";
-    successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBank.value}.`;
-    showSuccessModal.value = true;
-  }, 2000);
+  }
 };
 
 // Handle success modal close
