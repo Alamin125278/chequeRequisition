@@ -217,7 +217,9 @@
               <div
                 class="bg-card p-3 rounded-md inline-block border border-gray-200"
               >
-                <p class="font-medium text-primary">{{ selectedBank }}</p>
+                <p class="font-medium text-primary">
+                  {{ selectedBankLabel }}
+                </p>
               </div>
             </div>
 
@@ -384,10 +386,10 @@ const currentDate = computed(() => {
 // Bank data
 const banks = [
   { value: "", label: "Select Bank" },
-  { value: "National Bank", label: "National Bank" },
-  { value: "City Bank", label: "City Bank" },
-  { value: "Metro Bank", label: "Metro Bank" },
-  { value: "Global Bank", label: "Global Bank" },
+  { value: "1", label: "National Bank" },
+  { value: "2", label: "City Bank" },
+  { value: "3", label: "Metro Bank" },
+  { value: "4", label: "Pubali Bank" },
 ];
 
 // Required columns for the file
@@ -512,6 +514,11 @@ const showSuccessModal = ref(false);
 const successMessage = ref("");
 const successDescription = ref("");
 
+const selectedBankLabel = computed(() => {
+  const bank = banks.find((b) => b.value === selectedBank.value);
+  return bank ? bank.label : "";
+});
+
 // Format file size
 const formatFileSize = (bytes: number): string => {
   if (bytes === 0) return "0 Bytes";
@@ -595,7 +602,7 @@ const processFile = () => {
       // Map to your interface
       importedData.value = (jsonData as any[]).map((row, index) => ({
         key: index.toString(),
-        bankName: selectedBank.value,
+        bankName: selectedBankLabel.value,
         branchName: row["Branch Name"] || "",
         routingNo: row["Routing No."] || "",
         accountNo: row["Account No."] || "",
@@ -651,7 +658,7 @@ const handleSubmit = async () => {
         chequeType = "Current";
       } else if (item.prefix == "B") {
         chequeType = "Savings";
-      } else if (item.prefix == "PO") {
+      } else if (item.prefix == "O") {
         chequeType = "Payment";
       }
 
@@ -660,7 +667,7 @@ const handleSubmit = async () => {
           ? item.accountNo.substring(item.accountNo.length - 13)
           : item.accountNo;
       const payload = {
-        bankName: selectedBank.value,
+        bankId: parseInt(selectedBank.value),
         branchName: item.branchName,
         accountNo: item.accountNo,
         routingNo: item.routingNo,
@@ -684,7 +691,7 @@ const handleSubmit = async () => {
     setTimeout(() => {
       isSubmitting.value = false;
       successMessage.value = "File Uploaded Successfully!";
-      successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBank.value}.`;
+      successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBankLabel.value}.`;
       showSuccessModal.value = true;
     }, 1000);
   } catch (error) {
