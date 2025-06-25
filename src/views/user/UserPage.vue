@@ -363,6 +363,7 @@
                   placeholder="Select branch"
                   class="rounded-md w-full"
                 >
+                  <a-select-option value="">Select branch</a-select-option>
                   <a-select-option
                     v-for="branch in branches"
                     :key="branch.id"
@@ -971,7 +972,7 @@ const showModal = (mode: any, record?: any) => {
       confirmPassword: "",
       role: "",
       bankId: null,
-      branchId: null,
+      branchId: "",
       imagePath: "",
       isActive: "Active",
     });

@@ -69,3 +69,9 @@ export const changePasswordService = async (user: any) => {
   );
   return response;
 };
+
+// Get Logged in User
+export const getLoggedInUserService = async () => {
+  const response = await baseHttp().get(constant.APIs.getLoggedInUser);
+  return response;
+};

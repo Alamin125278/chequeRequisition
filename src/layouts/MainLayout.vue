@@ -175,10 +175,27 @@
 
           <a-dropdown placement="bottomRight">
             <a class="user-dropdown" @click.prevent>
-              <a-avatar class="user-avatar" src="avatar"> AL AMIN </a-avatar>
+              <a-avatar
+                class="user-avatar"
+                :src="
+                  userStore.currentUser?.imagePath
+                    ? baseConfig.BaseURL + userStore.currentUser.imagePath
+                    : undefined
+                "
+              >
+                {{
+                  !userStore.currentUser?.imagePath &&
+                  userStore.currentUser?.name
+                    ? userStore.currentUser.name.charAt(0).toUpperCase()
+                    : ""
+                }}
+              </a-avatar>
+
               <div class="user-info hide-on-mobile">
-                <span class="username">AL AMIN </span>
-                <span class="user-role"> Super Admin </span>
+                <span class="username">{{ userStore.currentUser?.name }} </span>
+                <span class="user-role">
+                  {{ userStore.currentUser?.roleName }}
+                </span>
               </div>
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -259,6 +276,7 @@ import { message } from "ant-design-vue";
 import type { Component } from "vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
+import baseConfig from "../config/base-config";
 import { removeAuthorizationTokenService } from "../services/auth/token.service";
 import { useMenuStore } from "../stores/menuStore";
 import { useUserStore } from "../stores/userStore";

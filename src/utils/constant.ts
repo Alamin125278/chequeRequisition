@@ -5,6 +5,7 @@ export default {
     users: "api/users",
     createUserInfo: "/api/user",
     getUserInfo: "/api/user/info",
+    getLoggedInUser: "/api/user/loggedin",
     updateUserInfo: "/api/user",
     changePassword: "/api/auth/change-password",
     deleteUser: "/api/user",
@@ -28,5 +29,6 @@ export default {
     getRoleForUser: "/api/userrole/getallforuser",
     uploadImage: "/api/upload-image",
     localFileUpload: "/api/local-file-upload",
+    createChequeRequisition: "/api/requisition",
   },
 };

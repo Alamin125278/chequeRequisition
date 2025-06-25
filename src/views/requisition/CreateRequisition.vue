@@ -61,14 +61,21 @@
                     { required: true, message: 'Please select requester' },
                   ]"
                 >
-                  <a-select
+                  <!-- <a-select
                     v-model:value="formState.requestedBy"
                     placeholder="Select requester"
                     :disabled="true"
                     class="w-full"
                   >
-                    <a-select-option value="John Doe">John Doe</a-select-option>
-                  </a-select>
+                    <a-select-option value="{{ userInfo?.name }}">
+                      {{ userInfo?.name }}
+                    </a-select-option>
+                  </a-select> -->
+                  <a-input
+                    v-model:value="formState.requestedBy"
+                    class="w-full"
+                    :disabled="true"
+                  />
                 </a-form-item>
 
                 <!-- Bank Name -->
@@ -79,16 +86,12 @@
                     { required: true, message: 'Bank name is required' },
                   ]"
                 >
-                  <a-select
+                  <a-input
                     v-model:value="formState.bankName"
-                    placeholder="Select bank"
-                    :disabled="true"
+                    placeholder="Bank Name"
                     class="w-full"
-                  >
-                    <a-select-option value="National Bank"
-                      >National Bank</a-select-option
-                    >
-                  </a-select>
+                    :disabled="true"
+                  />
                 </a-form-item>
               </div>
 
@@ -96,24 +99,34 @@
                 <!-- Request Branch Name -->
                 <a-form-item
                   label="Request Branch Name"
-                  name="requestBranchName"
+                  name="requestBranchId"
                   :rules="[
                     { required: true, message: 'Request branch is required' },
                   ]"
                 >
-                  <a-select
-                    v-model:value="formState.requestBranchName"
-                    placeholder="Select branch"
-                    :disabled="true"
-                    class="w-full"
-                  >
-                    <a-select-option value="Main Branch"
-                      >Main Branch</a-select-option
+                  <template v-if="userInfo?.branchId != null">
+                    <a-input
+                      :value="formState.requestBranchName"
+                      class="w-full"
+                      :disabled="true"
+                    />
+                  </template>
+                  <template v-else>
+                    <a-select
+                      v-model:value="formState.requestBranchId"
+                      class="w-full"
+                      placeholder="Select Request Branch"
+                      @change="handleBranchChange"
                     >
-                    <a-select-option value="North Branch"
-                      >North Branch</a-select-option
-                    >
-                  </a-select>
+                      <a-select-option
+                        v-for="branch in branches"
+                        :key="branch.id"
+                        :value="branch.id"
+                      >
+                        {{ branch.branchName }}
+                      </a-select-option>
+                    </a-select>
+                  </template>
                 </a-form-item>
 
                 <!-- Receiving Branch Name -->
@@ -125,28 +138,21 @@
                   ]"
                 >
                   <a-select
-                    v-model:value="formState.receivingBranchName"
+                    v-model:value="formState.receivingBranchId"
                     placeholder="Select receiving branch"
                     class="w-full"
+                    @change="handleReceivingBranchChange"
                   >
                     <a-select-option value=""
                       >Select Receiving Branch</a-select-option
                     >
-                    <a-select-option value="Main Branch"
-                      >Main Branch</a-select-option
+                    <a-select-option
+                      v-for="branch in branches"
+                      :key="branch.id"
+                      :value="branch.id"
                     >
-                    <a-select-option value="North Branch"
-                      >North Branch</a-select-option
-                    >
-                    <a-select-option value="South Branch"
-                      >South Branch</a-select-option
-                    >
-                    <a-select-option value="East Branch"
-                      >East Branch</a-select-option
-                    >
-                    <a-select-option value="West Branch"
-                      >West Branch</a-select-option
-                    >
+                      {{ branch.branchName }}
+                    </a-select-option>
                   </a-select>
                 </a-form-item>
               </div>
@@ -546,6 +552,7 @@
     <a-modal
       v-model:visible="previewModalVisible"
       :footer="null"
+      style="top: 20px"
       title="Review Cheque Request"
       width="700px"
       class="preview-modal"
@@ -756,7 +763,7 @@
         <h3 class="text-2xl font-bold text-primary mb-3">Request Submitted!</h3>
         <p class="text-secondary mb-8 max-w-sm mx-auto">
           Your cheque request has been successfully submitted and is being
-          processed. You will receive a confirmation email shortly.
+          processed.
         </p>
         <a-button
           type="primary"
@@ -791,8 +798,16 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import dayjs from "dayjs";
-import { computed, reactive, ref } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import { getBranchForUserService } from "../../services/branch/branch.service";
+import { createChequeRequisitionService } from "../../services/requisition/requisition.service";
+import { useUserStore } from "../../stores/userStore";
 
+interface Branch {
+  id: number;
+  branchName: string;
+}
+const branches = ref<Branch[]>([]);
 // Current date for display
 const currentDate = computed(() => {
   return new Date().toLocaleDateString("en-US", {
@@ -801,12 +816,16 @@ const currentDate = computed(() => {
     day: "numeric",
   });
 });
+const userInfo = useUserStore().currentUser;
 
 // Form state
 const formState = reactive({
-  requestedBy: "John Doe",
-  bankName: "National Bank",
-  requestBranchName: "Main Branch",
+  requestedBy: userInfo?.name,
+  bankName: userInfo?.bankName,
+  bankId: userInfo?.bankId,
+  requestBranchName: userInfo?.branchName,
+  requestBranchId: userInfo?.branchId,
+  receivingBranchId: null,
   receivingBranchName: "",
   requestDate: dayjs(),
   accountNumber: "",
@@ -817,7 +836,7 @@ const formState = reactive({
   trCode: "",
   chequePrefix: "",
   customerAddress: "",
-  chequeLeaves: "",
+  chequeLeaves: null,
   bookQuantity: 1,
   startingSerialNumber: "0775001",
   endingSerialNumber: "",
@@ -826,6 +845,40 @@ const formState = reactive({
   series: "A",
   remarks: "",
 });
+//  Get All Branch for User
+const featchBranches = async (bankId: number) => {
+  try {
+    const result = await getBranchForUserService(bankId);
+    branches.value = result;
+  } catch (e) {
+    console.error("Error fetching branches", e);
+  }
+};
+
+onMounted(async () => {
+  if (formState.bankId !== undefined) {
+    await featchBranches(formState.bankId);
+  }
+});
+// Handle Branch Selection
+const handleBranchChange = () => {
+  const selectedBranch = branches.value.find(
+    (branch: any) => branch.id === formState.requestBranchId
+  );
+
+  if (selectedBranch) {
+    formState.requestBranchName = selectedBranch.branchName;
+  }
+};
+// Handle Receiving Branch Selection
+const handleReceivingBranchChange = () => {
+  const selectedBranch = branches.value.find(
+    (branch: any) => branch.id === formState.receivingBranchId
+  );
+  if (selectedBranch) {
+    formState.receivingBranchName = selectedBranch.branchName;
+  }
+};
 
 // Mock database for account lookup
 const accountDatabase = [
@@ -883,7 +936,7 @@ const accountDatabase = [
 
 // Account search and filtering
 const searchValue = ref("");
-const filteredAccounts = ref([]);
+const filteredAccounts = ref<{ value: string }[]>([]);
 
 // Handle account search for autocomplete
 const handleAccountSearch = (value: string) => {
@@ -918,7 +971,7 @@ const handleAccountSelect = (value: string) => {
     formState.customerAddress = account.customerAddress;
 
     // Reset cheque leaves when account type changes
-    formState.chequeLeaves = "";
+    formState.chequeLeaves = null;
 
     message.success("Account information loaded successfully");
   }
@@ -946,10 +999,47 @@ const handleSubmit = () => {
 };
 
 // Submit form after preview confirmation
-const submitForm = () => {
+const submitForm = async () => {
   isSubmitting.value = true;
 
   // Simulate API call
+  const payload = {
+    bankId: formState.bankId,
+    branchId: formState.requestBranchId,
+    receivingBranchId: formState.receivingBranchId,
+    requestDate: dayjs(formState.requestDate).format("YYYY-MM-DD"),
+    accountNo: formState.accountNumber,
+    accountName: formState.customerName,
+    routingNo: formState.routingNumber,
+    chequeType: formState.accountType,
+    micrNo: formState.micrNumber,
+    transactionCode: formState.trCode,
+    chequePrefix: formState.chequePrefix,
+    cusAddress: formState.customerAddress,
+    leaves: formState.chequeLeaves,
+    bookQty: formState.bookQuantity,
+    startNo: formState.startingSerialNumber,
+    endNo: formState.endingSerialNumber,
+    serverity: 1,
+    // severity: formState.severity,
+    courierCode: 1,
+    // courierCode: formState.courierName,
+    series: formState.series,
+    // remarks: formState.remarks,
+  };
+  try {
+    const res = await createChequeRequisitionService(payload);
+    if (res.status === 200) {
+      message.success("Cheque request created successfully");
+      // router.push("/cheque-requisition");
+      isSubmitting.value = false;
+      previewModalVisible.value = false;
+      successModalVisible.value = true;
+    }
+  } catch (error: any) {
+    console.log("API error:", error);
+    message.error("Something went wrong. Please try again.");
+  }
   setTimeout(() => {
     isSubmitting.value = false;
     previewModalVisible.value = false;
