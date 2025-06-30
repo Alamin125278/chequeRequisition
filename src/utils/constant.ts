@@ -30,5 +30,10 @@ export default {
     uploadImage: "/api/upload-image",
     localFileUpload: "/api/local-file-upload",
     createChequeRequisition: "/api/requisition",
+    getOrderRequisitions: "/api/requisition/get-all-order-requisitions",
+    getOrderRequisitionsForExport:
+      "/api/requisition/get-all-order-requisitions-for-export",
+    createChallan: "/api/challan/create",
+    getChallans: "/api/challan/get-challans",
   },
 };

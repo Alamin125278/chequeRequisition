@@ -40,83 +40,12 @@
 
     <!-- Stats Cards Section -->
     <div class="max-w-7xl mx-auto py-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <!-- Total Orders Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <FileTextOutlined class="h-6 w-6 text-blue-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Total Orders
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ orders.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- High Severity Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-error-light rounded-md p-3">
-                <WarningOutlined class="h-6 w-6 text-error" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    High Severity
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ highSeverityCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Filtered Orders Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <FilterOutlined class="h-6 w-6 text-green-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Filtered Orders
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ filteredOrders.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
           class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
         >
-          Filter Orders
+          Filter Orders Requisitions
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           <div>
@@ -127,40 +56,18 @@
               v-model:value="filters.bank"
               placeholder="Select Bank"
               class="w-full"
-              @change="handleFilterChange"
+              @change="orderRequisitionStore.setBank"
               allowClear
             >
               <a-select-option
-                v-for="option in bankOptions"
-                :key="option.value"
-                :value="option.value"
+                v-for="option in banks"
+                :key="option.id"
+                :value="option.id"
               >
-                {{ option.label }}
+                {{ option.bankName }}
               </a-select-option>
             </a-select>
           </div>
-
-          <div>
-            <label class="block text-sm font-medium mb-1 text-secondary"
-              >Bank Branch</label
-            >
-            <a-select
-              v-model:value="filters.branch"
-              placeholder="Select Branch"
-              class="w-full"
-              @change="handleFilterChange"
-              allowClear
-            >
-              <a-select-option
-                v-for="option in branchOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </a-select-option>
-            </a-select>
-          </div>
-
           <div>
             <label class="block text-sm font-medium mb-1 text-secondary"
               >Severity</label
@@ -169,16 +76,11 @@
               v-model:value="filters.severity"
               placeholder="Select Severity"
               class="w-full"
-              @change="handleFilterChange"
+              @change="orderRequisitionStore.setSeverity"
               allowClear
             >
-              <a-select-option
-                v-for="option in severityOptions"
-                :key="option.value"
-                :value="option.value"
-              >
-                {{ option.label }}
-              </a-select-option>
+              <a-select-option value="1">Urgent</a-select-option>
+              <a-select-option value="2">Normal</a-select-option>
             </a-select>
           </div>
 
@@ -186,12 +88,27 @@
             <label class="block text-sm font-medium mb-1 text-secondary"
               >Request Date</label
             >
-            <a-range-picker
-              v-model:value="filters.dateRange"
+            <a-date-picker
+              v-model:value="filters.requestDate"
               class="w-full"
-              @change="handleFilterChange"
-              :placeholder="['Start Date', 'End Date']"
+              @change="orderRequisitionStore.setRequestDate"
+              placeholder="Select Date"
             />
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-secondary"
+              >Account Number</label
+            >
+            <a-input-search
+              v-model:value="filters.accountNumber"
+              placeholder="Search orders..."
+              class="w-full"
+              @search="orderRequisitionStore.setSearch"
+              allow-clear
+            >
+              <template #prefix>
+                <SearchOutlined class="text-secondary" /> </template
+            ></a-input-search>
           </div>
         </div>
       </div>
@@ -201,49 +118,61 @@
         <div
           class="px-4 py-5 sm:p-6 border-b border-gray-200 flex justify-between items-center"
         >
-          <h3 class="text-lg font-medium text-primary">Orders</h3>
+          <h3 class="text-lg font-medium text-primary">Order Requisitions</h3>
           <span class="text-sm text-secondary"
-            >{{ filteredOrders.length }} orders found</span
+            >{{ orderRequisitionStore.total }} orders found</span
           >
         </div>
         <a-table
           :columns="columns"
-          :data-source="filteredOrders"
-          :pagination="{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-            showTotal: (total) => `Total ${total} items`,
-          }"
+          :data-source="orderRequisitionStore.orderRequisition"
+          :pagination="pagination"
           :loading="loading"
-          row-key="id"
+          @change="
+            (p) => orderRequisitionStore.setPagination(p.current, p.pageSize)
+          "
           class="custom-table"
           :scroll="{ x: 1500 }"
           :rowClassName="() => 'hover:bg-background'"
         >
-          <template #bodyCell="{ column, record }">
-            <template v-if="column.key === 'status'">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
+            <template v-if="column.key === 'serverity'">
               <a-tag
-                :color="getStatusColor(record.status)"
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                    ? 'warning'
+                    : 'default'
+                "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.status }}
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                    ? "Normal"
+                    : "Unknown"
+                }}
               </a-tag>
             </template>
-            <template v-if="column.key === 'severity'">
+            <template v-if="column.key === 'statusName'">
               <a-tag
-                :color="getSeverityColor(record.severity)"
+                color="success"
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.severity }}
+                {{ record.statusName }}
               </a-tag>
             </template>
           </template>
         </a-table>
 
         <!-- Empty State -->
-        <div
-          v-if="!loading && filteredOrders.length === 0"
+        <!-- <div
+          v-if="!loading && orderRequisitionStore.total === 0"
           class="text-center py-12 bg-background rounded-md"
         >
           <InboxOutlined
@@ -254,7 +183,7 @@
           <p class="text-secondary">
             Try adjusting your filters to see more results
           </p>
-        </div>
+        </div> -->
       </div>
     </div>
 
@@ -262,14 +191,38 @@
     <a-modal
       v-model:visible="exportModalVisible"
       title="Export Preview"
-      :width="720"
+      :width="1080"
       :footer="null"
+      style="top: 20px"
       class="requisition-modal"
     >
       <div class="p-4">
         <div class="mb-6">
           <h3 class="text-lg font-medium mb-2 text-primary">Filtered Orders</h3>
-          <p class="text-secondary">{{ filteredOrders.length }} orders found</p>
+          <div class="flex flex-wrap gap-3 justify-between border-gray-100">
+            <p class="text-secondary">
+              {{ orderRequisitionStore.orderRequisitionForExport?.length || 0 }}
+              orders found
+            </p>
+            <div>
+              <a-button
+                type="primary"
+                @click="exportPSI"
+                class="mr-2 bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600"
+              >
+                <template #icon><FileExcelOutlined /></template>
+                Export PSI
+              </a-button>
+              <a-button
+                type="primary"
+                @click="showChallanPreview"
+                class="bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600"
+              >
+                <template #icon><FileDoneOutlined /></template>
+                Export Challan
+              </a-button>
+            </div>
+          </div>
         </div>
 
         <!-- Check Type Buttons -->
@@ -311,36 +264,51 @@
           </h3>
           <a-table
             :columns="previewColumns"
-            :data-source="filteredOrders"
-            :pagination="{ pageSize: 5 }"
-            row-key="id"
+            :data-source="orderRequisitionStore.orderRequisitionForExport"
+            :loading="loading"
             class="custom-table"
-            size="small"
-          />
+            :scroll="{ x: 1500 }"
+            :pagination="false"
+            :rowClassName="() => 'hover:bg-background'"
+          >
+            <template #bodyCell="{ column, record, index }">
+              <template v-if="column.key === 'id'">
+                {{ index + 1 }}
+              </template>
+              <template v-if="column.key === 'serverity'">
+                <a-tag
+                  :color="
+                    record.serverity === 1
+                      ? 'error'
+                      : record.serverity === 2
+                      ? 'warning'
+                      : 'default'
+                  "
+                  class="px-2 py-0.5 rounded-md text-xs font-medium"
+                >
+                  {{
+                    record.serverity === 1
+                      ? "Urgent"
+                      : record.serverity === 2
+                      ? "Normal"
+                      : "Unknown"
+                  }}
+                </a-tag>
+              </template>
+              <template v-if="column.key === 'statusName'">
+                <a-tag
+                  color="success"
+                  class="px-2 py-0.5 rounded-md text-xs font-medium"
+                >
+                  {{ record.statusName }}
+                </a-tag>
+              </template>
+            </template>
+          </a-table>
         </div>
 
         <!-- Export Actions -->
-        <div
-          class="flex flex-wrap gap-3 justify-between mt-6 pt-4 border-t border-gray-100"
-        >
-          <div>
-            <a-button
-              type="primary"
-              @click="exportPSI"
-              class="mr-2 bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600"
-            >
-              <template #icon><FileExcelOutlined /></template>
-              Export PSI
-            </a-button>
-            <a-button
-              type="primary"
-              @click="showChallanPreview"
-              class="bg-blue-500 border-blue-500 hover:bg-blue-600 hover:border-blue-600"
-            >
-              <template #icon><FileDoneOutlined /></template>
-              Export Challan
-            </a-button>
-          </div>
+        <div class="flex flex-wrap gap-3 justify-end border-t border-gray-100">
           <a-button
             type="primary"
             @click="submitExport"
@@ -386,7 +354,33 @@
             row-key="id"
             class="custom-table mb-4"
             size="small"
-          />
+          >
+            <template #bodyCell="{ column, record, index }">
+              <template v-if="column.key === 'id'">
+                {{ index + 1 }}
+              </template>
+              <template v-if="column.key === 'serverity'">
+                <a-tag
+                  :color="
+                    record.serverity === 1
+                      ? 'error'
+                      : record.serverity === 2
+                      ? 'warning'
+                      : 'default'
+                  "
+                  class="px-2 py-0.5 rounded-md text-xs font-medium"
+                >
+                  {{
+                    record.serverity === 1
+                      ? "Urgent"
+                      : record.serverity === 2
+                      ? "Normal"
+                      : "Unknown"
+                  }}
+                </a-tag>
+              </template>
+            </template>
+          </a-table>
         </div>
 
         <div
@@ -408,6 +402,8 @@
 </template>
 
 <script setup lang="ts">
+import FinteraFooterImage from "@/assets/challanImages/FinteraFooter.jpeg";
+import FinteralogoImage from "@/assets/challanImages/FinteraLogo.jpeg";
 import {
   CheckOutlined,
   DownloadOutlined,
@@ -415,56 +411,57 @@ import {
   FileDoneOutlined,
   FileExcelOutlined,
   FileTextOutlined,
-  FilterOutlined,
-  InboxOutlined,
-  WarningOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+
+import { generateChallanPdf } from "@/utils/ExcelFile/generateChallanPdf";
 import { computed, onMounted, ref } from "vue";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import {
+  createChallan,
+  getChallanService,
+} from "../../services/challan/challan.service";
+import {
+  useOrderRequisitionStore,
+  type OrderRequisition,
+} from "../../stores/orderRequisitionStore";
+import { exportToExcel } from "../../utils/ExcelFile/chequeBookExportExcel";
 
-// Mock data for demonstration
-const bankOptions = [
-  { value: "bank1", label: "Bank of America" },
-  { value: "bank2", label: "Chase Bank" },
-  { value: "bank3", label: "Wells Fargo" },
-  { value: "bank4", label: "Citibank" },
-];
+interface Bank {
+  id: number;
+  bankName: string;
+}
 
-const branchOptions = [
-  { value: "branch1", label: "Downtown Branch" },
-  { value: "branch2", label: "Uptown Branch" },
-  { value: "branch3", label: "West Side Branch" },
-  { value: "branch4", label: "East Side Branch" },
-];
-
-const severityOptions = [
-  { value: "high", label: "High" },
-  { value: "medium", label: "Medium" },
-  { value: "low", label: "Low" },
-];
+const banks = ref<Bank[]>([]);
+//Get the banks from the database
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
+};
 
 // Table columns
 const columns = [
   {
     title: "SL.",
-    dataIndex: "id",
     key: "id",
     width: 70,
-    sorter: (a: any, b: any) => a.id - b.id,
-    fixed: "left",
   },
   {
     title: "Bank Name",
-    dataIndex: "bank",
-    key: "bank",
-    sorter: (a: any, b: any) => a.bank.localeCompare(b.bank),
-    fixed: "left",
+    dataIndex: "bankName",
+    key: "bankName",
   },
   {
-    title: "Branch Name",
-    dataIndex: "branch",
-    key: "branch",
-    sorter: (a: any, b: any) => a.branch.localeCompare(b.branch),
+    title: "Home Branch",
+    dataIndex: "branchName",
+    key: "branchName",
   },
   {
     title: "Account No",
@@ -473,54 +470,74 @@ const columns = [
   },
   {
     title: "Account Holder",
-    dataIndex: "accountHolder",
-    key: "accountHolder",
-    sorter: (a: any, b: any) => a.accountHolder.localeCompare(b.accountHolder),
+    dataIndex: "accountName",
+    key: "accountName",
+  },
+  {
+    title: "Routing Number",
+    dataIndex: "routingNo",
+    key: "routingNo",
+  },
+  {
+    title: "Receiving Branch",
+    dataIndex: "receivingBranchName", // or receivingBranch if name available
+    key: "receivingBranchName",
+  },
+  {
+    title: "Start No",
+    dataIndex: "startNo",
+    key: "startNo",
+  },
+  {
+    title: "End No",
+    dataIndex: "endNo",
+    key: "endNo",
   },
   {
     title: "Severity",
-    dataIndex: "severity",
-    key: "severity",
+    dataIndex: "serverity",
+    key: "serverity",
+  },
+  {
+    title: "Micr No",
+    dataIndex: "micrNo",
+    key: "micrNo",
+  },
+  {
+    title: "Transaction Code",
+    dataIndex: "transactionCode",
+    key: "transactionCode",
+  },
+  {
+    title: "Series",
+    dataIndex: "series",
+    key: "series",
   },
   {
     title: "Cheque Type",
-    dataIndex: "checkType",
-    key: "checkType",
+    dataIndex: "chequeType",
+    key: "chequeType",
   },
   {
     title: "Leaves",
     dataIndex: "leaves",
     key: "leaves",
-    sorter: (a: any, b: any) => a.leaves - b.leaves,
   },
   {
     title: "Book Qty",
     dataIndex: "bookQty",
     key: "bookQty",
-    sorter: (a: any, b: any) => a.bookQty - b.bookQty,
   },
-  {
-    title: "Receiving Branch",
-    dataIndex: "receivingBranch",
-    key: "receivingBranch",
-  },
-  {
-    title: "Routing Number",
-    dataIndex: "routingNumber",
-    key: "routingNumber",
-  },
+
   {
     title: "Status",
-    dataIndex: "status",
-    key: "status",
-    fixed: "right",
+    dataIndex: "statusName",
+    key: "statusName",
   },
   {
     title: "Request Date",
     dataIndex: "requestDate",
     key: "requestDate",
-    sorter: (a: any, b: any) =>
-      new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
   },
 ];
 
@@ -528,19 +545,18 @@ const columns = [
 const previewColumns = [
   {
     title: "SL.",
-    dataIndex: "id",
     key: "id",
     width: 70,
   },
   {
     title: "Bank Name",
-    dataIndex: "bank",
-    key: "bank",
+    dataIndex: "bankName",
+    key: "bankName",
   },
   {
-    title: "Branch Name",
-    dataIndex: "branch",
-    key: "branch",
+    title: "Home Branch",
+    dataIndex: "branchName",
+    key: "branchName",
   },
   {
     title: "Account No",
@@ -549,23 +565,74 @@ const previewColumns = [
   },
   {
     title: "Account Holder",
-    dataIndex: "accountHolder",
-    key: "accountHolder",
+    dataIndex: "accountName",
+    key: "accountName",
   },
   {
-    title: "Cheque Type",
-    dataIndex: "checkType",
-    key: "checkType",
-  },
-  {
-    title: "Pages",
-    dataIndex: "pages",
-    key: "pages",
+    title: "Routing Number",
+    dataIndex: "routingNo",
+    key: "routingNo",
   },
   {
     title: "Receiving Branch",
-    dataIndex: "receivingBranch",
-    key: "receivingBranch",
+    dataIndex: "receivingBranchName", // or receivingBranch if name available
+    key: "receivingBranchName",
+  },
+  {
+    title: "Start No",
+    dataIndex: "startNo",
+    key: "startNo",
+  },
+  {
+    title: "End No",
+    dataIndex: "endNo",
+    key: "endNo",
+  },
+  {
+    title: "Severity",
+    dataIndex: "serverity",
+    key: "serverity",
+  },
+  {
+    title: "Micr No",
+    dataIndex: "micrNo",
+    key: "micrNo",
+  },
+  {
+    title: "Transaction Code",
+    dataIndex: "transactionCode",
+    key: "transactionCode",
+  },
+  {
+    title: "Series",
+    dataIndex: "series",
+    key: "series",
+  },
+  {
+    title: "Cheque Type",
+    dataIndex: "chequeType",
+    key: "chequeType",
+  },
+  {
+    title: "Leaves",
+    dataIndex: "leaves",
+    key: "leaves",
+  },
+  {
+    title: "Book Qty",
+    dataIndex: "bookQty",
+    key: "bookQty",
+  },
+
+  {
+    title: "Status",
+    dataIndex: "statusName",
+    key: "statusName",
+  },
+  {
+    title: "Request Date",
+    dataIndex: "requestDate",
+    key: "requestDate",
   },
 ];
 
@@ -573,44 +640,50 @@ const previewColumns = [
 const challanColumns = [
   {
     title: "SL.",
-    dataIndex: "id",
     key: "id",
     width: 70,
   },
   {
-    title: "Bank Name",
-    dataIndex: "bank",
-    key: "bank",
-  },
-  {
-    title: "Branch Name",
-    dataIndex: "branch",
-    key: "branch",
-  },
-  {
     title: "Account No",
-    dataIndex: "accountNo",
-    key: "accountNo",
+    dataIndex: "micrNo",
+    key: "micrNo",
+  },
+
+  {
+    title: "Account Name",
+    dataIndex: "accountName",
+    key: "accountName",
   },
   {
-    title: "Account Holder",
-    dataIndex: "accountHolder",
-    key: "accountHolder",
+    title: "Start No",
+    dataIndex: "startNo",
+    key: "startNo",
   },
   {
-    title: "Cheque Type",
-    dataIndex: "checkType",
-    key: "checkType",
+    title: "Books X Lvs",
+    key: "booksXleaves",
+    customRender: ({ record }: { record: OrderRequisition }) =>
+      `${record.bookQty} x ${record.leaves}`,
   },
   {
-    title: "Pages",
-    dataIndex: "pages",
-    key: "pages",
+    title: "End No",
+    dataIndex: "endNo",
+    key: "endNo",
   },
   {
-    title: "Book Qty",
-    dataIndex: "bookQty",
-    key: "bookQty",
+    title: "A/C Type",
+    dataIndex: "chequeType",
+    key: "chequeType",
+  },
+  {
+    title: "Status",
+    key: "serverity",
+    dataIndex: "serverity",
+  },
+  {
+    title: "Cus.Branch",
+    key: "branchName",
+    dataIndex: "branchName",
   },
 ];
 
@@ -622,76 +695,42 @@ const challanPreviewVisible = ref(false);
 const challanData = ref<Record<string, any[]>>({});
 const filters = ref({
   bank: undefined as string | undefined,
-  branch: undefined as string | undefined,
+  accountNumber: undefined as string | undefined,
   severity: undefined as string | undefined,
-  dateRange: [] as any[],
+  requestDate: undefined as string | undefined,
 });
 
-// Computed properties
-const hasAppliedFilters = computed(() => {
-  return (
-    filters.value.bank ||
-    filters.value.branch ||
-    filters.value.severity ||
-    (filters.value.dateRange && filters.value.dateRange.length === 2)
-  );
+const orderRequisitionStore = useOrderRequisitionStore();
+onMounted(() => {
+  orderRequisitionStore.resetFilters();
+  orderRequisitionStore.fetchOrderRequisitions();
 });
 
-const filteredOrders = computed(() => {
-  let result = [...orders.value];
-
-  if (filters.value.bank) {
-    result = result.filter(
-      (order) => order.bank === getBankLabel(filters.value.bank)
-    );
-  }
-
-  if (filters.value.branch) {
-    result = result.filter(
-      (order) => order.branch === getBranchLabel(filters.value.branch)
-    );
-  }
-
-  if (filters.value.severity) {
-    result = result.filter(
-      (order) => order.severity === filters.value.severity
-    );
-  }
-
-  if (filters.value.dateRange && filters.value.dateRange.length === 2) {
-    const startDate = filters.value.dateRange[0].valueOf();
-    const endDate = filters.value.dateRange[1].valueOf();
-
-    result = result.filter((order) => {
-      const orderDate = new Date(order.requestDate).valueOf();
-      return orderDate >= startDate && orderDate <= endDate;
-    });
-  }
-
-  return result;
-});
-
-// Count of high severity items
-const highSeverityCount = computed(() => {
-  return orders.value.filter((item) => item.severity === "high").length;
-});
-
+const pagination = computed(() => ({
+  current:
+    Math.floor(orderRequisitionStore.skip / orderRequisitionStore.limit) + 1,
+  pageSize: orderRequisitionStore.limit,
+  total: orderRequisitionStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} Order Requisitions`,
+}));
 // Generate check type variations with page counts
 const checkTypeVariations = computed(() => {
   const variations: { type: string; pages: number; count: number }[] = [];
 
   // Group orders by check type and page count
-  filteredOrders.value.forEach((order) => {
+  orderRequisitionStore.orderRequisitionForExport.forEach((order) => {
     const existingVariation = variations.find(
-      (v) => v.type === order.checkType && v.pages === order.pages
+      (v) => v.type === order.chequeType && v.pages === order.leaves
     );
 
     if (existingVariation) {
       existingVariation.count++;
     } else {
       variations.push({
-        type: order.checkType,
-        pages: order.pages,
+        type: order.chequeType,
+        pages: order.leaves,
         count: 1,
       });
     }
@@ -706,47 +745,17 @@ const checkTypeVariations = computed(() => {
   });
 });
 
-// Helper functions
-const getBankLabel = (value?: string) => {
-  if (!value) return "";
-  const bank = bankOptions.find((b) => b.value === value);
-  return bank ? bank.label : value;
-};
-
-const getBranchLabel = (value?: string) => {
-  if (!value) return "";
-  const branch = branchOptions.find((b) => b.value === value);
-  return branch ? branch.label : value;
-};
-
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    Pending: "warning",
-    Processing: "processing",
-    Completed: "success",
-    Downloaded: "purple",
-    Failed: "error",
-  };
-  return colors[status] || "default";
-};
-
-const getSeverityColor = (severity: string) => {
-  const colors: Record<string, string> = {
-    high: "error",
-    medium: "warning",
-    low: "success",
-  };
-  return colors[severity] || "default";
-};
-
-// Event handlers
-const handleFilterChange = () => {
-  // This function is called whenever any filter changes
-  console.log("Filters changed:", filters.value);
-};
+// Check if any filter is applied
+const hasAppliedFilters = computed(() =>
+  Object.values(filters.value).some((val) => val)
+);
 
 const showExportPreview = () => {
-  if (filteredOrders.value.length === 0) {
+  orderRequisitionStore.fetchOrderRequisitionsForExport();
+  if (
+    !orderRequisitionStore.orderRequisition ||
+    orderRequisitionStore.orderRequisition.length === 0
+  ) {
     message.warning("No orders match the selected filters");
     return;
   }
@@ -755,56 +764,84 @@ const showExportPreview = () => {
 };
 
 const exportByCheckTypeAndPages = (checkType: string, pages: number) => {
-  const matchingOrders = filteredOrders.value.filter(
-    (order) => order.checkType === checkType && order.pages === pages
+  const matchingOrders = orderRequisitionStore.orderRequisitionForExport.filter(
+    (order) => order.chequeType === checkType && order.leaves === pages
   );
 
-  console.log(
-    `Exporting ${matchingOrders.length} orders of type ${checkType} with ${pages} pages`
-  );
+  const fileName = `orders_${checkType}_${pages}_pages`;
+  const formattedData = matchingOrders.map((order) => ({
+    "Bank Name": order.bankName,
+    "Branch Name": order.branchName,
+    "Account Name": order.accountName,
+    "Customer Address": order.receivingBranchName,
+    "Cheque Prefix": order.chequePrefix,
+    "Account No": order.micrNo,
+    "Cheque Serial": order.startNo,
+    "Leaves Quantity": order.leaves,
+    "Book Quantity": order.bookQty,
+    "Routing No": order.routingNo,
+    "Transaction Code": order.transactionCode,
+    "Details Account No": order.accountNo,
+  }));
 
-  // In a real application, this would trigger an API call to generate and download an Excel file
-  message.success(
-    `Exported ${matchingOrders.length} orders of type ${checkType} (${pages} pages)`
-  );
+  exportToExcel(formattedData, fileName, checkType);
 };
 
 const exportPSI = () => {
   // In a real application, this would trigger an API call to generate and download an Excel file
   message.success(
-    `Exported all ${filteredOrders.value.length} orders as PSI file`
+    `Exported all ${orderRequisitionStore.orderRequisitionForExport.length} orders as PSI file`
   );
 };
 
 const showChallanPreview = () => {
   // Group by receiving branch
   const branches: Record<string, any[]> = {};
-  filteredOrders.value.forEach((order) => {
-    if (!branches[order.receivingBranch]) {
-      branches[order.receivingBranch] = [];
+  orderRequisitionStore.orderRequisitionForExport.forEach((order) => {
+    if (!branches[order.receivingBranchName]) {
+      branches[order.receivingBranchName] = [];
     }
-    branches[order.receivingBranch].push(order);
+    branches[order.receivingBranchName].push(order);
   });
 
   challanData.value = branches;
   challanPreviewVisible.value = true;
 };
 
-const confirmExportChallan = () => {
-  const branchCount = Object.keys(challanData.value).length;
+const confirmExportChallan = async () => {
+  try {
+    const payload = {
+      challanData: challanData.value, // assuming challanData is a ref or reactive
+    };
 
-  // In a real application, this would trigger an API call to generate and download an Excel file
-  message.success(
-    `Generated and exported challans for ${branchCount} receiving branches`
-  );
+    const response = await createChallan(payload);
 
-  challanPreviewVisible.value = false;
+    if (response?.isCreated) {
+      var challanIds = response?.createdChallanIds ?? [];
+      var challans = await getChallanService(challanIds);
+      // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
+      // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
+      const logoBase64 = await toBase64(FinteralogoImage);
+      const footerBase64 = await toBase64(FinteraFooterImage);
+      // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
+      generateChallanPdf(challans, logoBase64, footerBase64);
+    } else {
+      message.error("Failed to create challan");
+    }
+  } catch (error) {
+    console.error("Challan export error:", error);
+    message.error("An error occurred while exporting challan");
+  } finally {
+    challanPreviewVisible.value = false;
+  }
 };
 
 const submitExport = () => {
   // Update status of all exported orders to "Downloaded"
   const updatedOrders = orders.value.map((order) => {
-    if (filteredOrders.value.some((fo) => fo.id === order.id)) {
+    if (
+      orderRequisitionStore.orderRequisition.some((fo) => fo.id === order.id)
+    ) {
       return { ...order, status: "Downloaded" };
     }
     return order;
@@ -812,211 +849,31 @@ const submitExport = () => {
 
   orders.value = updatedOrders;
   message.success(
-    `Updated status of ${filteredOrders.value.length} orders to "Downloaded"`
+    `Updated status of ${orderRequisitionStore.orderRequisition.length} orders to "Downloaded"`
   );
   exportModalVisible.value = false;
 };
 
+const toBase64 = async (filePath: string) => {
+  return fetch(filePath)
+    .then((res) => res.blob())
+    .then(
+      (blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+    );
+};
+
 // Lifecycle hooks
 onMounted(() => {
-  // Simulate API call to fetch orders
-  setTimeout(() => {
-    orders.value = [
-      {
-        id: 1001,
-        bank: "Bank of America",
-        branch: "Downtown Branch",
-        accountNo: "1234567890",
-        accountHolder: "John Smith",
-        checkType: "SB",
-        severity: "low",
-        leaves: 50,
-        pages: 10,
-        bookQty: 1,
-        receivingBranch: "Central Processing",
-        routingNumber: "RT001234",
-        requestDate: "2023-05-15",
-        status: "Pending",
-      },
-      {
-        id: 1002,
-        bank: "Chase Bank",
-        branch: "Uptown Branch",
-        accountNo: "2345678901",
-        accountHolder: "Sarah Johnson",
-        checkType: "CD",
-        severity: "high",
-        leaves: 25,
-        pages: 20,
-        bookQty: 2,
-        receivingBranch: "North District",
-        routingNumber: "RT002345",
-        requestDate: "2023-05-16",
-        status: "Processing",
-      },
-      {
-        id: 1003,
-        bank: "Wells Fargo",
-        branch: "West Side Branch",
-        accountNo: "3456789012",
-        accountHolder: "Michael Brown",
-        checkType: "SB",
-        severity: "medium",
-        leaves: 100,
-        pages: 20,
-        bookQty: 1,
-        receivingBranch: "Central Processing",
-        routingNumber: "RT003456",
-        requestDate: "2023-05-14",
-        status: "Completed",
-      },
-      {
-        id: 1004,
-        bank: "Citibank",
-        branch: "East Side Branch",
-        accountNo: "4567890123",
-        accountHolder: "Emily Davis",
-        checkType: "CC",
-        severity: "high",
-        leaves: 75,
-        pages: 30,
-        bookQty: 1,
-        receivingBranch: "South District",
-        routingNumber: "RT004567",
-        requestDate: "2023-05-17",
-        status: "Pending",
-      },
-      {
-        id: 1005,
-        bank: "Bank of America",
-        branch: "Uptown Branch",
-        accountNo: "5678901234",
-        accountHolder: "Robert Wilson",
-        checkType: "SB",
-        severity: "low",
-        leaves: 50,
-        pages: 30,
-        bookQty: 2,
-        receivingBranch: "North District",
-        routingNumber: "RT005678",
-        requestDate: "2023-05-18",
-        status: "Processing",
-      },
-      {
-        id: 1006,
-        bank: "Chase Bank",
-        branch: "Downtown Branch",
-        accountNo: "6789012345",
-        accountHolder: "Jennifer Taylor",
-        checkType: "CD",
-        severity: "medium",
-        leaves: 25,
-        pages: 10,
-        bookQty: 4,
-        receivingBranch: "Central Processing",
-        routingNumber: "RT006789",
-        requestDate: "2023-05-13",
-        status: "Failed",
-      },
-      {
-        id: 1007,
-        bank: "Wells Fargo",
-        branch: "East Side Branch",
-        accountNo: "7890123456",
-        accountHolder: "David Martinez",
-        checkType: "SB",
-        severity: "high",
-        leaves: 100,
-        pages: 10,
-        bookQty: 1,
-        receivingBranch: "South District",
-        routingNumber: "RT007890",
-        requestDate: "2023-05-19",
-        status: "Pending",
-      },
-      {
-        id: 1008,
-        bank: "Citibank",
-        branch: "West Side Branch",
-        accountNo: "8901234567",
-        accountHolder: "Lisa Anderson",
-        checkType: "CC",
-        severity: "low",
-        leaves: 75,
-        pages: 20,
-        bookQty: 1,
-        receivingBranch: "West District",
-        routingNumber: "RT008901",
-        requestDate: "2023-05-12",
-        status: "Completed",
-      },
-      {
-        id: 1009,
-        bank: "Bank of America",
-        branch: "East Side Branch",
-        accountNo: "9012345678",
-        accountHolder: "Thomas White",
-        checkType: "SB",
-        severity: "medium",
-        leaves: 50,
-        pages: 20,
-        bookQty: 2,
-        receivingBranch: "South District",
-        routingNumber: "RT009012",
-        requestDate: "2023-05-20",
-        status: "Processing",
-      },
-      {
-        id: 1010,
-        bank: "Chase Bank",
-        branch: "West Side Branch",
-        accountNo: "0123456789",
-        accountHolder: "Jessica Harris",
-        checkType: "CD",
-        severity: "high",
-        leaves: 25,
-        pages: 30,
-        bookQty: 4,
-        receivingBranch: "West District",
-        routingNumber: "RT000123",
-        requestDate: "2023-05-11",
-        status: "Pending",
-      },
-      {
-        id: 1011,
-        bank: "Wells Fargo",
-        branch: "Downtown Branch",
-        accountNo: "1122334455",
-        accountHolder: "Daniel Clark",
-        checkType: "CC",
-        severity: "low",
-        leaves: 100,
-        pages: 10,
-        bookQty: 1,
-        receivingBranch: "Central Processing",
-        routingNumber: "RT001122",
-        requestDate: "2023-05-21",
-        status: "Completed",
-      },
-      {
-        id: 1012,
-        bank: "Citibank",
-        branch: "Uptown Branch",
-        accountNo: "2233445566",
-        accountHolder: "Michelle Lewis",
-        checkType: "SB",
-        severity: "medium",
-        leaves: 75,
-        pages: 30,
-        bookQty: 1,
-        receivingBranch: "North District",
-        routingNumber: "RT002233",
-        requestDate: "2023-05-10",
-        status: "Failed",
-      },
-    ];
-    loading.value = false;
-  }, 1000);
+  // Get the banks from the database
+  featchBanks();
+  // Simulate API call
+  // to fetch orders
 });
 </script>
 
@@ -1165,3 +1022,7 @@ onMounted(() => {
   }
 }
 </style>
+
+function toBase64(FinteralogoImage: any) { throw new Error("Function not
+implemented."); } function toBase64(FinteraFooterImage: any) { throw new
+Error("Function not implemented."); }
