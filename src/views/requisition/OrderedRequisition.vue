@@ -325,7 +325,7 @@
     <a-modal
       v-model:visible="challanPreviewVisible"
       title="Challan Preview"
-      :width="720"
+      :width="980"
       :footer="null"
       class="requisition-modal"
     >
@@ -746,9 +746,10 @@ const checkTypeVariations = computed(() => {
 });
 
 // Check if any filter is applied
-const hasAppliedFilters = computed(() =>
-  Object.values(filters.value).some((val) => val)
-);
+// const hasAppliedFilters = computed(() =>
+//   Object.values(filters.value).some((val) => val)
+// );
+const hasAppliedFilters = computed(() => !!filters.value.bank);
 
 const showExportPreview = () => {
   orderRequisitionStore.fetchOrderRequisitionsForExport();
@@ -788,10 +789,26 @@ const exportByCheckTypeAndPages = (checkType: string, pages: number) => {
 };
 
 const exportPSI = () => {
-  // In a real application, this would trigger an API call to generate and download an Excel file
-  message.success(
-    `Exported all ${orderRequisitionStore.orderRequisitionForExport.length} orders as PSI file`
-  );
+  const psiOrders = orderRequisitionStore.orderRequisitionForExport;
+  const bankName = psiOrders[0].bankName;
+  const formattedData = psiOrders.map((order) => ({
+    "Account No": order.accountNo,
+    "Start No": order.startNo,
+    "No of Leaves": order.leaves,
+    "End No": order.endNo,
+    "MICR No": order.micrNo,
+    "Routing No": order.routingNo,
+    "Transaction Code": order.transactionCode,
+    Name: order.accountName,
+    "Home Branch Name": order.branchName,
+    "Ac Prefix": order.chequePrefix,
+    "Distribution Point Name": order.cusAddress,
+    "Receiving Branch Name": order.receivingBranchName,
+  }));
+  const fileName = `PSI_Format_${bankName}${
+    new Date().toISOString().split("T")[0]
+  }`;
+  exportToExcel(formattedData, fileName, "PSI");
 };
 
 const showChallanPreview = () => {
@@ -818,13 +835,18 @@ const confirmExportChallan = async () => {
 
     if (response?.isCreated) {
       var challanIds = response?.createdChallanIds ?? [];
-      var challans = await getChallanService(challanIds);
-      // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
-      // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
-      const logoBase64 = await toBase64(FinteralogoImage);
-      const footerBase64 = await toBase64(FinteraFooterImage);
-      // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
-      generateChallanPdf(challans, logoBase64, footerBase64);
+
+      if (challanIds.length > 0) {
+        var challans = await getChallanService(challanIds);
+        // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
+        // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
+        const logoBase64 = await toBase64(FinteralogoImage);
+        const footerBase64 = await toBase64(FinteraFooterImage);
+        // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
+        generateChallanPdf(challans, logoBase64, footerBase64);
+      } else {
+        message.error("Failed to Get challan");
+      }
     } else {
       message.error("Failed to create challan");
     }
