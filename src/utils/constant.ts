@@ -35,5 +35,7 @@ export default {
       "/api/requisition/get-all-order-requisitions-for-export",
     createChallan: "/api/challan/create",
     getChallans: "/api/challan/get-challans",
+    getDownloadedRequistions: "/api/requisition/get-downloaded-requisitions",
+    updateChequeRequisition: "/api/requisition/update-cheque-requisition",
   },
 };

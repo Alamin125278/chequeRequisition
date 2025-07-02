@@ -34,8 +34,10 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const loading = ref<boolean>(false);
 
   const search = ref<string>("");
+  const requestDate = ref<string>("");
   const skip = ref<number>(0);
   const limit = ref<number>(10);
+  const status = ref<number>(3);
   const bank = ref<number | null>(null);
   const severity = ref<number | null>(null);
 
@@ -48,7 +50,8 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         limit: limit.value,
         BankId: bank.value ?? undefined,
         severity: severity.value ?? undefined,
-        requestDate: search.value ?? undefined,
+        requestDate: requestDate.value ?? undefined,
+        status: status.value ?? undefined,
       });
       orderRequisition.value = result.data;
       total.value = result.total;
@@ -65,7 +68,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         search: search.value,
         BankId: bank.value ?? undefined,
         severity: severity.value ?? undefined,
-        requestDate: search.value ?? undefined,
+        requestDate: requestDate.value ?? undefined,
       });
       console.log(res);
       orderRequisitionForExport.value = res;
@@ -99,7 +102,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const setRequestDate = (requestDate: string) => {
     const dateObj = new Date(requestDate);
     const formattedDate = dateObj.toISOString().split("T")[0]; // yyyy-MM-dd format
-    search.value = formattedDate;
+    requestDate = formattedDate;
     fetchOrderRequisitions();
   };
 

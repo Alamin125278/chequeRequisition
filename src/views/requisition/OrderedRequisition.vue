@@ -414,7 +414,6 @@ import {
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 
-import { generateChallanPdf } from "@/utils/ExcelFile/generateChallanPdf";
 import { computed, onMounted, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import {
@@ -426,6 +425,7 @@ import {
   type OrderRequisition,
 } from "../../stores/orderRequisitionStore";
 import { exportToExcel } from "../../utils/ExcelFile/chequeBookExportExcel";
+import { generateChallanPdf } from "../../utils/ExcelFile/generateChallanPdf";
 
 interface Bank {
   id: number;
@@ -844,6 +844,7 @@ const confirmExportChallan = async () => {
         const footerBase64 = await toBase64(FinteraFooterImage);
         // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
         generateChallanPdf(challans, logoBase64, footerBase64);
+        orderRequisitionStore.fetchOrderRequisitions();
       } else {
         message.error("Failed to Get challan");
       }
@@ -859,19 +860,11 @@ const confirmExportChallan = async () => {
 };
 
 const submitExport = () => {
-  // Update status of all exported orders to "Downloaded"
-  const updatedOrders = orders.value.map((order) => {
-    if (
-      orderRequisitionStore.orderRequisition.some((fo) => fo.id === order.id)
-    ) {
-      return { ...order, status: "Downloaded" };
-    }
-    return order;
-  });
-
-  orders.value = updatedOrders;
+  orderRequisitionStore.fetchOrderRequisitions();
+  orderRequisitionStore.fetchOrderRequisitionsForExport();
+  orderRequisitionStore.resetFilters();
   message.success(
-    `Updated status of ${orderRequisitionStore.orderRequisition.length} orders to "Downloaded"`
+    `Updated status of ${orderRequisitionStore.orderRequisitionForExport.length} orders to "Downloaded"`
   );
   exportModalVisible.value = false;
 };

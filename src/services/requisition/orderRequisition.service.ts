@@ -9,6 +9,7 @@ export interface FetchOrderRequisitionParams {
   requestDate?: string;
   skip: number;
   limit: number;
+  status: number;
 }
 export interface FetchOrderRequisitionForExportParams {
   BankId?: number;
