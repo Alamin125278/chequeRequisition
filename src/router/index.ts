@@ -155,13 +155,15 @@ const router = createRouter({
 // Navigation guard
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
+  // if (userStore.isLoggedIn) {
+  //   useAutoLogout();
+  // }
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requirePermission = to.matched.some(
     (record) => record.meta.requiresPermission
   );
 
   const hasPermission = await CheckRoutePermission(to.path, requiresAuth);
-  console.log(hasPermission);
   // If route requires auth and user is not logged in, redirect to login
   if (requiresAuth && !userStore.isLoggedIn) {
     next("/login");

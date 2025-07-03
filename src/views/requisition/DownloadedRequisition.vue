@@ -298,6 +298,7 @@ const confirmModalTitle = ref("");
 const confirmModalMessage = ref("");
 const confirmModalOkText = ref("");
 const confirmModalAction = ref("");
+const confirmModalButtonClass = ref("");
 const itemToAction = ref<number[]>([]);
 const challanNoFilter = ref("");
 
@@ -391,6 +392,7 @@ const downloadedItemColumns = [
     title: "Account Name",
     dataIndex: "accountName",
     key: "accountName",
+    width: 180,
   },
   {
     title: "Home Branch",
@@ -460,6 +462,7 @@ const formatDate = (dateString: string) => {
     day: "numeric",
   });
 };
+
 // Refresh data
 const refreshData = () => {
   loading.value = true;
@@ -505,7 +508,7 @@ const handleConfirmAction = async () => {
   if (confirmModalAction.value === "dispatch" && itemToAction.value) {
     const itemIndex = itemToAction.value;
     if (itemIndex[0] !== -1) {
-      const response = await UpdateChequeStatusService(itemIndex);
+      const response = await UpdateChequeStatusService(itemIndex, 5);
       if (response.data.isUpdated) {
         message.success(`Item dispatched successfully`);
       } else {
@@ -514,7 +517,7 @@ const handleConfirmAction = async () => {
     }
   } else if (confirmModalAction.value === "bulkDispatch") {
     var itemIds = selectedRowKeys.value;
-    const response = await UpdateChequeStatusService(itemIds);
+    const response = await UpdateChequeStatusService(itemIds, 5);
     if (response.data.isUpdated) {
       message.success(
         `Successfully dispatched ${selectedRowKeys.value.length} item(s)`

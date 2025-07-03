@@ -39,77 +39,6 @@
 
     <!-- Stats Cards Section -->
     <div class="max-w-7xl mx-auto py-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <!-- Pending Delivery Items Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-amber-100 rounded-md p-3">
-                <SendOutlined class="h-6 w-6 text-amber-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Pending Delivery Items
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ dispatchedItems.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Bank Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <BankOutlined class="h-6 w-6 text-blue-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Bank
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ bankFilter }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Branches Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <BranchesOutlined class="h-6 w-6 text-purple-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Branches
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ uniqueBranchesCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
@@ -121,7 +50,7 @@
           <a-input-search
             v-model:value="searchText"
             placeholder="Search by account number or name"
-            @search="handleSearch"
+            @search="dispatchStore.setSearch"
             class="w-full"
             :allowClear="true"
           >
@@ -130,59 +59,62 @@
             </template>
           </a-input-search>
 
-          <a-input
-            v-model:value="bankFilter"
-            placeholder="Bank"
-            class="w-full"
-            disabled
-          />
-
-          <a-select
-            v-model:value="branchFilter"
-            placeholder="Select Branch"
-            class="w-full"
-            @change="handleBranchFilterChange"
-            allowClear
-          >
-            <a-select-option value="">All Branches</a-select-option>
-            <template v-for="branch in availableBranches" :key="branch.value">
-              <a-select-option :value="branch.value">{{
-                branch.text
-              }}</a-select-option>
-            </template>
-          </a-select>
+          <template v-if="dispatchStore.branches.length === 1">
+            <a-input
+              :value="dispatchStore.branches[0].branchName"
+              disabled
+              class="w-full"
+              style="background-color: #fff; color: #000; cursor: default"
+            />
+          </template>
+          <!-- If more than 1, show dropdown -->
+          <template v-else>
+            <a-select
+              placeholder="All branches"
+              class="rounded-md w-full"
+              @change="dispatchStore.setBranch"
+            >
+              <a-select-option value="">All branches</a-select-option>
+              <a-select-option
+                v-for="branch in dispatchStore.branches"
+                :key="branch.id"
+                :value="branch.id"
+              >
+                {{ branch.branchName }}
+              </a-select-option>
+            </a-select>
+          </template>
 
           <a-select
             v-model:value="severityFilter"
             placeholder="Filter by severity"
             class="w-full"
-            @change="handleSeverityFilterChange"
+            @change="dispatchStore.setSeverity"
             allowClear
           >
             <a-select-option value="">All Severities</a-select-option>
-            <a-select-option value="High">High</a-select-option>
-            <a-select-option value="Medium">Medium</a-select-option>
-            <a-select-option value="Low">Low</a-select-option>
+            <a-select-option value="1">Urgent</a-select-option>
+            <a-select-option value="2">Normal</a-select-option>
           </a-select>
 
-          <a-range-picker
+          <a-date-picker
             v-model:value="dateRange"
-            @change="handleDateRangeChange"
+            @change="dispatchStore.setRequestDate"
             class="w-full"
-            :placeholder="['Start Date', 'End Date']"
+            placeholder="Select Request Date"
           />
 
-          <a-input
+          <a-input-search
             v-model:value="challanNoFilter"
             placeholder="Filter by Challan No"
             class="w-full"
-            @change="handleChallanNoFilterChange"
-            :allowClear="true"
+            @search="dispatchStore.setChallanNo"
+            allowClear
           >
             <template #prefix>
               <FileTextOutlined class="text-secondary" />
             </template>
-          </a-input>
+          </a-input-search>
         </div>
       </div>
 
@@ -219,51 +151,56 @@
             Pending Delivery Items
           </h3>
           <span class="text-sm text-secondary"
-            >{{ filteredDispatchedItems.length }} items found</span
+            >{{ dispatchStore.dispatchRequisition.length }} items found</span
           >
         </div>
         <a-table
-          :dataSource="filteredDispatchedItems"
+          :dataSource="dispatchStore.dispatchRequisition"
           :columns="dispatchedItemColumns"
           :loading="loading"
-          :pagination="{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-            showTotal: (total) => `Total ${total} items`,
-          }"
+          :pagination="pagination"
           :rowSelection="{
-            selectedRowKeys: selectedRowKeys,
             onChange: onSelectChange,
-            selections: [
-              Table.SELECTION_ALL,
-              Table.SELECTION_INVERT,
-              Table.SELECTION_NONE,
-            ],
           }"
+          @change="(p) => dispatchStore.setPagination(p.current, p.pageSize)"
           rowKey="id"
           class="custom-table"
           :scroll="{ x: 1200 }"
           :rowClassName="() => 'hover:bg-background'"
         >
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <!-- Severity Column -->
-            <template v-if="column.key === 'severity'">
+            <template v-if="column.key === 'serverity'">
               <a-tag
-                :color="getSeverityColor(record.severity)"
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                    ? 'warning'
+                    : 'default'
+                "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.severity }}
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                    ? "Normal"
+                    : "Unknown"
+                }}
               </a-tag>
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'statusName'">
               <a-tag
-                color="amber"
+                color="green"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                Dispatched
+                {{ record.statusName }}
               </a-tag>
             </template>
 
@@ -284,21 +221,6 @@
         </a-table>
 
         <!-- Empty State -->
-        <div
-          v-if="!loading && dispatchedItems.length === 0"
-          class="text-center py-12 bg-background rounded-md"
-        >
-          <InboxOutlined
-            style="font-size: 48px"
-            class="text-secondary opacity-30"
-          />
-          <p class="mt-3 text-primary text-lg font-medium">
-            No pending delivery items found
-          </p>
-          <p class="text-secondary">
-            No items are pending delivery confirmation for this bank
-          </p>
-        </div>
       </div>
     </div>
 
@@ -331,148 +253,103 @@
 
 <script setup lang="ts">
 import {
-  BankOutlined,
-  BranchesOutlined,
   CheckCircleOutlined,
   FileTextOutlined,
-  InboxOutlined,
   ReloadOutlined,
   SearchOutlined,
-  SendOutlined,
 } from "@ant-design/icons-vue";
-import { message, Table } from "ant-design-vue";
+import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import { computed, onMounted, ref, watch } from "vue";
-
-interface ChequeItem {
-  id: number;
-  requisitionNo?: string;
-  accountNo: string;
-  routingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  severity: string;
-  bankName: string;
-  branchName: string;
-  accountName: string;
-  customerAddress: string;
-  bookQuantity: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receivingBranch: string;
-  status?: string;
-  requestDate: string;
-  challanNo: string;
-  dispatchDate?: string;
-}
-
-interface BranchOption {
-  text: string;
-  value: string;
-}
-
-// Props
-const props = defineProps({
-  bankName: {
-    type: String,
-    required: true,
-    default: "National Bank", // Default bank for demo purposes
-  },
-});
+import { UpdateChequeStatusService } from "../../services/requisition/DownloadRequisition.service";
+import type { DispatchRequisition } from "../../stores/dispatchRequisitionStore";
+import { useDispatchRequisitionStore } from "../../stores/dispatchRequisitionStore";
 
 // State variables
-const loading = ref(true);
+const loading = ref(false);
 const searchText = ref("");
 const severityFilter = ref("");
-const bankFilter = ref(props.bankName);
-const branchFilter = ref("");
+let bankId = ref(0);
+let branchId = ref(0);
 const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-const allItems = ref<ChequeItem[]>([]);
+const selectedRows = ref<DispatchRequisition[]>([]);
 const selectedRowKeys = ref<number[]>([]);
 const challanNoFilter = ref("");
 const confirmModalVisible = ref(false);
 const confirmModalTitle = ref("");
 const confirmModalMessage = ref("");
 const confirmModalOkText = ref("");
-const itemToAction = ref<ChequeItem | null>(null);
+const itemToAction = ref<number[] | null>(null);
 
-// Bank to branches mapping
-const bankBranchesMap = {
-  "National Bank": [
-    { text: "National Main Branch", value: "National Main Branch" },
-    { text: "National North Branch", value: "National North Branch" },
-    { text: "National South Branch", value: "National South Branch" },
-  ],
-  "City Bank": [
-    { text: "City Central Branch", value: "City Central Branch" },
-    { text: "City East Branch", value: "City East Branch" },
-    { text: "City West Branch", value: "City West Branch" },
-  ],
-  "Metro Bank": [
-    { text: "Metro Downtown Branch", value: "Metro Downtown Branch" },
-    { text: "Metro Uptown Branch", value: "Metro Uptown Branch" },
-  ],
-  "Global Bank": [
-    { text: "Global HQ Branch", value: "Global HQ Branch" },
-    { text: "Global Regional Branch", value: "Global Regional Branch" },
-    {
-      text: "Global International Branch",
-      value: "Global International Branch",
-    },
-  ],
-};
+const dispatchStore = useDispatchRequisitionStore();
 
-// Available branches based on selected bank
-const availableBranches = computed(() => {
-  return (
-    bankBranchesMap[bankFilter.value as keyof typeof bankBranchesMap] || []
-  );
+onMounted(() => {
+  dispatchStore.resetFilters();
+  dispatchStore.fetchDispatchRequisitions();
+  dispatchStore.featchBanks();
 });
 
-// Filter to only dispatched items for the selected bank
-const dispatchedItems = computed(() => {
-  return allItems.value.filter(
-    (item) => item.status === "Dispatched" && item.bankName === bankFilter.value
-  );
-});
-
-// Count of unique branches
-const uniqueBranchesCount = computed(() => {
-  const branches = new Set(
-    dispatchedItems.value.map((item) => item.branchName)
-  );
-  return branches.size;
-});
+const pagination = computed(() => ({
+  current: Math.floor(dispatchStore.skip / dispatchStore.limit) + 1,
+  pageSize: dispatchStore.limit,
+  total: dispatchStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} Confirm Delivery Requisitions`,
+}));
 
 // Computed property to check if any items are selected
 const hasSelectedItems = computed(() => selectedRowKeys.value.length > 0);
 
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: number[], rows: DispatchRequisition[]) => {
+    selectedRowKeys.value = keys;
+    selectedRows.value = rows;
+  },
+}));
+
 // Dispatched item columns for the table
 const dispatchedItemColumns = [
+  {
+    title: "Sl.",
+    key: "id",
+    width: 70,
+  },
+  {
+    title: "Bank",
+    dataIndex: "bankName",
+    key: "bankName",
+    width: 150,
+  },
+  {
+    title: "Challan No",
+    dataIndex: "challanNumber",
+    key: "challanNumber",
+    width: 150,
+  },
   {
     title: "Account No",
     dataIndex: "accountNo",
     key: "accountNo",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountNo.localeCompare(b.accountNo),
     width: 150,
   },
   {
     title: "Account Name",
     dataIndex: "accountName",
     key: "accountName",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountName.localeCompare(b.accountName),
-    width: 180,
+    width: 150,
   },
   {
-    title: "Branch",
+    title: "Home Branch",
     dataIndex: "branchName",
     key: "branchName",
+    width: 150,
+  },
+  {
+    title: "Receiving Branch",
+    dataIndex: "receivingBranchName",
+    key: "receivingBranchName",
     width: 150,
   },
   {
@@ -480,7 +357,6 @@ const dispatchedItemColumns = [
     dataIndex: "startNo",
     key: "startNo",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.startNo - b.startNo,
   },
   {
     title: "End No",
@@ -490,46 +366,28 @@ const dispatchedItemColumns = [
   },
   {
     title: "Book Qty",
-    dataIndex: "bookQuantity",
-    key: "bookQuantity",
+    dataIndex: "bookQty",
+    key: "bookQty",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.bookQuantity - b.bookQuantity,
   },
   {
     title: "Severity",
-    dataIndex: "severity",
-    key: "severity",
+    dataIndex: "serverity",
+    key: "serverity",
     width: 120,
-    filters: [
-      { text: "High", value: "High" },
-      { text: "Medium", value: "Medium" },
-      { text: "Low", value: "Low" },
-    ],
-    onFilter: (value: string, record: ChequeItem) => record.severity === value,
-  },
-  {
-    title: "Dispatch Date",
-    dataIndex: "dispatchDate",
-    key: "dispatchDate",
-    width: 150,
-    render: (text: string) => formatDate(text),
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      new Date(a.dispatchDate || "").getTime() -
-      new Date(b.dispatchDate || "").getTime(),
   },
   {
     title: "Status",
-    dataIndex: "status",
-    key: "status",
+    dataIndex: "statusName",
+    key: "statusName",
     width: 120,
   },
   {
-    title: "Challan No",
-    dataIndex: "challanNo",
-    key: "challanNo",
+    title: "Request Date",
+    dataIndex: "requestDate",
+    key: "requestDate",
     width: 150,
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.challanNo.localeCompare(b.challanNo),
+    render: (text: string) => formatDate(text),
   },
   {
     title: "Actions",
@@ -551,174 +409,15 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Computed property for filtered dispatched items
-const filteredDispatchedItems = computed(() => {
-  let result = [...dispatchedItems.value];
-
-  // Apply search filter
-  if (searchText.value) {
-    const searchLower = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.accountNo.toLowerCase().includes(searchLower) ||
-        item.accountName.toLowerCase().includes(searchLower) ||
-        item.branchName.toLowerCase().includes(searchLower)
-    );
-  }
-
-  // Apply severity filter
-  if (severityFilter.value) {
-    result = result.filter((item) => item.severity === severityFilter.value);
-  }
-
-  // Apply branch filter
-  if (branchFilter.value) {
-    result = result.filter((item) => item.branchName === branchFilter.value);
-  }
-
-  // Apply date range filter
-  if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-    const startDate = dateRange.value[0].valueOf();
-    const endDate = dateRange.value[1].valueOf();
-
-    result = result.filter((item) => {
-      const dispDate = new Date(item.dispatchDate || "").getTime();
-      return dispDate >= startDate && dispDate <= endDate;
-    });
-  }
-
-  // Apply challan no filter
-  if (challanNoFilter.value) {
-    result = result.filter((item) =>
-      item.challanNo.toLowerCase().includes(challanNoFilter.value.toLowerCase())
-    );
-  }
-
-  return result;
-});
-
-// Fetch cheque items data
-const fetchItems = async () => {
-  loading.value = true;
-  try {
-    // In a real application, this would be an API call
-    // For demo purposes, we'll use mock data
-    setTimeout(() => {
-      allItems.value = generateMockItems();
-      loading.value = false;
-    }, 1000);
-  } catch (error) {
-    message.error("Failed to fetch requisition items");
-    loading.value = false;
-  }
-};
-
 // Refresh data
 const refreshData = () => {
   loading.value = true;
   selectedRowKeys.value = [];
   setTimeout(() => {
-    allItems.value = generateMockItems();
+    dispatchStore.resetFilters();
     loading.value = false;
     message.success("Data refreshed successfully");
   }, 800);
-};
-
-// Generate mock data for demonstration
-const generateMockItems = (): ChequeItem[] => {
-  const statuses = [
-    "Pending",
-    "Approved",
-    "Ordered",
-    "Download",
-    "Dispatched",
-    "Delivery Receive",
-  ];
-  const banks = ["National Bank", "City Bank", "Metro Bank", "Global Bank"];
-  const severities = ["High", "Medium", "Low"];
-
-  return Array.from({ length: 50 }, (_, i) => {
-    // For confirm delivery page, make more items have Dispatched status
-    const randomStatus =
-      Math.random() < 0.7
-        ? "Dispatched"
-        : statuses[Math.floor(Math.random() * statuses.length)];
-    const bank = banks[i % 4];
-    const branchOptions = bankBranchesMap[bank as keyof typeof bankBranchesMap];
-    const branch = branchOptions[i % branchOptions.length].value;
-
-    // Generate a request date
-    const requestDate = new Date(
-      2023,
-      Math.floor(Math.random() * 12),
-      Math.floor(Math.random() * 28) + 1
-    );
-
-    // Generate a dispatch date that's after the request date (if status is Dispatched)
-    let dispatchDate = null;
-    if (randomStatus === "Dispatched") {
-      dispatchDate = new Date(requestDate);
-      dispatchDate.setDate(
-        dispatchDate.getDate() + Math.floor(Math.random() * 14) + 1
-      ); // 1-14 days after request
-    }
-
-    return {
-      id: i + 1,
-      accountNo: `AC-${100000 + i}`,
-      routingNo: `RT-${200000 + i}`,
-      startNo: 1000 + i * 100,
-      endNo: 1099 + i * 100,
-      prefix: `PFX-${i % 5}`,
-      series: `S-${i % 3}`,
-      severity: severities[i % 3],
-      bankName: bank,
-      branchName: branch,
-      accountName: `Account Holder ${i + 1}`,
-      customerAddress: `123 Main St, City ${i + 1}, Country`,
-      bookQuantity: Math.floor(Math.random() * 5) + 1,
-      transactionCode: 1000 + i,
-      leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-      courierCode: `CR-${1000 + i}`,
-      distributionPointName: `Distribution Point ${(i % 5) + 1}`,
-      receivingBranch: branch,
-      status: randomStatus,
-      requestDate: requestDate.toISOString(),
-      dispatchDate: dispatchDate ? dispatchDate.toISOString() : undefined,
-      challanNo: `CHN-${10000 + i}`,
-    };
-  });
-};
-
-// Get color for severity tag
-const getSeverityColor = (severity: string) => {
-  const colorMap: Record<string, string> = {
-    High: "error",
-    Medium: "warning",
-    Low: "success",
-  };
-
-  return colorMap[severity] || "default";
-};
-
-// Handle search
-const handleSearch = (value: string) => {
-  searchText.value = value;
-};
-
-// Handle severity filter change
-const handleSeverityFilterChange = (value: string) => {
-  severityFilter.value = value;
-};
-
-// Handle branch filter change
-const handleBranchFilterChange = (value: string) => {
-  branchFilter.value = value;
-};
-
-// Handle date range change
-const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
-  dateRange.value = dates;
 };
 
 // Handle row selection change
@@ -726,17 +425,12 @@ const onSelectChange = (keys: number[]) => {
   selectedRowKeys.value = keys;
 };
 
-// Handle challan no filter change
-const handleChallanNoFilterChange = (e: Event) => {
-  challanNoFilter.value = (e.target as HTMLInputElement).value;
-};
-
 // Confirm delivery for a single item
-const confirmDeliveryItem = (record: ChequeItem) => {
+const confirmDeliveryItem = (record: DispatchRequisition) => {
   confirmModalTitle.value = `Confirm Delivery`;
   confirmModalMessage.value = `Are you sure you want to confirm delivery receipt for this item?`;
   confirmModalOkText.value = "Confirm";
-  itemToAction.value = record;
+  itemToAction.value = [record.id];
   confirmModalVisible.value = true;
 };
 
@@ -754,45 +448,42 @@ const handleBulkConfirmDelivery = () => {
 };
 
 // Handle confirm action
-const handleConfirmAction = () => {
+const handleConfirmAction = async () => {
   if (itemToAction.value) {
     // Single item confirmation
-    const itemIndex = allItems.value.findIndex(
-      (item) => item.id === itemToAction.value?.id
-    );
+    const itemIndex = itemToAction.value;
+    alert(itemIndex[0]);
 
-    if (itemIndex !== -1) {
+    if (itemIndex[0] !== -1) {
       // Update the item status to Delivery Receive
-      allItems.value[itemIndex].status = "Delivery Receive";
-      message.success(`Delivery receipt confirmed successfully`);
+      const response = await UpdateChequeStatusService(itemIndex, 6);
+      if (response.data.isUpdated) {
+        message.success(`Delivery receipt confirmed successfully`);
+      } else {
+        message.error("Failed to confirm delivery receipt");
+      }
     }
     itemToAction.value = null;
   } else {
     // Bulk confirmation
-    allItems.value = allItems.value.map((item) => {
-      if (selectedRowKeys.value.includes(item.id)) {
-        return { ...item, status: "Delivery Receive" };
-      }
-      return item;
-    });
-
-    message.success(
-      `Successfully confirmed delivery receipt for ${selectedRowKeys.value.length} item(s)`
-    );
-    selectedRowKeys.value = []; // Clear selection after bulk update
+    var itemIds = selectedRowKeys.value;
+    const response = await UpdateChequeStatusService(itemIds, 6);
+    if (response.data.isUpdated) {
+      message.success(
+        `Successfully confirmed delivery receipt for ${selectedRowKeys.value.length} item(s)`
+      );
+      selectedRowKeys.value = []; // Clear selection after bulk update
+    } else {
+      message.error("Failed to confirm delivery receipt");
+    }
   }
-
+  dispatchStore.fetchDispatchRequisitions();
   confirmModalVisible.value = false;
 };
 
 // Reset selection when filtered items change
-watch([severityFilter, branchFilter, searchText, challanNoFilter], () => {
+watch([severityFilter, branchId, searchText, challanNoFilter], () => {
   selectedRowKeys.value = [];
-});
-
-// Fetch data on component mount
-onMounted(() => {
-  fetchItems();
 });
 </script>
 

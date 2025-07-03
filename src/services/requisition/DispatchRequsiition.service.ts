@@ -1,8 +1,8 @@
 import { baseHttp } from "@/config/base-http";
-import type { DownloadRequisition } from "@/stores/downloadedRequisitionStore";
+import type { DispatchRequisition } from "@/stores/dispatchRequisitionStore";
 import constant from "@/utils/constant";
 
-export interface FetchDownloadRequisitionsParams {
+export interface FetchDispatchRequisitionsParams {
   bankId?: number;
   branchId?: number;
   search?: string;
@@ -13,14 +13,14 @@ export interface FetchDownloadRequisitionsParams {
   status: number;
 }
 
-export interface FetchDownloadRequisitionResponse {
-  data: DownloadRequisition[];
+export interface FetchDispatchRequisitionResponse {
+  data: DispatchRequisition[];
   total: number;
 }
 
-export const getDownlaodedRequisitionsService = async (
-  params: FetchDownloadRequisitionsParams
-): Promise<FetchDownloadRequisitionResponse> => {
+export const getDispatchRequisitionsService = async (
+  params: FetchDispatchRequisitionsParams
+): Promise<FetchDispatchRequisitionResponse> => {
   const response = await baseHttp().get(constant.APIs.getOrderRequisitions, {
     params,
   });
@@ -30,13 +30,9 @@ export const getDownlaodedRequisitionsService = async (
   };
 };
 
-export const UpdateChequeStatusService = async (
-  ids: number[],
-  status: number
-) => {
+export const UpdateChequeStatusService = async (ids: number[]) => {
   const response = await baseHttp().put(constant.APIs.updateChequeRequisition, {
     requisitionIds: ids,
-    status,
   });
   return response;
 };

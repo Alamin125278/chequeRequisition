@@ -39,77 +39,6 @@
 
     <!-- Stats Cards Section -->
     <div class="max-w-7xl mx-auto py-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <!-- Dispatched Items Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-green-100 rounded-md p-3">
-                <SendOutlined class="h-6 w-6 text-green-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Dispatched Items
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ dispatchedItems.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Banks Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <BankOutlined class="h-6 w-6 text-blue-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Banks
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ uniqueBanksCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Branches Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <BranchesOutlined class="h-6 w-6 text-purple-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Branches
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ uniqueBranchesCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
@@ -121,9 +50,9 @@
           <a-input-search
             v-model:value="searchText"
             placeholder="Search by account number or name"
-            @search="handleSearch"
+            @search="dispatchStore.setSearch"
             class="w-full"
-            :allowClear="true"
+            allowClear
           >
             <template #prefix>
               <SearchOutlined class="text-secondary" />
@@ -134,65 +63,68 @@
             v-model:value="bankFilter"
             placeholder="Select Bank"
             class="w-full"
-            @change="handleBankFilterChange"
+            @change="dispatchStore.setBank"
             allowClear
           >
             <a-select-option value="">All Banks</a-select-option>
-            <a-select-option value="National Bank"
-              >National Bank</a-select-option
+            <a-select-option
+              v-for="option in banks"
+              :key="option.id"
+              :value="option.id"
             >
-            <a-select-option value="City Bank">City Bank</a-select-option>
-            <a-select-option value="Metro Bank">Metro Bank</a-select-option>
-            <a-select-option value="Global Bank">Global Bank</a-select-option>
+              {{ option.bankName }}
+            </a-select-option>
           </a-select>
 
           <a-select
             v-model:value="branchFilter"
             placeholder="Select Branch"
             class="w-full"
-            @change="handleBranchFilterChange"
-            :disabled="!bankFilter"
+            @change="dispatchStore.setBranch"
+            :disabled="!dispatchStore.bank"
             allowClear
           >
             <a-select-option value="">All Branches</a-select-option>
-            <template v-for="branch in availableBranches" :key="branch.value">
-              <a-select-option :value="branch.value">{{
-                branch.text
-              }}</a-select-option>
-            </template>
+            <a-select-option
+              v-for="branch in dispatchStore.branches"
+              :key="branch.id"
+              :value="branch.id"
+            >
+              {{ branch.branchName }}
+            </a-select-option>
           </a-select>
 
           <a-select
             v-model:value="severityFilter"
             placeholder="Filter by severity"
             class="w-full"
-            @change="handleSeverityFilterChange"
+            @change="dispatchStore.setSeverity"
             allowClear
           >
             <a-select-option value="">All Severities</a-select-option>
-            <a-select-option value="High">High</a-select-option>
-            <a-select-option value="Medium">Medium</a-select-option>
-            <a-select-option value="Low">Low</a-select-option>
+            <a-select-option value="1">Urgent</a-select-option>
+            <a-select-option value="2">Normal</a-select-option>
           </a-select>
 
-          <a-range-picker
+          <a-date-picker
             v-model:value="dateRange"
-            @change="handleDateRangeChange"
+            @change="dispatchStore.setRequestDate"
             class="w-full"
-            :placeholder="['Start Date', 'End Date']"
+            placeholder="Select Request Date"
+            allowClear
           />
 
-          <a-input
+          <a-input-search
             v-model:value="challanNoFilter"
             placeholder="Filter by Challan No"
             class="w-full"
-            @change="handleChallanNoFilterChange"
-            :allowClear="true"
+            @search="dispatchStore.setSearch"
+            allowClear
           >
             <template #prefix>
               <FileTextOutlined class="text-secondary" />
             </template>
-          </a-input>
+          </a-input-search>
         </div>
       </div>
 
@@ -203,61 +135,59 @@
         >
           <h3 class="text-lg font-medium text-primary">Dispatched Items</h3>
           <span class="text-sm text-secondary"
-            >{{ filteredDispatchedItems.length }} items found</span
+            >{{ dispatchStore.total }} items found</span
           >
         </div>
         <a-table
-          :dataSource="filteredDispatchedItems"
+          :dataSource="dispatchStore.dispatchRequisition"
           :columns="dispatchedItemColumns"
           :loading="loading"
-          :pagination="{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-            showTotal: (total) => `Total ${total} items`,
-          }"
+          :pagination="pagination"
+          @change="(p) => dispatchStore.setPagination(p.current, p.pageSize)"
           rowKey="id"
           class="custom-table"
           :scroll="{ x: 1200 }"
           :rowClassName="() => 'hover:bg-background'"
         >
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <!-- Severity Column -->
-            <template v-if="column.key === 'severity'">
+            <template v-if="column.key === 'serverity'">
               <a-tag
-                :color="getSeverityColor(record.severity)"
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                    ? 'warning'
+                    : 'default'
+                "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.severity }}
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                    ? "Normal"
+                    : "Unknown"
+                }}
               </a-tag>
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'statusName'">
               <a-tag
                 color="green"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                Dispatched
+                {{ record.statusName }}
               </a-tag>
             </template>
           </template>
         </a-table>
 
         <!-- Empty State -->
-        <div
-          v-if="!loading && dispatchedItems.length === 0"
-          class="text-center py-12 bg-background rounded-md"
-        >
-          <InboxOutlined
-            style="font-size: 48px"
-            class="text-secondary opacity-30"
-          />
-          <p class="mt-3 text-primary text-lg font-medium">
-            No dispatched requisitions found
-          </p>
-          <p class="text-secondary">No requisitions have been dispatched yet</p>
-        </div>
       </div>
     </div>
   </div>
@@ -265,47 +195,20 @@
 
 <script setup lang="ts">
 import {
-  BankOutlined,
-  BranchesOutlined,
   FileTextOutlined,
-  InboxOutlined,
   ReloadOutlined,
   SearchOutlined,
   SendOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
-import { computed, onMounted, ref, watch } from "vue";
+import { computed, onMounted, ref } from "vue";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import { useDispatchRequisitionStore } from "../../stores/dispatchRequisitionStore";
 
-interface ChequeItem {
+interface Bank {
   id: number;
-  requisitionNo?: string;
-  accountNo: string;
-  routingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  severity: string;
   bankName: string;
-  branchName: string;
-  accountName: string;
-  customerAddress: string;
-  bookQuantity: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receivingBranch: string;
-  status?: string;
-  requestDate: string;
-  challanNo: string;
-  dispatchDate?: string;
-}
-
-interface BranchOption {
-  text: string;
-  value: string;
 }
 
 // State variables
@@ -315,113 +218,79 @@ const severityFilter = ref("");
 const bankFilter = ref("");
 const branchFilter = ref("");
 const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-const allItems = ref<ChequeItem[]>([]);
 const challanNoFilter = ref("");
 
-// Bank to branches mapping
-const bankBranchesMap = {
-  "National Bank": [
-    { text: "National Main Branch", value: "National Main Branch" },
-    { text: "National North Branch", value: "National North Branch" },
-    { text: "National South Branch", value: "National South Branch" },
-  ],
-  "City Bank": [
-    { text: "City Central Branch", value: "City Central Branch" },
-    { text: "City East Branch", value: "City East Branch" },
-    { text: "City West Branch", value: "City West Branch" },
-  ],
-  "Metro Bank": [
-    { text: "Metro Downtown Branch", value: "Metro Downtown Branch" },
-    { text: "Metro Uptown Branch", value: "Metro Uptown Branch" },
-  ],
-  "Global Bank": [
-    { text: "Global HQ Branch", value: "Global HQ Branch" },
-    { text: "Global Regional Branch", value: "Global Regional Branch" },
-    {
-      text: "Global International Branch",
-      value: "Global International Branch",
-    },
-  ],
+const dispatchStore = useDispatchRequisitionStore();
+
+const banks = ref<Bank[]>([]);
+//Get the banks from the database
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
 };
 
-// Available branches based on selected bank
-const availableBranches = computed(() => {
-  if (!bankFilter.value) return [];
-  return (
-    bankBranchesMap[bankFilter.value as keyof typeof bankBranchesMap] || []
-  );
-});
-
-// Filter to only dispatched items
-const dispatchedItems = computed(() => {
-  return allItems.value.filter((item) => item.status === "Dispatched");
-});
-
-// Count of unique banks
-const uniqueBanksCount = computed(() => {
-  const banks = new Set(dispatchedItems.value.map((item) => item.bankName));
-  return banks.size;
-});
-
-// Count of unique branches
-const uniqueBranchesCount = computed(() => {
-  const branches = new Set(
-    dispatchedItems.value.map((item) => item.branchName)
-  );
-  return branches.size;
-});
-
+const pagination = computed(() => ({
+  current: Math.floor(dispatchStore.skip / dispatchStore.limit) + 1,
+  pageSize: dispatchStore.limit,
+  total: dispatchStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} Dispatched Requisitions`,
+}));
 // Dispatched item columns for the table
 const dispatchedItemColumns = [
   {
-    title: "Account No",
-    dataIndex: "accountNo",
-    key: "accountNo",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountNo.localeCompare(b.accountNo),
-    width: 150,
-  },
-  {
-    title: "Account Name",
-    dataIndex: "accountName",
-    key: "accountName",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountName.localeCompare(b.accountName),
-    width: 180,
+    title: "Sl.",
+    key: "id",
+    width: 70,
   },
   {
     title: "Bank",
     dataIndex: "bankName",
     key: "bankName",
     width: 150,
-    filters: [
-      { text: "National Bank", value: "National Bank" },
-      { text: "City Bank", value: "City Bank" },
-      { text: "Metro Bank", value: "Metro Bank" },
-      { text: "Global Bank", value: "Global Bank" },
-    ],
-    onFilter: (value: string, record: ChequeItem) => record.bankName === value,
   },
   {
-    title: "Branch",
+    title: "Challan No",
+    dataIndex: "challanNumber",
+    key: "challanNumber",
+    width: 150,
+  },
+  {
+    title: "Account No",
+    dataIndex: "accountNo",
+    key: "accountNo",
+    width: 150,
+  },
+  {
+    title: "Account Name",
+    dataIndex: "accountName",
+    key: "accountName",
+  },
+  {
+    title: "Home Branch",
     dataIndex: "branchName",
     key: "branchName",
     width: 150,
   },
   {
-    title: "Challan No",
-    dataIndex: "challanNo",
-    key: "challanNo",
+    title: "Receiving Branch",
+    dataIndex: "receivingBranchName",
+    key: "receivingBranchName",
     width: 150,
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.challanNo.localeCompare(b.challanNo),
   },
   {
     title: "Start No",
     dataIndex: "startNo",
     key: "startNo",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.startNo - b.startNo,
   },
   {
     title: "End No",
@@ -431,22 +300,21 @@ const dispatchedItemColumns = [
   },
   {
     title: "Book Qty",
-    dataIndex: "bookQuantity",
-    key: "bookQuantity",
+    dataIndex: "bookQty",
+    key: "bookQty",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.bookQuantity - b.bookQuantity,
   },
   {
     title: "Severity",
-    dataIndex: "severity",
-    key: "severity",
+    dataIndex: "serverity",
+    key: "serverity",
     width: 120,
-    filters: [
-      { text: "High", value: "High" },
-      { text: "Medium", value: "Medium" },
-      { text: "Low", value: "Low" },
-    ],
-    onFilter: (value: string, record: ChequeItem) => record.severity === value,
+  },
+  {
+    title: "Status",
+    dataIndex: "statusName",
+    key: "statusName",
+    width: 120,
   },
   {
     title: "Request Date",
@@ -454,24 +322,6 @@ const dispatchedItemColumns = [
     key: "requestDate",
     width: 150,
     render: (text: string) => formatDate(text),
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
-  },
-  {
-    title: "Dispatch Date",
-    dataIndex: "dispatchDate",
-    key: "dispatchDate",
-    width: 150,
-    render: (text: string) => formatDate(text),
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      new Date(a.dispatchDate || "").getTime() -
-      new Date(b.dispatchDate || "").getTime(),
-  },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    width: 120,
   },
 ];
 
@@ -486,203 +336,21 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Computed property for filtered dispatched items
-const filteredDispatchedItems = computed(() => {
-  let result = [...dispatchedItems.value];
-
-  // Apply search filter
-  if (searchText.value) {
-    const searchLower = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.accountNo.toLowerCase().includes(searchLower) ||
-        item.accountName.toLowerCase().includes(searchLower) ||
-        item.bankName.toLowerCase().includes(searchLower) ||
-        item.branchName.toLowerCase().includes(searchLower)
-    );
-  }
-
-  // Apply severity filter
-  if (severityFilter.value) {
-    result = result.filter((item) => item.severity === severityFilter.value);
-  }
-
-  // Apply bank filter
-  if (bankFilter.value) {
-    result = result.filter((item) => item.bankName === bankFilter.value);
-  }
-
-  // Apply branch filter
-  if (branchFilter.value) {
-    result = result.filter((item) => item.branchName === branchFilter.value);
-  }
-
-  // Apply date range filter
-  if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-    const startDate = dateRange.value[0].valueOf();
-    const endDate = dateRange.value[1].valueOf();
-
-    result = result.filter((item) => {
-      const reqDate = new Date(item.requestDate).getTime();
-      return reqDate >= startDate && reqDate <= endDate;
-    });
-  }
-
-  // Apply challan no filter
-  if (challanNoFilter.value) {
-    result = result.filter((item) =>
-      item.challanNo.toLowerCase().includes(challanNoFilter.value.toLowerCase())
-    );
-  }
-
-  return result;
-});
-
-// Fetch cheque items data
-const fetchItems = async () => {
-  loading.value = true;
-  try {
-    // In a real application, this would be an API call
-    // For demo purposes, we'll use mock data
-    setTimeout(() => {
-      allItems.value = generateMockItems();
-      loading.value = false;
-    }, 1000);
-  } catch (error) {
-    message.error("Failed to fetch requisition items");
-    loading.value = false;
-  }
-};
-
 // Refresh data
 const refreshData = () => {
   loading.value = true;
   setTimeout(() => {
-    allItems.value = generateMockItems();
+    dispatchStore.resetFilters();
+    dispatchStore.fetchDispatchRequisitions();
     loading.value = false;
     message.success("Data refreshed successfully");
   }, 800);
 };
 
-// Generate mock data for demonstration
-const generateMockItems = (): ChequeItem[] => {
-  const statuses = [
-    "Pending",
-    "Approved",
-    "Ordered",
-    "Download",
-    "Dispatched",
-    "Delivery Receive",
-  ];
-  const banks = ["National Bank", "City Bank", "Metro Bank", "Global Bank"];
-  const severities = ["High", "Medium", "Low"];
-
-  return Array.from({ length: 50 }, (_, i) => {
-    // For dispatch page, make more items have Dispatched status
-    const randomStatus =
-      Math.random() < 0.7
-        ? "Dispatched"
-        : statuses[Math.floor(Math.random() * statuses.length)];
-    const bank = banks[i % 4];
-    const branchOptions = bankBranchesMap[bank as keyof typeof bankBranchesMap];
-    const branch = branchOptions[i % branchOptions.length].value;
-
-    // Generate a request date
-    const requestDate = new Date(
-      2023,
-      Math.floor(Math.random() * 12),
-      Math.floor(Math.random() * 28) + 1
-    );
-
-    // Generate a dispatch date that's after the request date (if status is Dispatched)
-    let dispatchDate = null;
-    if (randomStatus === "Dispatched") {
-      dispatchDate = new Date(requestDate);
-      dispatchDate.setDate(
-        dispatchDate.getDate() + Math.floor(Math.random() * 14) + 1
-      ); // 1-14 days after request
-    }
-
-    return {
-      id: i + 1,
-      accountNo: `AC-${100000 + i}`,
-      routingNo: `RT-${200000 + i}`,
-      startNo: 1000 + i * 100,
-      endNo: 1099 + i * 100,
-      prefix: `PFX-${i % 5}`,
-      series: `S-${i % 3}`,
-      severity: severities[i % 3],
-      bankName: bank,
-      branchName: branch,
-      accountName: `Account Holder ${i + 1}`,
-      customerAddress: `123 Main St, City ${i + 1}, Country`,
-      bookQuantity: Math.floor(Math.random() * 5) + 1,
-      transactionCode: 1000 + i,
-      leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-      courierCode: `CR-${1000 + i}`,
-      distributionPointName: `Distribution Point ${(i % 5) + 1}`,
-      receivingBranch: branch,
-      status: randomStatus,
-      requestDate: requestDate.toISOString(),
-      dispatchDate: dispatchDate ? dispatchDate.toISOString() : undefined,
-      challanNo: `CHN-${10000 + i}`,
-    };
-  });
-};
-
-// Get color for severity tag
-const getSeverityColor = (severity: string) => {
-  const colorMap: Record<string, string> = {
-    High: "error",
-    Medium: "warning",
-    Low: "success",
-  };
-
-  return colorMap[severity] || "default";
-};
-
-// Handle search
-const handleSearch = (value: string) => {
-  searchText.value = value;
-};
-
-// Handle severity filter change
-const handleSeverityFilterChange = (value: string) => {
-  severityFilter.value = value;
-};
-
-// Handle bank filter change
-const handleBankFilterChange = (value: string) => {
-  bankFilter.value = value;
-  branchFilter.value = ""; // Reset branch filter when bank changes
-};
-
-// Handle branch filter change
-const handleBranchFilterChange = (value: string) => {
-  branchFilter.value = value;
-};
-
-// Handle date range change
-const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
-  dateRange.value = dates;
-};
-
-// Handle challan no filter change
-const handleChallanNoFilterChange = (e: Event) => {
-  challanNoFilter.value = (e.target as HTMLInputElement).value;
-};
-
-// Reset selection when filtered items change
-watch(
-  [severityFilter, bankFilter, branchFilter, searchText, challanNoFilter],
-  () => {
-    // No selection to reset since we don't have row selection in this component
-  }
-);
-
-// Fetch data on component mount
 onMounted(() => {
-  fetchItems();
+  dispatchStore.resetFilters();
+  dispatchStore.fetchDispatchRequisitions();
+  featchBanks();
 });
 </script>
 
