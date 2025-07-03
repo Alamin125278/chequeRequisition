@@ -118,8 +118,9 @@ export const useDispatchRequisitionStore = defineStore(
     const setSeverity = (severityId: number) => {
       if (severityId != null && severityId != undefined && severityId != 0) {
         severity.value = severityId;
+      } else {
+        severity.value = null;
       }
-      severity.value = null;
       skip.value = 0;
       fetchDispatchRequisitions();
     };

@@ -23,7 +23,7 @@ export interface OrderRequisition {
   bookQty: number;
   receivingBranchName: string;
   routingNo: string;
-  requestDate: string;
+  reDate: string;
   statusName: string;
   cusAddress: string;
 }
@@ -34,7 +34,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const loading = ref<boolean>(false);
 
   const search = ref<string>("");
-  const requestDate = ref<string>("");
+  const reDate = ref<string>("");
   const skip = ref<number>(0);
   const limit = ref<number>(10);
   const status = ref<number>(3);
@@ -50,7 +50,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         limit: limit.value,
         BankId: bank.value ?? undefined,
         severity: severity.value ?? undefined,
-        requestDate: requestDate.value ?? undefined,
+        requestDate: reDate.value ?? undefined,
         status: status.value ?? undefined,
       });
       orderRequisition.value = result.data;
@@ -68,7 +68,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         search: search.value,
         BankId: bank.value ?? undefined,
         severity: severity.value ?? undefined,
-        requestDate: requestDate.value ?? undefined,
+        requestDate: reDate.value ?? undefined,
       });
       console.log(res);
       orderRequisitionForExport.value = res;
@@ -102,7 +102,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const setRequestDate = (requestDate: string) => {
     const dateObj = new Date(requestDate);
     const formattedDate = dateObj.toISOString().split("T")[0]; // yyyy-MM-dd format
-    requestDate = formattedDate;
+    reDate.value = formattedDate;
     fetchOrderRequisitions();
   };
 

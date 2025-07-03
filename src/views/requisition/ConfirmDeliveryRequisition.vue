@@ -92,7 +92,7 @@
             @change="dispatchStore.setSeverity"
             allowClear
           >
-            <a-select-option value="">All Severities</a-select-option>
+            <a-select-option value="">All Severity</a-select-option>
             <a-select-option value="1">Urgent</a-select-option>
             <a-select-option value="2">Normal</a-select-option>
           </a-select>
