@@ -418,7 +418,7 @@ import { computed, onMounted, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import {
   createChallan,
-  getChallanService,
+  getChallanExportService,
 } from "../../services/challan/challan.service";
 import {
   useOrderRequisitionStore,
@@ -837,7 +837,7 @@ const confirmExportChallan = async () => {
       var challanIds = response?.createdChallanIds ?? [];
 
       if (challanIds.length > 0) {
-        var challans = await getChallanService(challanIds);
+        var challans = await getChallanExportService(challanIds);
         // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
         // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
         const logoBase64 = await toBase64(FinteralogoImage);

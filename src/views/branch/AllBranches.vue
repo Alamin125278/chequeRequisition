@@ -156,7 +156,7 @@
           :columns="columns"
           :pagination="pagination"
           :loading="loading"
-          @change="(p) => branchStore.setPagination(p.current, p.pageSize)"
+          @change="branchPagination"
           :rowClassName="() => 'hover:bg-background'"
           class="custom-table"
           :scroll="{ x: 1000 }"
@@ -451,6 +451,8 @@ const featchBanks = async () => {
     loading.value = false;
   }
 };
+const branchPagination = (p: any) =>
+  branchStore.setPagination(p.current, p.pageSize);
 
 // Form state for modal
 const formState = reactive({

@@ -1,4 +1,5 @@
 import { baseHttp } from "@/config/base-http";
+import type { Challan } from "@/stores/challanStore";
 import constant from "@/utils/constant";
 
 export interface ChallanOrder {
@@ -31,18 +32,37 @@ export interface FetchChallanParams {
   agentNum?: string | null;
   items: ChallanItem[];
 }
+export interface FetchAllChallanParams {
+  bankId?: number;
+  branchId?: number;
+  search?: string;
+  challanDate?: string;
+  skip: number;
+  limit: number;
+}
+
+export interface FetchAllChallanResponse {
+  data: Challan[];
+}
 
 export const createChallan = async (payload: CreateChallanPayload) => {
   const res = await baseHttp().post(constant.APIs.createChallan, payload);
   return res.data;
 };
 
-export const getChallanService = async (
+export const getChallanExportService = async (
   challanIds: number[]
 ): Promise<FetchChallanParams[]> => {
-  const res = await baseHttp().post(constant.APIs.getChallans, {
+  const res = await baseHttp().post(constant.APIs.getChallansExport, {
     challanIds: challanIds,
   });
 
   return res.data.challans;
+};
+
+export const getAllChallanService = async (params: FetchAllChallanParams) => {
+  const response = await baseHttp().get(constant.APIs.getAllChallans, {
+    params,
+  });
+  return response.data.data.challans;
 };

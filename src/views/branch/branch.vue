@@ -61,12 +61,7 @@
       <a-table
         :dataSource="filteredRequisitions"
         :columns="columns"
-        :pagination="{
-          pageSize: 10,
-          showTotal: (total) => `Total ${total} branches`,
-        }"
         :loading="loading"
-        :rowClassName="(index) => (index % 2 === 0 ? 'bg-gray-50' : '')"
         class="custom-table"
       >
         <!-- Bank Name Column -->
@@ -118,16 +113,15 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from "vue";
 import {
-  DeleteOutlined,
-  EditOutlined,
-  PlusOutlined,
-  EyeOutlined,
   BankOutlined,
   BranchesOutlined,
-  CheckCircleOutlined,
+  DeleteOutlined,
+  EditOutlined,
+  EyeOutlined,
+  PlusOutlined,
 } from "@ant-design/icons-vue";
+import { computed, ref } from "vue";
 
 // Search and filter states
 const searchText = ref("");

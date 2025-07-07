@@ -48,77 +48,6 @@
 
     <!-- Stats Cards Section -->
     <div class="max-w-7xl mx-auto py-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <!-- Total Challans Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-teal-100 rounded-md p-3">
-                <FileTextOutlined class="h-6 w-6 text-teal-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Total Challans
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ filteredChallans.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Banks Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <BankOutlined class="h-6 w-6 text-blue-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Banks
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ uniqueBanksCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Total Items Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-purple-100 rounded-md p-3">
-                <AppstoreOutlined class="h-6 w-6 text-purple-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Total Items
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ totalItemsCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
@@ -127,52 +56,73 @@
           Filter Challans
         </h3>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-          <a-select
-            v-model:value="bankFilter"
-            placeholder="Select Bank"
-            class="w-full"
-            @change="handleBankFilterChange"
-            allowClear
-          >
-            <a-select-option value="">All Banks</a-select-option>
-            <a-select-option v-for="bank in banks" :key="bank" :value="bank">{{
-              bank
-            }}</a-select-option>
-          </a-select>
+          <template v-if="challanStore.banks.length === 1">
+            <a-input
+              :value="challanStore.banks[0].bankName"
+              disabled
+              class="w-full"
+              style="background-color: #fff; color: #000; cursor: default"
+            />
+          </template>
+          <template v-else>
+            <a-select
+              placeholder="Select Bank"
+              class="w-full"
+              @change="challanStore.setBank"
+              allowClear
+            >
+              <a-select-option
+                v-for="bank in challanStore.banks"
+                :key="bank.id"
+                :value="bank.id"
+              >
+                {{ bank.bankName }}
+              </a-select-option>
+            </a-select>
+          </template>
 
-          <a-select
-            v-model:value="branchFilter"
-            placeholder="Receiving Branch"
-            class="w-full"
-            @change="handleBranchFilterChange"
-            :disabled="!bankFilter"
-            allowClear
-          >
-            <a-select-option value="">All Branches</a-select-option>
-            <template v-for="branch in availableBranches" :key="branch.value">
-              <a-select-option :value="branch.value">{{
-                branch.text
-              }}</a-select-option>
-            </template>
-          </a-select>
-
-          <a-input
+          <template v-if="challanStore.branches.length === 1">
+            <a-input
+              :value="challanStore.branches[0].branchName"
+              disabled
+              class="w-full"
+              style="background-color: #fff; color: #000; cursor: default"
+            />
+          </template>
+          <!-- If more than 1, show dropdown -->
+          <template v-else>
+            <a-select
+              placeholder="All branches"
+              class="rounded-md w-full"
+              @change="challanStore.setBranch"
+            >
+              <a-select-option value="">All branches</a-select-option>
+              <a-select-option
+                v-for="branch in challanStore.branches"
+                :key="branch.id"
+                :value="branch.id"
+              >
+                {{ branch.branchName }}
+              </a-select-option>
+            </a-select>
+          </template>
+          <a-input-search
             v-model:value="challanNoFilter"
             placeholder="Challan Number"
             class="w-full"
-            @change="handleChallanNoFilterChange"
-            :allowClear="true"
+            @search="challanStore.setChallanNo"
+            allowClear
           >
             <template #prefix>
               <FileTextOutlined class="text-secondary" />
             </template>
-          </a-input>
+          </a-input-search>
 
-          <a-range-picker
+          <a-date-picker
             v-model:value="dateRange"
-            @change="handleDateRangeChange"
+            @change="challanStore.setRequestDate"
             class="w-full"
-            :placeholder="['Start Date', 'End Date']"
+            placeholder="Select Challan Date"
           />
         </div>
       </div>
@@ -184,36 +134,42 @@
         >
           <h3 class="text-lg font-medium text-primary">Challans</h3>
           <span class="text-sm text-secondary"
-            >{{ filteredChallans.length }} challans found</span
+            >{{ challanStore.total }} challans found</span
           >
         </div>
         <a-table
-          :dataSource="filteredChallans"
+          :dataSource="challanStore.challans"
           :columns="challanColumns"
           :loading="loading"
-          :pagination="{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-            showTotal: (total) => `Total ${total} challans`,
-          }"
+          :pagination="pagination"
           rowKey="id"
+          @change="(p) => challanStore.setPagination(p.current, p.pageSize)"
           class="custom-table"
           :scroll="{ x: 1000 }"
           :rowClassName="() => 'hover:bg-background'"
         >
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
             <!-- SL No Column -->
-            <template v-if="column.key === 'slNo'">
-              <span class="font-medium">{{ record.slNo }}</span>
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
             </template>
 
             <!-- Challan Number Column -->
-            <template v-if="column.key === 'challanNo'">
+            <template v-if="column.key === 'challanNumber'">
               <a-tag
+                color="blue"
                 class="px-3 py-1 rounded-md text-xs font-medium bg-teal-50 text-teal-700 border-teal-200"
               >
-                {{ record.challanNo }}
+                {{ record.challanNumber }}
+              </a-tag>
+            </template>
+
+            <template v-if="column.key === 'requisitionCount'">
+              <a-tag
+                color="red"
+                class="px-3 py-1 rounded-lg text-xs font-medium"
+              >
+                {{ record.requisitionCount }}
               </a-tag>
             </template>
 
@@ -222,10 +178,9 @@
               <div class="flex flex-wrap justify-center gap-2">
                 <a-tooltip title="View Challan Items">
                   <a-button
-                    type="default"
+                    type="primary"
                     shape="circle"
-                    class="bg-teal-500 border-teal-500 hover:bg-teal-600 hover:border-teal-600"
-                    @click="viewChallanItems(record)"
+                    class="btn-challan-view"
                     ><EyeOutlined />
                   </a-button>
                 </a-tooltip>
@@ -233,8 +188,7 @@
                   <a-button
                     type="default"
                     shape="circle"
-                    class="bg-red-500 border-red-500 hover:bg-red-600 hover:border-red-600"
-                    @click="exportChallan(record)"
+                    class="btn-challan-export"
                   >
                     <ExportOutlined />
                   </a-button>
@@ -243,21 +197,6 @@
             </template>
           </template>
         </a-table>
-
-        <!-- Empty State -->
-        <div
-          v-if="!loading && filteredChallans.length === 0"
-          class="text-center py-12 bg-background rounded-md"
-        >
-          <InboxOutlined
-            style="font-size: 48px"
-            class="text-secondary opacity-30"
-          />
-          <p class="mt-3 text-primary text-lg font-medium">No challans found</p>
-          <p class="text-secondary">
-            Try adjusting your filters to see more results
-          </p>
-        </div>
       </div>
     </div>
 
@@ -280,7 +219,7 @@
           <div class="bg-background p-4 rounded-md">
             <p class="text-sm text-secondary">Receiving Branch</p>
             <p class="font-medium text-primary">
-              {{ selectedChallan.receivingBranch }}
+              {{ selectedChallan.receivingBranchName }}
             </p>
           </div>
           <div class="bg-background p-4 rounded-md">
@@ -292,7 +231,7 @@
         </div>
 
         <a-table
-          :dataSource="challanItems"
+          :dataSource="challanStore.challans"
           :columns="challanItemColumns"
           :loading="itemsLoading"
           :pagination="{
@@ -307,14 +246,6 @@
         >
           <template #bodyCell="{ column, record }">
             <!-- Severity Column -->
-            <template v-if="column.key === 'severity'">
-              <a-tag
-                :color="getSeverityColor(record.severity)"
-                class="px-2 py-0.5 rounded-md text-xs font-medium"
-              >
-                {{ record.severity }}
-              </a-tag>
-            </template>
 
             <!-- Status Column -->
             <template v-if="column.key === 'status'">
@@ -334,140 +265,59 @@
 
 <script setup lang="ts">
 import {
-  AppstoreOutlined,
-  BankOutlined,
   DownloadOutlined,
   ExportOutlined,
   EyeOutlined,
   FileTextOutlined,
-  InboxOutlined,
   ReloadOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import { computed, onMounted, ref } from "vue";
-
-interface ChallanItem {
-  id: number;
-  accountNo: string;
-  accountName: string;
-  startNo: number;
-  endNo: number;
-  bookQuantity: number;
-  severity: string;
-  status: string;
-}
-
-interface Challan {
-  id: number;
-  slNo: number;
-  challanNo: string;
-  bankName: string;
-  receivingBranch: string;
-  challanDate: string;
-  courierName: string;
-  itemsCount: number;
-}
-
-interface BranchOption {
-  text: string;
-  value: string;
-}
+import { useChallanStore, type Challan } from "../../stores/challanStore";
 
 // State variables
-const loading = ref(true);
+const loading = ref(false);
 const itemsLoading = ref(false);
-const bankFilter = ref("");
-const branchFilter = ref("");
+const selectedChallan = ref<Challan | null>(null);
 const challanNoFilter = ref("");
 const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-const challans = ref<Challan[]>([]);
 const isModalVisible = ref(false);
-const selectedChallan = ref<Challan | null>(null);
-const challanItems = ref<ChallanItem[]>([]);
 
-// List of banks
-const banks = ["National Bank", "City Bank", "Metro Bank", "Global Bank"];
+const challanStore = useChallanStore();
 
-// Bank to branches mapping
-const bankBranchesMap = {
-  "National Bank": [
-    { text: "National Main Branch", value: "National Main Branch" },
-    { text: "National North Branch", value: "National North Branch" },
-    { text: "National South Branch", value: "National South Branch" },
-  ],
-  "City Bank": [
-    { text: "City Central Branch", value: "City Central Branch" },
-    { text: "City East Branch", value: "City East Branch" },
-    { text: "City West Branch", value: "City West Branch" },
-  ],
-  "Metro Bank": [
-    { text: "Metro Downtown Branch", value: "Metro Downtown Branch" },
-    { text: "Metro Uptown Branch", value: "Metro Uptown Branch" },
-  ],
-  "Global Bank": [
-    { text: "Global HQ Branch", value: "Global HQ Branch" },
-    { text: "Global Regional Branch", value: "Global Regional Branch" },
-    {
-      text: "Global International Branch",
-      value: "Global International Branch",
-    },
-  ],
-};
-
-// Available branches based on selected bank
-const availableBranches = computed(() => {
-  if (!bankFilter.value) return [];
-  return (
-    bankBranchesMap[bankFilter.value as keyof typeof bankBranchesMap] || []
-  );
-});
-
-// Count of unique banks
-const uniqueBanksCount = computed(() => {
-  const uniqueBanks = new Set(
-    challans.value.map((challan) => challan.bankName)
-  );
-  return uniqueBanks.size;
-});
-
-// Total items count across all challans
-const totalItemsCount = computed(() => {
-  return challans.value.reduce(
-    (total, challan) => total + challan.itemsCount,
-    0
-  );
-});
+const pagination = computed(() => ({
+  current: Math.floor(challanStore.skip / challanStore.limit) + 1,
+  pageSize: challanStore.limit,
+  total: challanStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} Challans`,
+}));
 
 // Challan columns for the table
 const challanColumns = [
   {
     title: "SL No",
-    dataIndex: "slNo",
-    key: "slNo",
+    key: "id",
     width: 80,
   },
   {
     title: "Challan Number",
-    dataIndex: "challanNo",
-    key: "challanNo",
+    dataIndex: "challanNumber",
+    key: "challanNumber",
     width: 180,
-    sorter: (a: Challan, b: Challan) => a.challanNo.localeCompare(b.challanNo),
   },
   {
     title: "Bank Name",
     dataIndex: "bankName",
     key: "bankName",
-    width: 150,
-    sorter: (a: Challan, b: Challan) => a.bankName.localeCompare(b.bankName),
   },
   {
     title: "Receiving Branch",
-    dataIndex: "receivingBranch",
-    key: "receivingBranch",
+    dataIndex: "receivingBranchName",
+    key: "receivingBranchName",
     width: 180,
-    sorter: (a: Challan, b: Challan) =>
-      a.receivingBranch.localeCompare(b.receivingBranch),
   },
   {
     title: "Challan Date",
@@ -486,16 +336,17 @@ const challanColumns = [
   },
   {
     title: "Items Count",
-    dataIndex: "itemsCount",
-    key: "itemsCount",
+    dataIndex: "requisitionCount",
+    key: "requisitionCount",
     width: 120,
-    sorter: (a: Challan, b: Challan) => a.itemsCount - b.itemsCount,
+    align: "center",
   },
   {
     title: "Actions",
     key: "actions",
     fixed: "right",
     width: 180,
+    align: "center",
   },
 ];
 
@@ -556,187 +407,33 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Computed property for filtered challans
-const filteredChallans = computed(() => {
-  let result = [...challans.value];
-
-  // Apply bank filter
-  if (bankFilter.value) {
-    result = result.filter((challan) => challan.bankName === bankFilter.value);
-  }
-
-  // Apply branch filter
-  if (branchFilter.value) {
-    result = result.filter(
-      (challan) => challan.receivingBranch === branchFilter.value
-    );
-  }
-
-  // Apply challan number filter
-  if (challanNoFilter.value) {
-    result = result.filter((challan) =>
-      challan.challanNo
-        .toLowerCase()
-        .includes(challanNoFilter.value.toLowerCase())
-    );
-  }
-
-  // Apply date range filter
-  if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-    const startDate = dateRange.value[0].valueOf();
-    const endDate = dateRange.value[1].valueOf();
-
-    result = result.filter((challan) => {
-      const challanDate = new Date(challan.challanDate).getTime();
-      return challanDate >= startDate && challanDate <= endDate;
-    });
-  }
-
-  return result;
-});
-
-// Fetch challans data
-const fetchChallans = async () => {
-  loading.value = true;
-  try {
-    // In a real application, this would be an API call
-    // For demo purposes, we'll use mock data
-    setTimeout(() => {
-      challans.value = generateMockChallans();
-      loading.value = false;
-    }, 1000);
-  } catch (error) {
-    message.error("Failed to fetch challans");
-    loading.value = false;
-  }
-};
-
 // Refresh data
 const refreshData = () => {
   loading.value = true;
   setTimeout(() => {
-    challans.value = generateMockChallans();
     loading.value = false;
     message.success("Data refreshed successfully");
   }, 800);
 };
 
-// Generate mock data for demonstration
-const generateMockChallans = (): Challan[] => {
-  const couriers = [
-    "FastExpress",
-    "SpeedCourier",
-    "SecureDelivery",
-    "QuickShip",
-    "PriorityPost",
-  ];
-
-  return Array.from({ length: 50 }, (_, i) => {
-    const bank = banks[i % 4];
-    const branchOptions = bankBranchesMap[bank as keyof typeof bankBranchesMap];
-    const branch = branchOptions[i % branchOptions.length].value;
-
-    // Generate a challan date
-    const challanDate = new Date(
-      2023,
-      Math.floor(Math.random() * 12),
-      Math.floor(Math.random() * 28) + 1
-    );
-
-    return {
-      id: i + 1,
-      slNo: i + 1,
-      challanNo: `CHN-${10000 + i}`,
-      bankName: bank,
-      receivingBranch: branch,
-      challanDate: challanDate.toISOString(),
-      courierName: couriers[i % couriers.length],
-      itemsCount: Math.floor(Math.random() * 10) + 1, // 1-10 items per challan
-    };
-  });
-};
-
-// Generate mock challan items
-const generateMockChallanItems = (challan: Challan): ChallanItem[] => {
-  const severities = ["High", "Medium", "Low"];
-  const statuses = ["Pending", "Dispatched", "Delivered"];
-
-  return Array.from({ length: challan.itemsCount }, (_, i) => {
-    return {
-      id: i + 1,
-      accountNo: `AC-${100000 + i}`,
-      accountName: `Account Holder ${i + 1}`,
-      startNo: 1000 + i * 100,
-      endNo: 1099 + i * 100,
-      bookQuantity: Math.floor(Math.random() * 5) + 1,
-      severity: severities[i % 3],
-      status: statuses[Math.floor(Math.random() * statuses.length)],
-    };
-  });
-};
-
-// Get color for severity tag
-const getSeverityColor = (severity: string) => {
-  const colorMap: Record<string, string> = {
-    High: "error",
-    Medium: "warning",
-    Low: "success",
-  };
-
-  return colorMap[severity] || "default";
-};
-
-// View challan items
-const viewChallanItems = (challan: Challan) => {
-  selectedChallan.value = challan;
-  isModalVisible.value = true;
-  itemsLoading.value = true;
-
-  // Simulate API call to fetch challan items
-  setTimeout(() => {
-    challanItems.value = generateMockChallanItems(challan);
-    itemsLoading.value = false;
-  }, 500);
-};
-
 // Export challan
-const exportChallan = (challan: Challan) => {
-  message.success(`Exporting challan ${challan.challanNo} as Excel file...`);
-  // In a real application, this would trigger an API call to generate and download an Excel file
-};
+// const exportChallan = (challan: Challan) => {
+//   message.success(`Exporting challan ${challan.challanNo} as Excel file...`);
+//   // In a real application, this would trigger an API call to generate and download an Excel file
+// };
 
 // Export all challans
 const exportAllChallans = () => {
   message.success(
-    `Exporting all ${filteredChallans.value.length} challans as Excel file...`
+    `Exporting all ${challanStore.fetchChallans.length} challans as Excel file...`
   );
   // In a real application, this would trigger an API call to generate and download an Excel file
 };
 
-// Handle bank filter change
-const handleBankFilterChange = (value: string) => {
-  bankFilter.value = value;
-  branchFilter.value = ""; // Reset branch filter when bank changes
-};
-
-// Handle branch filter change
-const handleBranchFilterChange = (value: string) => {
-  branchFilter.value = value;
-};
-
-// Handle challan number filter change
-const handleChallanNoFilterChange = (e: Event) => {
-  challanNoFilter.value = (e.target as HTMLInputElement).value;
-};
-
-// Handle date range change
-const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
-  dateRange.value = dates;
-};
-
 // Fetch data on component mount
 onMounted(() => {
-  fetchChallans();
+  challanStore.resetFilters();
+  challanStore.featchBanks();
 });
 </script>
 
@@ -840,6 +537,16 @@ onMounted(() => {
 /* Ant Design button overrides */
 .ant-btn-primary {
   border-radius: var(--radius-md) !important;
+}
+
+.ant-btn-primary.btn-challan-view {
+  background-color: var(--color-teal-500) !important;
+  border-color: var(--color-teal-500) !important;
+}
+.ant-btn-primary.btn-challan-view:hover,
+.ant-btn-primary.btn-challan-view:focus {
+  background-color: var(--color-teal-700) !important;
+  border-color: var(--color-teal-700) !important;
 }
 
 /* Responsive adjustments */
