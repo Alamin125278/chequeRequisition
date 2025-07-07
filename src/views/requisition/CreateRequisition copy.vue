@@ -362,7 +362,6 @@
                   pageSize: 10,
                   showSizeChanger: true,
                   pageSizeOptions: ['10', '20', '50'],
-                  showTotal: (total:number) => `Total ${total} items`,
                 }"
                 bordered
                 size="middle"
@@ -453,21 +452,20 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, reactive, computed } from "vue";
-import * as XLSX from "xlsx";
 import {
-  UploadOutlined,
-  InboxOutlined,
   BankOutlined,
-  FileTextOutlined,
-  InfoCircleOutlined,
+  CalendarOutlined,
   CheckCircleOutlined,
   CheckOutlined,
   CloseOutlined,
-  CalendarOutlined,
+  FileTextOutlined,
+  InboxOutlined,
+  InfoCircleOutlined,
 } from "@ant-design/icons-vue";
-import { message, Upload } from "ant-design-vue";
 import type { UploadChangeParam } from "ant-design-vue";
+import { message } from "ant-design-vue";
+import { ref } from "vue";
+import * as XLSX from "xlsx";
 
 // Define interfaces
 interface ImportedItem {
@@ -644,9 +642,9 @@ const beforeUpload = (file: File) => {
     message.error("File must be smaller than 2MB!");
   }
 
-  if (isCSVOrExcel && isLt2M) {
-    file.value = file;
-  }
+  // if (isCSVOrExcel && isLt2M) {
+  //   file.value = file;
+  // }
 
   return false; // Prevent auto upload
 };

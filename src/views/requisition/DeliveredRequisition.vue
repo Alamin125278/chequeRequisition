@@ -2,7 +2,7 @@
   <div class="bg-background min-h-screen">
     <!-- Professional Hero Header Section -->
     <div class="bg-card border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
@@ -38,7 +38,7 @@
     </div>
 
     <!-- Stats Cards Section -->
-    <div class="max-w-7xl mx-auto py-6">
+    <div class="mx-auto py-6">
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
@@ -155,7 +155,7 @@
           :loading="loading"
           :pagination="pagination"
           rowKey="id"
-          @change="(p) => deliveredStore.setPagination(p.current, p.pageSize)"
+          @change="deliveredPagination"
           class="custom-table"
           :scroll="{ x: 1300 }"
           :rowClassName="() => 'hover:bg-background'"
@@ -340,6 +340,8 @@ const refreshData = () => {
     message.success("Data refreshed successfully");
   }, 800);
 };
+const deliveredPagination = (p: any) =>
+  deliveredStore.setPagination(p.current, p.pageSize);
 
 // Fetch data on component mount
 onMounted(() => {

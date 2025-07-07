@@ -2,7 +2,7 @@
   <div class="bg-background min-h-screen">
     <!-- Professional Hero Header Section -->
     <div class="bg-card border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
@@ -47,7 +47,7 @@
     </div>
 
     <!-- Stats Cards Section -->
-    <div class="max-w-7xl mx-auto py-6">
+    <div class="mx-auto py-6">
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
         <h3
@@ -143,7 +143,7 @@
           :loading="loading"
           :pagination="pagination"
           rowKey="id"
-          @change="(p) => challanStore.setPagination(p.current, p.pageSize)"
+          @change="challanPagination"
           class="custom-table"
           :scroll="{ x: 1000 }"
           :rowClassName="() => 'hover:bg-background'"
@@ -203,7 +203,7 @@
     <!-- Challan Items Modal -->
     <a-modal
       v-model:visible="isModalVisible"
-      :title="`Challan Details: ${selectedChallan?.challanNo || ''}`"
+      :title="`Challan Details: ${selectedChallan?.challanNumber || ''}`"
       width="90%"
       :footer="null"
       class="challan-items-modal"
@@ -238,7 +238,6 @@
             pageSize: 5,
             showSizeChanger: true,
             pageSizeOptions: ['5', '10', '20'],
-            showTotal: (total) => `Total ${total} items`,
           }"
           rowKey="id"
           class="custom-table"
@@ -406,6 +405,11 @@ const formatDate = (dateString: string) => {
     day: "numeric",
   });
 };
+
+const challanPagination = (p: any) =>
+  challanStore.setPagination(p.current, p.pageSize);
+
+const challanItemShow = (item: any) => {};
 
 // Refresh data
 const refreshData = () => {

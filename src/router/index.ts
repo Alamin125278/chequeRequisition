@@ -2,10 +2,10 @@ import AuthLayout from "@/layouts/AuthLayout.vue";
 import MainLayout from "@/layouts/MainLayout.vue";
 import { CheckRoutePermission } from "@/services/Route/checkRoute.service";
 import { useUserStore } from "@/stores/userStore";
+import AllBranches from "@/views/branch/AllBranches.vue";
 import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
-import AllBranches from "@/views/branch/AllBranches.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
 import { createRouter, createWebHistory } from "vue-router";
 
@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: "/404",
       name: "404",
-      component: () => import("@/views/notFound.vue"),
+      component: LoginPage,
     },
     // App routes
     {
@@ -69,7 +69,7 @@ const router = createRouter({
         {
           path: "/users",
           name: "Users",
-          component: () => import("@/views/user/userPage.vue"), // Placeholder, would be a real page in production
+          component: () => import("@/views/user/UserList.vue"),
         },
         {
           path: "/manage-serial-no",

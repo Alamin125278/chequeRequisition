@@ -2,7 +2,7 @@
   <div class="bg-gray-50 min-h-screen">
     <!-- Professional Hero Header Section -->
     <div class="bg-white border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
@@ -48,7 +48,7 @@
     </div>
 
     <!-- Cheque Table Section -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+    <div class="mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="bg-white shadow rounded-lg overflow-hidden">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
           <div
@@ -99,7 +99,6 @@
           :columns="columns"
           :pagination="{
             pageSize: 10,
-            showTotal: (total) => `Total ${total} cheque books`,
             showSizeChanger: true,
             pageSizeOptions: ['10', '20', '50'],
           }"
@@ -667,20 +666,20 @@ const handleModalSubmit = () => {
             id: (cheques.value.length + 1).toString(),
             ...formState,
           };
-          cheques.value.push(newCheque);
+          // cheques.value.push(newCheque);
           showToast("Cheque book added successfully", "success");
         } else {
           // Update existing cheque book
           const index = cheques.value.findIndex(
             (cheque) => cheque.id === currentChequeId.value
           );
-          if (index !== -1) {
-            cheques.value[index] = {
-              ...cheques.value[index],
-              ...formState,
-            };
-            showToast("Cheque book updated successfully", "success");
-          }
+          // if (index !== -1) {
+          //   // cheques.value[index] = {
+          //     ...cheques.value[index],
+          //     ...formState,
+          //   };
+          //   showToast("Cheque book updated successfully", "success");
+          // }
         }
 
         submitting.value = false;

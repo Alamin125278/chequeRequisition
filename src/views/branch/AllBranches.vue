@@ -2,7 +2,7 @@
   <div class="bg-background min-h-screen">
     <!-- Professional Hero Header Section -->
     <div class="bg-card border-b border-gray-200">
-      <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8">
         <div
           class="flex flex-col md:flex-row md:items-center md:justify-between"
         >
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Simplified Stats Section -->
-    <div class="max-w-7xl py-6">
+    <div class="mx-auto py-6">
       <div class="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
         <!-- Total Branches Card -->
         <div class="bg-card overflow-hidden shadow-md rounded-md">
@@ -110,7 +110,7 @@
     </div>
 
     <!-- Branch Table Section -->
-    <div class="max-w-7xl pb-8">
+    <div class="mx-auto pb-8">
       <div class="bg-card shadow-md rounded-md overflow-hidden">
         <div class="px-4 py-5 sm:px-6 border-b border-gray-200">
           <div
