@@ -45,8 +45,8 @@ export const useChallanStore = defineStore("challan", () => {
         branchId: branch.value ?? undefined,
         challanDate: chaDate.value ?? undefined,
       });
-      challans.value = result;
-      total.value = 10;
+      challans.value = result.challans;
+      total.value = result.totalCount;
     } catch (e) {
       console.error("Error fetching challans", e);
     } finally {

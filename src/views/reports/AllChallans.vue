@@ -31,7 +31,7 @@
                 Refresh
               </a-button>
             </a-tooltip>
-            <a-tooltip title="Export all challans">
+            <!-- <a-tooltip title="Export all challans">
               <a-button
                 type="default"
                 class="border-teal-500 text-teal-600 hover:bg-teal-50"
@@ -40,7 +40,7 @@
                 <template #icon><DownloadOutlined /></template>
                 Export All
               </a-button>
-            </a-tooltip>
+            </a-tooltip> -->
           </div>
         </div>
       </div>
@@ -181,10 +181,11 @@
                     type="primary"
                     shape="circle"
                     class="btn-challan-view"
+                    @click="viewChallanItems(record)"
                     ><EyeOutlined />
                   </a-button>
                 </a-tooltip>
-                <a-tooltip title="Export Challan">
+                <!-- <a-tooltip title="Export Challan">
                   <a-button
                     type="default"
                     shape="circle"
@@ -192,7 +193,7 @@
                   >
                     <ExportOutlined />
                   </a-button>
-                </a-tooltip>
+                </a-tooltip> -->
               </div>
             </template>
           </template>
@@ -203,56 +204,67 @@
     <!-- Challan Items Modal -->
     <a-modal
       v-model:visible="isModalVisible"
-      :title="`Challan Details: ${selectedChallan?.challanNumber || ''}`"
+      :title="`Challan Details: ${challanNo || ''}`"
       width="90%"
+      style="top: 20px"
       :footer="null"
       class="challan-items-modal"
     >
-      <div v-if="selectedChallan" class="mb-4">
+      <div class="mb-4">
         <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
           <div class="bg-background p-4 rounded-md">
             <p class="text-sm text-secondary">Bank</p>
             <p class="font-medium text-primary">
-              {{ selectedChallan.bankName }}
+              {{ bankName ?? "N/A" }}
             </p>
           </div>
           <div class="bg-background p-4 rounded-md">
             <p class="text-sm text-secondary">Receiving Branch</p>
             <p class="font-medium text-primary">
-              {{ selectedChallan.receivingBranchName }}
+              {{ receivingBranchName ?? "N/A" }}
             </p>
           </div>
           <div class="bg-background p-4 rounded-md">
             <p class="text-sm text-secondary">Challan Date</p>
             <p class="font-medium text-primary">
-              {{ formatDate(selectedChallan.challanDate) }}
+              {{ formatDate(challanDate) ?? "N/A" }}
             </p>
           </div>
         </div>
 
         <a-table
-          :dataSource="challanStore.challans"
+          :dataSource="challanItemStore.challanItems"
           :columns="challanItemColumns"
           :loading="itemsLoading"
-          :pagination="{
-            pageSize: 5,
-            showSizeChanger: true,
-            pageSizeOptions: ['5', '10', '20'],
-          }"
+          :pagination="itemPagination"
           rowKey="id"
+          @change="challanItemPagination"
           class="custom-table"
           :scroll="{ x: 1200 }"
         >
-          <template #bodyCell="{ column, record }">
+          <template #bodyCell="{ column, record, index }">
+            <template v-if="column.key === 'id'">
+              {{ index + 1 }}
+            </template>
             <!-- Severity Column -->
-
-            <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'serverity'">
               <a-tag
-                color="teal"
-                class="px-3 py-1 rounded-md text-xs font-medium"
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                    ? 'warning'
+                    : 'default'
+                "
+                class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.status }}
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                    ? "Normal"
+                    : "Unknown"
+                }}
               </a-tag>
             </template>
           </template>
@@ -264,8 +276,6 @@
 
 <script setup lang="ts">
 import {
-  DownloadOutlined,
-  ExportOutlined,
   EyeOutlined,
   FileTextOutlined,
   ReloadOutlined,
@@ -273,6 +283,7 @@ import {
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import { computed, onMounted, ref } from "vue";
+import { useChallanItemStore } from "../../stores/challanItemStore.ts";
 import { useChallanStore, type Challan } from "../../stores/challanStore";
 
 // State variables
@@ -284,6 +295,7 @@ const dateRange = ref<[Dayjs, Dayjs] | null>(null);
 const isModalVisible = ref(false);
 
 const challanStore = useChallanStore();
+const challanItemStore = useChallanItemStore();
 
 const pagination = computed(() => ({
   current: Math.floor(challanStore.skip / challanStore.limit) + 1,
@@ -292,6 +304,15 @@ const pagination = computed(() => ({
   showSizeChanger: true,
   pageSizeOptions: ["10", "20", "50"],
   showTotal: (total: number) => `Total ${total} Challans`,
+}));
+
+const itemPagination = computed(() => ({
+  current: Math.floor(challanItemStore.skip / challanItemStore.limit) + 1,
+  pageSize: challanItemStore.limit,
+  total: challanItemStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "20", "50"],
+  showTotal: (total: number) => `Total ${total} Challan Items`,
 }));
 
 // Challan columns for the table
@@ -352,6 +373,11 @@ const challanColumns = [
 // Challan item columns for the modal table
 const challanItemColumns = [
   {
+    title: "Sl No",
+    key: "id",
+    width: 80,
+  },
+  {
     title: "Account No",
     dataIndex: "accountNo",
     key: "accountNo",
@@ -377,21 +403,15 @@ const challanItemColumns = [
   },
   {
     title: "Book Quantity",
-    dataIndex: "bookQuantity",
-    key: "bookQuantity",
+    dataIndex: "bookQty",
+    key: "bookQty",
     width: 150,
-  },
-  {
-    title: "Severity",
-    dataIndex: "severity",
-    key: "severity",
-    width: 120,
   },
   {
     title: "Status",
-    dataIndex: "status",
-    key: "status",
-    width: 150,
+    dataIndex: "serverity",
+    key: "serverity",
+    width: 120,
   },
 ];
 
@@ -408,8 +428,13 @@ const formatDate = (dateString: string) => {
 
 const challanPagination = (p: any) =>
   challanStore.setPagination(p.current, p.pageSize);
+const challanItemPagination = (p: any) =>
+  challanItemStore.setItemPagination(p.current, p.pageSize);
 
-const challanItemShow = (item: any) => {};
+let challanNo = ref("");
+let bankName = ref("");
+let receivingBranchName = ref("");
+let challanDate = ref("");
 
 // Refresh data
 const refreshData = () => {
@@ -425,6 +450,15 @@ const refreshData = () => {
 //   message.success(`Exporting challan ${challan.challanNo} as Excel file...`);
 //   // In a real application, this would trigger an API call to generate and download an Excel file
 // };
+
+const viewChallanItems = async (challan: Challan) => {
+  isModalVisible.value = true;
+  challanNo.value = challan.challanNumber;
+  bankName.value = challan.bankName;
+  receivingBranchName.value = challan.receivingBranchName;
+  challanDate.value = challan.challanDate;
+  challanItemStore.setChallanId(challan.id);
+};
 
 // Export all challans
 const exportAllChallans = () => {

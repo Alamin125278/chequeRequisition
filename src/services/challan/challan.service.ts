@@ -40,6 +40,11 @@ export interface FetchAllChallanParams {
   skip: number;
   limit: number;
 }
+export interface FetchAllChallanItemParams {
+  id: number;
+  skip: number;
+  limit: number;
+}
 
 export interface FetchAllChallanResponse {
   data: Challan[];
@@ -64,5 +69,14 @@ export const getAllChallanService = async (params: FetchAllChallanParams) => {
   const response = await baseHttp().get(constant.APIs.getAllChallans, {
     params,
   });
-  return response.data.data.challans;
+  return response.data.data;
+};
+
+export const fetchChallanItemsService = async (
+  params: FetchAllChallanItemParams
+) => {
+  const response = await baseHttp().get(constant.APIs.fetchChallanItem, {
+    params,
+  });
+  return response.data.data;
 };

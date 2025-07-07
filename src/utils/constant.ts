@@ -38,5 +38,6 @@ export default {
     getDownloadedRequistions: "/api/requisition/get-downloaded-requisitions",
     updateChequeRequisition: "/api/requisition/update-cheque-requisition",
     getAllChallans: "/api/challans",
+    fetchChallanItem: "/api/challan/items",
   },
 };
