@@ -28,7 +28,7 @@ export default {
     getBranchForUser: "/api/branch/get-for-user",
     getRoleForUser: "/api/userrole/getallforuser",
     uploadImage: "/api/upload-image",
-    localFileUpload: "/api/local-file-upload",
+    localFileUpload: "/api/local-file-upload/bulk",
     createChequeRequisition: "/api/requisition",
     getOrderRequisitions: "/api/requisition/get-all-order-requisitions",
     getOrderRequisitionsForExport:

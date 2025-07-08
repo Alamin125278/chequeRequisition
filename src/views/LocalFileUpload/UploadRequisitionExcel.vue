@@ -59,13 +59,30 @@
                 <h3 class="text-md font-medium text-primary">Select Bank</h3>
               </div>
 
-              <a-select
+              <!-- <a-select
                 v-model:value="selectedBank"
                 placeholder="Select Bank"
                 class="w-full md:w-1/3 rounded-md"
                 size="large"
                 :options="banks"
-              />
+              /> -->
+              <a-select
+                v-model:value="selectedBank"
+                placeholder="Select Bank"
+                class="w-full md:w-1/3 rounded-md"
+                size="large"
+                @change="handleBankChange"
+                allowClear
+              >
+                <a-select-option value="">All Banks</a-select-option>
+                <a-select-option
+                  v-for="option in banks"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{ option.bankName }}
+                </a-select-option>
+              </a-select>
             </div>
 
             <!-- File Upload Section -->
@@ -218,7 +235,7 @@
                 class="bg-card p-3 rounded-md inline-block border border-gray-200"
               >
                 <p class="font-medium text-primary">
-                  {{ selectedBankLabel }}
+                  {{ selectedBankName }}
                 </p>
               </div>
             </div>
@@ -242,15 +259,21 @@
                 :data-source="importedData"
                 :scroll="{ x: 1000, y: 400 }"
                 :pagination="{
-                  pageSize: 10,
-                  showSizeChanger: true,
-                  pageSizeOptions: ['10', '20', '50'],
-                  showTotal: (total: number) => `Total ${total} items`,
-                }"
+    pageSize: 10,
+    showSizeChanger: true,
+    pageSizeOptions: ['10', '20', '50'],
+    showTotal: (total: number) => `Total ${total} items`,
+  }"
                 bordered
                 size="middle"
                 class="custom-table"
+                rowKey="key"
               >
+                <template #bodyCell="{ column, index }">
+                  <template v-if="column.key === 'slno'">
+                    {{ index + 1 }}
+                  </template>
+                </template>
               </a-table>
             </div>
 
@@ -349,21 +372,31 @@ import {
   UploadOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
-import { computed, ref } from "vue";
+import { computed, onMounted, ref } from "vue";
 import * as XLSX from "xlsx";
-import { saveLocalFileUploadService } from "../../services/localFileUpload/localFileUpload.service";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import {
+  saveBulkLocalFileUploadService,
+  type LocalFileUploadCommand,
+} from "../../services/localFileUpload/localFileUpload.service";
+interface Bank {
+  id: number;
+  bankName: string;
+}
 
 // Define interfaces
 interface ImportedItem {
   key: string;
   bankName: string;
+  bankId: number;
   branchName: string;
   routingNo: string;
   accountNo: string;
   accountName: string;
-  prefix: string;
+  chequePrefix: string;
+  chequeType: string;
+  micrNo: string;
   series: string;
-  branchCode: string;
   transactionCode: string;
   leafCount: string;
   startNo: string;
@@ -371,7 +404,10 @@ interface ImportedItem {
   bookQty: string;
   receivingBranch: string;
   distributionPointName: string;
-  courierCode: string;
+  courierCode?: string;
+  agentNum?: string;
+  serverity?: string;
+  requestDate?: string;
 }
 
 // Current date for display
@@ -382,15 +418,6 @@ const currentDate = computed(() => {
     day: "numeric",
   });
 });
-
-// Bank data
-const banks = [
-  { value: "", label: "Select Bank" },
-  { value: "1", label: "National Bank" },
-  { value: "2", label: "City Bank" },
-  { value: "3", label: "Metro Bank" },
-  { value: "4", label: "Pubali Bank" },
-];
 
 // Required columns for the file
 const requiredColumns = [
@@ -410,6 +437,11 @@ const requiredColumns = [
 
 // Table columns
 const columns = [
+  {
+    title: "sl no",
+    key: "slno",
+    width: 70,
+  },
   {
     title: "Bank Name",
     dataIndex: "bankName",
@@ -442,8 +474,8 @@ const columns = [
   },
   {
     title: "Prefix",
-    dataIndex: "prefix",
-    key: "prefix",
+    dataIndex: "chequePrefix",
+    key: "chequePrefix",
     width: 120,
   },
   {
@@ -477,16 +509,22 @@ const columns = [
     width: 120,
   },
   {
+    title: "MICR NO",
+    dataIndex: "micrNo",
+    key: "micrNo",
+    width: 120,
+  },
+  {
+    title: "Account Type",
+    dataIndex: "chequeType",
+    key: "chequeType",
+    width: 100,
+  },
+  {
     title: "No. of Book",
     dataIndex: "bookQty",
     key: "bookQty",
     width: 120,
-  },
-  {
-    title: "Distribution Point Name",
-    dataIndex: "distributionPointName",
-    key: "distributionPointName",
-    width: 150,
   },
   {
     title: "Courier Code",
@@ -500,10 +538,23 @@ const columns = [
     key: "receivingBranch",
     width: 150,
   },
+  {
+    title: "Severity",
+    dataIndex: "serverity",
+    key: "severity",
+    width: 100,
+  },
+  {
+    title: "Distribution Point Name",
+    dataIndex: "distributionPointName",
+    key: "distributionPointName",
+    width: 150,
+  },
 ];
 
 // State variables
-const selectedBank = ref("");
+const selectedBank = ref<number | null>(null);
+const selectedBankName = ref("");
 const file = ref<File | null>(null);
 const fileList = ref<any[]>([]);
 const isProcessing = ref(false);
@@ -513,11 +564,29 @@ const showImportedData = ref(false);
 const showSuccessModal = ref(false);
 const successMessage = ref("");
 const successDescription = ref("");
+const loading = ref(true);
 
-const selectedBankLabel = computed(() => {
-  const bank = banks.find((b) => b.value === selectedBank.value);
-  return bank ? bank.label : "";
-});
+const banks = ref<Bank[]>([]);
+//Get the banks from the database
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+const handleBankChange = () => {
+  const bankId = selectedBank.value;
+  const bank = banks.value.find((b) => b.id === bankId);
+  if (bank != null) {
+    selectedBankName.value = bank.bankName;
+  }
+};
 
 // Format file size
 const formatFileSize = (bytes: number): string => {
@@ -564,6 +633,9 @@ const handleChange = (info: any) => {
     }
   }
 };
+onMounted(() => {
+  featchBanks();
+});
 
 // Reset file selection
 const resetFile = () => {
@@ -600,25 +672,43 @@ const processFile = () => {
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
       // Map to your interface
-      importedData.value = (jsonData as any[]).map((row, index) => ({
-        key: index.toString(),
-        bankName: selectedBankLabel.value,
-        branchName: row["Branch Name"] || "",
-        routingNo: row["Routing No."] || "",
-        accountNo: row["Account No."] || "",
-        accountName: row["Account Name"] || "",
-        prefix: row["Prefix"] || "",
-        series: row["Series"] || "",
-        branchCode: row["Branch Code"] || "",
-        transactionCode: row["TR Code"] || "",
-        leafCount: row["No. of Leaves"] || "",
-        startNo: row["Starting No."] || "",
-        endNo: row["Ending No."] || "",
-        bookQty: row["No. of Book"] || "",
-        receivingBranch: row["Receiving Branch"] || "",
-        distributionPointName: row["Distribution Point Name"] || "",
-        courierCode: row["Courier Code"] || "",
-      }));
+      if (selectedBank.value == 2) {
+        importedData.value = (jsonData as any[]).map((row, index) => {
+          let chequeType = "";
+          if (row["Series"] == "SB") {
+            chequeType = "Savings";
+          } else if (row["Series"] == "CA") {
+            chequeType = "Current";
+          } else if (row["Series"] == "PO") {
+            chequeType = "Payment Order";
+          }
+          return {
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 1,
+            branchName: row["Home_Branch"] || "",
+            routingNo: row["Routing_No"] || "",
+            accountNo: row["Account_no"] || "",
+            accountName: row["Account_Name"] || "",
+            chequeType: chequeType,
+            chequePrefix: row["Series"] || "",
+            series: row["Series"] || "",
+            transactionCode: row["Tr_Code"] || "",
+            leafCount: row["Lvs"] || "",
+            micrNo: row["MICR_Account"] || "",
+            startNo: row["StartNo"] || "",
+            endNo: row["End_No"] || "",
+            bookQty: "1",
+            receivingBranch: row["Delivery_Branch"] || "",
+            distributionPointName: row["Delivery_Branch"] || "",
+            courierCode: "SCS",
+            agentNum: row["Agent_No"] || "",
+            serverity: "Urgent",
+            requestDate:
+              row["Request_Date"] || new Date().toISOString().slice(0, 10),
+          };
+        });
+      }
 
       showImportedData.value = true;
       message.success("File processed successfully!");
@@ -646,56 +736,88 @@ const handleDiscard = () => {
 };
 
 // Handle form submission
+// const handleSubmit = async () => {
+//   isSubmitting.value = true;
+
+//   // Simulate API call to save the data
+//   try {
+//     for (const item of importedData.value) {
+//       const payload = {
+//         bankId: selectedBank.value,
+//         branchName: "Tejgoen",
+//         accountNo: item.accountNo,
+//         routingNo: item.routingNo,
+//         startNo: item.startNo,
+//         endNo: item.endNo,
+//         chequeType: item.chequeType,
+//         chequePrefix: item.chequePrefix,
+//         micrNo: item.micrNo,
+//         series: item.series,
+//         accountName: item.accountName,
+//         cusAddress: item.branchName,
+//         bookQty: item.bookQty,
+//         transactionCode: item.transactionCode,
+//         leaves: item.leafCount,
+//         courierCode: 1,
+//         receivingBranchName: "Tejgoen",
+//         serverity: 1,
+//         agentNum: item.agentNum,
+//         requestDate: item.requestDate,
+//       };
+//       await saveLocalFileUploadService(payload);
+//     }
+//     setTimeout(() => {
+//       isSubmitting.value = false;
+//       successMessage.value = "File Uploaded Successfully!";
+//       successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBankName.value}.`;
+//       showSuccessModal.value = true;
+//     }, 1000);
+//   } catch (error) {
+//     console.error("Upload failed", error);
+//     message.error("Failed to upload data.");
+//   } finally {
+//     isSubmitting.value = false;
+//   }
+// };
+
 const handleSubmit = async () => {
   isSubmitting.value = true;
 
-  // Simulate API call to save the data
   try {
-    for (const item of importedData.value) {
-      let chequeType = "";
-      let micrNo = "";
-      if (item.prefix == "A") {
-        chequeType = "Current";
-      } else if (item.prefix == "B") {
-        chequeType = "Savings";
-      } else if (item.prefix == "O") {
-        chequeType = "Payment";
-      }
+    const items: LocalFileUploadCommand[] = importedData.value.map((item) => ({
+      bankId: selectedBank.value ?? 0,
+      branchName: "Tejgoen",
+      accountNo: item.accountNo,
+      routingNo: item.routingNo,
+      startNo: item.startNo,
+      endNo: item.endNo,
+      chequeType: item.chequeType,
+      chequePrefix: item.chequePrefix,
+      micrNo: item.micrNo,
+      series: item.series,
+      accountName: item.accountName,
+      cusAddress: item.branchName,
+      bookQty: Number(item.bookQty),
+      transactionCode: Number(item.transactionCode),
+      leaves: Number(item.leafCount),
+      courierCode: 1,
+      receivingBranchName: "Tejgoen",
+      serverity: 1,
+      requestDate: item.requestDate, // "YYYY-MM-DD"
+      agentNum: item.agentNum,
+    }));
 
-      micrNo =
-        item.accountNo.length >= 13
-          ? item.accountNo.substring(item.accountNo.length - 13)
-          : item.accountNo;
-      const payload = {
-        bankId: parseInt(selectedBank.value),
-        branchName: item.branchName,
-        accountNo: item.accountNo,
-        routingNo: item.routingNo,
-        startNo: item.startNo,
-        endNo: item.endNo,
-        chequeType: chequeType,
-        chequePrefix: item.prefix,
-        micrNo: micrNo,
-        series: item.series,
-        accountName: item.accountName,
-        cusAddress: item.distributionPointName,
-        bookQty: item.bookQty,
-        transactionCode: item.transactionCode,
-        leaves: item.leafCount,
-        courierCode: 1,
-        receivingBranchName: item.receivingBranch,
-        serverity: 1,
-      };
-      await saveLocalFileUploadService(payload);
-    }
-    setTimeout(() => {
-      isSubmitting.value = false;
+    const result = await saveBulkLocalFileUploadService(items);
+
+    if (result.data.isSuccess) {
       successMessage.value = "File Uploaded Successfully!";
-      successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBankLabel.value}.`;
+      successDescription.value = `${items.length} items uploaded for ${selectedBankName.value}`;
       showSuccessModal.value = true;
-    }, 1000);
+    } else {
+      message.error(result.data.message || "Upload failed");
+    }
   } catch (error) {
-    console.error("Upload failed", error);
+    console.error("Upload failed:", error);
     message.error("Failed to upload data.");
   } finally {
     isSubmitting.value = false;
@@ -710,7 +832,7 @@ const handleSuccessModalClose = () => {
   importedData.value = [];
   file.value = null;
   fileList.value = [];
-  selectedBank.value = "";
+  selectedBank.value = null;
 };
 </script>
 
