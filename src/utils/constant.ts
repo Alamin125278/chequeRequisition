@@ -39,5 +39,6 @@ export default {
     updateChequeRequisition: "/api/requisition/update-cheque-requisition",
     getAllChallans: "/api/challans",
     fetchChallanItem: "/api/challan/items",
+    summaryReport: "/api/summary-report",
   },
 };

@@ -786,7 +786,7 @@ const handleSubmit = async () => {
   try {
     const items: LocalFileUploadCommand[] = importedData.value.map((item) => ({
       bankId: selectedBank.value ?? 0,
-      branchName: "Tejgoen",
+      branchName: item.branchName,
       accountNo: item.accountNo,
       routingNo: item.routingNo,
       startNo: item.startNo,
@@ -796,12 +796,12 @@ const handleSubmit = async () => {
       micrNo: item.micrNo,
       series: item.series,
       accountName: item.accountName,
-      cusAddress: item.branchName,
+      cusAddress: item.receivingBranch,
       bookQty: Number(item.bookQty),
       transactionCode: Number(item.transactionCode),
       leaves: Number(item.leafCount),
       courierCode: 1,
-      receivingBranchName: "Tejgoen",
+      receivingBranchName: item.receivingBranch,
       serverity: 1,
       requestDate: item.requestDate, // "YYYY-MM-DD"
       agentNum: item.agentNum,

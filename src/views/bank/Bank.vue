@@ -593,7 +593,6 @@ const handleModalSubmit = () => {
     .validate()
     .then(async () => {
       submitting.value = true;
-
       const payload = {
         id: currentBankId.value, // required for update
         vendorId: Number(formState.vendorId),

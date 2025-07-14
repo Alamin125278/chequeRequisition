@@ -7,10 +7,10 @@ import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
-import { createRouter, createWebHistory } from "vue-router";
+import { createRouter, createWebHashHistory } from "vue-router";
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     // Auth routes
     {
@@ -132,15 +132,16 @@ const router = createRouter({
           component: () =>
             import("@/views/requisition/DeliveredRequisition.vue"), // Placeholder, would be a real page in production
         },
-        {
-          path: "/reports/make-challan",
-          name: "Make A Challan",
-          component: () => import("@/views/reports/MakeChallan.vue"), // Placeholder, would be a real page in production
-        },
+
         {
           path: "/reports/challan-list",
           name: "Challan List",
           component: () => import("@/views/reports/AllChallans.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/summary-report",
+          name: "Make A Challan",
+          component: () => import("@/views/reports/Summary.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/settings",
@@ -166,18 +167,18 @@ router.beforeEach(async (to, from, next) => {
   const hasPermission = await CheckRoutePermission(to.path, requiresAuth);
   // If route requires auth and user is not logged in, redirect to login
   if (requiresAuth && !userStore.isLoggedIn) {
-    next("/login");
+    next({ name: "Login" });
   }
   // If user is logged in and trying to access auth pages, redirect to dashboard
   else if (
     userStore.isLoggedIn &&
     (to.path === "/login" || to.path === "/register")
   ) {
-    next("/dashboard");
+    next({ name: "Dashboard" });
   } else if (requirePermission && !hasPermission) {
     console.log(hasPermission);
 
-    next("/404");
+    next({ name: "404" });
   } else {
     next();
   }

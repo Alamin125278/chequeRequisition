@@ -455,7 +455,6 @@ const handleConfirmAction = async () => {
   if (itemToAction.value) {
     // Single item confirmation
     const itemIndex = itemToAction.value;
-    alert(itemIndex[0]);
 
     if (itemIndex[0] !== -1) {
       // Update the item status to Delivery Receive

@@ -46,7 +46,8 @@
               <a-menu-item
                 v-for="child in item.children"
                 :key="child.id"
-                class="sb-menu-item"
+                class="sb-menu-item submenu-child"
+                :style="{ paddingLeft: '48px' }"
                 @click="navigateTo(child.path)"
               >
                 {{ child.title }}
@@ -263,13 +264,21 @@
 
 <script setup lang="ts">
 import {
+  AuditOutlined,
+  BankOutlined,
+  BarcodeOutlined,
   BellOutlined,
+  BranchesOutlined,
+  CloudDownloadOutlined,
+  ClusterOutlined,
   DashboardOutlined,
+  FormOutlined,
   LogoutOutlined,
   MenuFoldOutlined,
   MenuOutlined,
   MenuUnfoldOutlined,
   SettingOutlined,
+  UsergroupAddOutlined,
   UserOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
@@ -283,8 +292,16 @@ import { useUserStore } from "../stores/userStore";
 
 const iconMap: Record<string, Component> = {
   DashboardOutlined,
+  BankOutlined,
+  BranchesOutlined,
   UserOutlined,
+  UsergroupAddOutlined,
+  FormOutlined,
   SettingOutlined,
+  ClusterOutlined,
+  BarcodeOutlined,
+  CloudDownloadOutlined,
+  AuditOutlined,
 };
 function getIconComponent(iconName: string): Component | null {
   return iconMap[iconName] || null;
@@ -486,12 +503,20 @@ const handleClickOutside = (event: MouseEvent) => {
 </script>
 
 <style scoped>
+::v-deep(.submenu-child.ant-menu-item) {
+  padding-inline-start: 48px !important;
+}
+
 /* Base layout */
 .layout-container {
   display: flex;
   min-height: 100vh;
   position: relative;
   z-index: 1;
+}
+
+.custom-menu .submenu-child {
+  padding-left: 48px !important;
 }
 
 /* Sidebar styles */
