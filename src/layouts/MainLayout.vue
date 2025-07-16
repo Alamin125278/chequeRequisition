@@ -110,10 +110,25 @@
             <span class="breadcrumb-current">{{ pageTitle }}</span>
           </div>
         </div>
+        <div class="flex items-center">
+          <div
+            class="flex items-center justify-center sm:justify-end text-lg text-gray-800 p-3 rounded-xl font-inter transform hover:scale-105 transition-all duration-300 ease-in-out"
+          >
+            <!-- Displays the current date with a bold font, now using the custom hex color #067C6A -->
+            <span class="font-bold text-[#067C6A]">{{ currentDate }}</span>
+            <!-- A subtle separator for visual distinction, in red -->
+            <span class="mx-3 text-red-600">|</span>
+            <!-- Displays the current time and the timezone abbreviation, time in dark gray, timezone in teal -->
+            <span class="text-[#A73126] font-semibold"
+              >{{ currentTime }}
+              <span class="text-sm text-teal-600">(BD)</span></span
+            >
+          </div>
+        </div>
 
         <div class="header-right">
           <!-- Search -->
-          <div class="search-container hide-on-mobile">
+          <!-- <div class="search-container hide-on-mobile">
             <input type="text" placeholder="Search..." class="search-input" />
             <button class="search-button">
               <svg
@@ -132,7 +147,7 @@
                 <path d="m21 21-4.3-4.3" />
               </svg>
             </button>
-          </div>
+          </div> -->
 
           <!-- Notification feature -->
           <a-dropdown :trigger="['click']" placement="bottomRight">
@@ -316,15 +331,53 @@ const userStore = useUserStore();
 // Get menus from store using computed for reactivity
 const menus = computed(() => menuStore.menus);
 
+const currentDate = ref("");
+const currentTime = ref("");
+
+const updateDateTime = () => {
+  const now = new Date();
+
+  // Format date for Bangladesh
+  const dateOptions: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Dhaka",
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  };
+
+  // Format time for Bangladesh
+  const timeOptions: Intl.DateTimeFormatOptions = {
+    timeZone: "Asia/Dhaka",
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: true,
+  };
+
+  currentDate.value = now.toLocaleDateString("en-US", dateOptions);
+  currentTime.value = now.toLocaleTimeString("en-US", timeOptions);
+};
+
+// Lifecycle
+let timeInterval: ReturnType<typeof setInterval>;
+
 // Initialize menu data on component mount
 onMounted(async () => {
   await menuStore.fetchMenus();
   updateSelectedKeys();
+  updateDateTime();
+  timeInterval = setInterval(updateDateTime, 1000);
 
   // Check if sidebar was collapsed in previous session
   const savedCollapsedState = localStorage.getItem("sidebar-collapsed");
   if (savedCollapsedState === "true") {
     isSidebarCollapsed.value = true;
+  }
+});
+onUnmounted(() => {
+  if (timeInterval) {
+    clearInterval(timeInterval);
   }
 });
 
@@ -705,6 +758,10 @@ const handleClickOutside = (event: MouseEvent) => {
 .search-container {
   position: relative;
   width: 240px;
+}
+.datetime-container {
+  position: relative;
+  width: 300px;
 }
 
 .search-input {

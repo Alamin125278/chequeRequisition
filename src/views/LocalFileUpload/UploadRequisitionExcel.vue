@@ -685,7 +685,7 @@ const processFile = () => {
           return {
             key: index.toString(),
             bankName: selectedBankName.value,
-            bankId: selectedBank.value || 1,
+            bankId: selectedBank.value || 2,
             branchName: row["Home_Branch"] || "",
             routingNo: row["Routing_No"] || "",
             accountNo: row["Account_no"] || "",
@@ -703,6 +703,53 @@ const processFile = () => {
             distributionPointName: row["Delivery_Branch"] || "",
             courierCode: "SCS",
             agentNum: row["Agent_No"] || "",
+            serverity: "Urgent",
+            requestDate:
+              row["Request_Date"] || new Date().toISOString().slice(0, 10),
+          };
+        });
+      } else if (selectedBank.value == 1) {
+        importedData.value = (jsonData as any[]).map((row, index) => {
+          let micrNo = row["Account No."] || "";
+          micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
+          let series = row["Series"];
+          let perfix = row["Prefix"];
+          let printerCode = row["Printer Code"];
+          let leaves = row["No. of Leaves"];
+
+          let chequeType = "";
+          let chequePrefix = "";
+          if (perfix == "B") {
+            chequeType = "Savings";
+            chequePrefix = perfix + printerCode + "-" + leaves + series;
+          } else if (perfix == "A") {
+            chequeType = "Current";
+            chequePrefix = perfix + printerCode + "-" + leaves + series;
+          } else if (perfix == "O") {
+            chequeType = "Payment Order";
+            chequePrefix = perfix + printerCode + "-" + leaves + series;
+          }
+          return {
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 1,
+            branchName: row["Branch Name"] || "",
+            routingNo: row["Routing No."] || "",
+            accountNo: row["Account No."] || "",
+            accountName: row["Account Name"] || "",
+            chequeType: chequeType,
+            chequePrefix: chequePrefix,
+            series: series,
+            transactionCode: row["TR Code"] || "",
+            leafCount: row["No. of Leaves"] || "",
+            micrNo: micrNo,
+            startNo: row["Starting No."] || "",
+            endNo: row["Ending No."] || "",
+            bookQty: row["No. of Book"] || "",
+            receivingBranch: row["Receiving Branch"] || "",
+            distributionPointName: row["Distribution Point Name"] || "",
+            courierCode: row["Courier Code"] || "",
+            agentNum: "",
             serverity: "Urgent",
             requestDate:
               row["Request_Date"] || new Date().toISOString().slice(0, 10),
@@ -800,7 +847,7 @@ const handleSubmit = async () => {
       bookQty: Number(item.bookQty),
       transactionCode: Number(item.transactionCode),
       leaves: Number(item.leafCount),
-      courierCode: 1,
+      courierCode: item.courierCode ?? "SCS",
       receivingBranchName: item.receivingBranch,
       serverity: 1,
       requestDate: item.requestDate, // "YYYY-MM-DD"

@@ -17,7 +17,7 @@ export interface LocalFileUploadCommand {
   bookQty: number;
   transactionCode: number;
   leaves: number;
-  courierCode: number;
+  courierCode: string;
   receivingBranchName: string;
   serverity: number;
   requestDate?: string;

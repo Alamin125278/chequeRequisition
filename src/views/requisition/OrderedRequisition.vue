@@ -400,8 +400,9 @@
 </template>
 
 <script setup lang="ts">
-import FinteraFooterImage from "@/assets/challanImages/FinteraFooter.jpeg";
-import FinteralogoImage from "@/assets/challanImages/FinteraLogo.jpeg";
+import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
+import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
+import AuthSignature from "@/assets/signature.png";
 import {
   CheckOutlined,
   DownloadOutlined,
@@ -769,21 +770,22 @@ const exportByCheckTypeAndPages = (checkType: string, pages: number) => {
   const matchingOrders = orderRequisitionStore.orderRequisitionForExport.filter(
     (order) => order.chequeType === checkType && order.leaves === pages
   );
-
-  const fileName = `orders_${checkType}_${pages}_pages`;
+  const todayDate = new Date().toISOString().split("T")[0];
+  const bankName = matchingOrders[0].bankName;
+  const fileName = `${bankName}_${checkType}_${pages}_${todayDate}_pages`;
   const formattedData = matchingOrders.map((order) => ({
     "Bank Name": order.bankName,
     "Branch Name": order.branchName,
     "Account Name": order.accountName,
     "Customer Address": order.receivingBranchName,
     "Cheque Prefix": order.chequePrefix,
-    "Account No": order.micrNo,
+    "MICR No": order.micrNo,
     "Cheque Serial": order.startNo,
     "Leaves Quantity": order.leaves,
     "Book Quantity": order.bookQty,
     "Routing No": order.routingNo,
     "Transaction Code": order.transactionCode,
-    "Details Account No": order.accountNo,
+    "Account No": order.accountNo,
   }));
 
   exportToExcel(formattedData, fileName, checkType);
@@ -841,10 +843,28 @@ const confirmExportChallan = async () => {
         var challans = await getChallanExportService(challanIds);
         // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
         // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
-        const logoBase64 = await toBase64(FinteralogoImage);
-        const footerBase64 = await toBase64(FinteraFooterImage);
-        // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
-        generateChallanPdf(challans, logoBase64, footerBase64);
+        if (challans[0].vendorName === "Fintera Solution") {
+          const logoBase64 = await toBase64(FinteralogoImage);
+          const footerBase64 = await toBase64(FinteraFooterImage);
+          const AuthSignatureBase64 = await toBase64(AuthSignature);
+          // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
+          generateChallanPdf(
+            challans,
+            logoBase64,
+            footerBase64,
+            AuthSignatureBase64
+          );
+        } else {
+          const logoBase64 = await toBase64(FinteralogoImage);
+          const footerBase64 = await toBase64(FinteraFooterImage);
+          const AuthSignatureBase64 = await toBase64(AuthSignature);
+          generateChallanPdf(
+            challans,
+            logoBase64,
+            footerBase64,
+            AuthSignatureBase64
+          );
+        }
         orderRequisitionStore.fetchOrderRequisitions();
       } else {
         message.error("Failed to Get challan");
@@ -857,6 +877,7 @@ const confirmExportChallan = async () => {
     message.error("An error occurred while exporting challan");
   } finally {
     challanPreviewVisible.value = false;
+    submitExport();
   }
 };
 
@@ -1038,7 +1059,3 @@ onMounted(() => {
   }
 }
 </style>
-
-function toBase64(FinteralogoImage: any) { throw new Error("Function not
-implemented."); } function toBase64(FinteraFooterImage: any) { throw new
-Error("Function not implemented."); }
