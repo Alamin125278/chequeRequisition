@@ -167,25 +167,10 @@
             </template>
           </template>
         </a-table>
-
-        <!-- Empty State -->
-        <!-- <div
-          v-if="!loading && orderRequisitionStore.total === 0"
-          class="text-center py-12 bg-background rounded-md"
-        >
-          <InboxOutlined
-            style="font-size: 48px"
-            class="text-secondary opacity-30"
-          />
-          <p class="mt-3 text-primary text-lg font-medium">No orders found</p>
-          <p class="text-secondary">
-            Try adjusting your filters to see more results
-          </p>
-        </div> -->
       </div>
     </div>
 
-    <!-- Export Preview Modal -->
+    <!-- Enhanced Export Preview Modal -->
     <a-modal
       v-model:visible="exportModalVisible"
       title="Export Preview"
@@ -195,11 +180,12 @@
       class="requisition-modal"
     >
       <div class="p-4">
-        <div class="mb-6 bg-gray-50 rounded-md">
+        <!-- Progress Section -->
+        <div class="mb-6 p-4 bg-gray-50 rounded-md">
           <div class="flex justify-between items-center mb-3">
             <h3 class="text-lg font-medium text-primary">Export Progress</h3>
             <span class="text-sm text-secondary">
-              {{ completedExports ?? 0 }} of
+              {{ completedExports.length }} of
               {{ totalRequiredExports }} completed
             </span>
           </div>
@@ -222,9 +208,16 @@
             </span>
           </div>
         </div>
+
         <div class="mb-6">
+          <h3 class="text-lg font-medium mb-2 text-primary">Filtered Orders</h3>
           <div class="flex flex-wrap gap-3 justify-between border-gray-100">
+            <p class="text-secondary">
+              {{ orderRequisitionStore.orderRequisitionForExport?.length || 0 }}
+              orders found
+            </p>
             <div>
+              <!-- PSI Export Button with Dynamic State -->
               <a-button
                 type="primary"
                 @click="exportPSI"
@@ -244,6 +237,8 @@
                 </template>
                 {{ exportStates.psi.completed ? "PSI Exported" : "Export PSI" }}
               </a-button>
+
+              <!-- Challan Export Button - Smart Enable/Disable -->
               <a-button
                 type="primary"
                 @click="showChallanPreview"
@@ -255,7 +250,9 @@
                     !allExportsCompleted,
                 }"
               >
-                <template #icon><FileDoneOutlined /></template>
+                <template #icon>
+                  <FileDoneOutlined />
+                </template>
                 {{
                   allExportsCompleted
                     ? "Export Challan"
@@ -266,7 +263,7 @@
           </div>
         </div>
 
-        <!-- Check Type Buttons -->
+        <!-- Check Type Buttons with Dynamic States -->
         <div class="mb-6 pb-4 border-b border-gray-100">
           <h3
             class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
@@ -285,11 +282,12 @@
               "
               :loading="checkTypeVariation.loading"
               :disabled="checkTypeVariation.completed"
+              class="flex items-center justify-center"
               size="middle"
               :class="{
-                'bg-green-500 border-green-500 text-black hover:bg-green-600 hover:border-green-600':
+                'bg-green-500 border-green-500 text-white hover:bg-green-600 hover:border-green-600':
                   checkTypeVariation.completed,
-                'bg-blue-500 border-blue-500 text-black hover:bg-blue-600 hover:border-blue-600':
+                'bg-blue-500 border-blue-500 text-white hover:bg-blue-600 hover:border-blue-600':
                   !checkTypeVariation.completed,
               }"
             >
@@ -298,7 +296,7 @@
                 <FileTextOutlined v-else />
               </template>
               <span>
-                {{ checkTypeVariation.completed ? "Exported" : "" }}
+                {{ checkTypeVariation.completed ? "Exported" : "Export" }}
                 {{ checkTypeVariation.type }} ({{ checkTypeVariation.pages }})
               </span>
               <a-badge :count="checkTypeVariation.count" class="ml-2" />
@@ -359,16 +357,24 @@
         </div>
 
         <!-- Export Actions -->
-        <!-- <div class="flex flex-wrap gap-3 justify-end border-t border-gray-100">
+        <div
+          class="flex flex-wrap gap-3 justify-end border-t border-gray-100 pt-4"
+        >
           <a-button
             type="primary"
             @click="submitExport"
-            class="bg-success border-success hover:bg-success-dark hover:border-success-dark"
+            :disabled="!allExportsCompleted"
+            :class="{
+              'bg-success border-success hover:bg-success-dark hover:border-success-dark':
+                allExportsCompleted,
+              'bg-gray-400 border-gray-400 cursor-not-allowed':
+                !allExportsCompleted,
+            }"
           >
             <template #icon><CheckOutlined /></template>
-            Submit
+            {{ allExportsCompleted ? "Submit" : "Complete All Exports" }}
           </a-button>
-        </div> -->
+        </div>
       </div>
     </a-modal>
 
@@ -463,10 +469,11 @@ import {
   FileDoneOutlined,
   FileExcelOutlined,
   FileTextOutlined,
+  SearchOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 
-import { computed, onMounted, reactive, ref, watchEffect } from "vue";
+import { computed, onMounted, reactive, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import {
   createChallan,
@@ -483,46 +490,16 @@ interface Bank {
   id: number;
   bankName: string;
 }
-const orderRequisitionStore = useOrderRequisitionStore();
+
+interface CheckTypeVariation {
+  type: string;
+  pages: number;
+  count: number;
+  loading: boolean;
+  completed: boolean;
+}
+
 const banks = ref<Bank[]>([]);
-// ========== ১. Reactive Variations Setup ==========
-const checkTypeVariations = ref<
-  {
-    type: string;
-    pages: number;
-    count: number;
-    loading: boolean;
-    completed: boolean;
-  }[]
->([]);
-
-watchEffect(() => {
-  const variations: typeof checkTypeVariations.value = [];
-
-  orderRequisitionStore.orderRequisitionForExport.forEach((order) => {
-    const existing = variations.find(
-      (v) => v.type === order.chequeType && v.pages === order.leaves
-    );
-    if (existing) {
-      existing.count++;
-    } else {
-      variations.push({
-        type: order.chequeType,
-        pages: order.leaves,
-        count: 1,
-        loading: false,
-        completed: false,
-      });
-    }
-  });
-
-  variations.sort((a, b) => {
-    if (a.type === b.type) return a.pages - b.pages;
-    return a.type.localeCompare(b.type);
-  });
-
-  checkTypeVariations.value = variations;
-});
 
 // Export states management
 const exportStates = reactive({
@@ -531,26 +508,9 @@ const exportStates = reactive({
     completed: false,
   },
 });
-// ========== ৩. Helper Functions ==========
-const setExportState = (
-  variation: any,
-  options: { loading?: boolean; completed?: boolean }
-) => {
-  if (variation) {
-    if (options.loading !== undefined) variation.loading = options.loading;
-    if (options.completed !== undefined)
-      variation.completed = options.completed;
-  }
-};
 
-const setPsiExportState = (options: {
-  loading?: boolean;
-  completed?: boolean;
-}) => {
-  if (options.loading !== undefined) exportStates.psi.loading = options.loading;
-  if (options.completed !== undefined)
-    exportStates.psi.completed = options.completed;
-};
+// Enhanced check type variations with state tracking
+const checkTypeVariations = ref<CheckTypeVariation[]>([]);
 
 // Computed properties for progress tracking
 const completedExports = computed(() => {
@@ -575,6 +535,7 @@ const progressPercentage = computed(() => {
 const allExportsCompleted = computed(() => {
   return completedExports.value === totalRequiredExports.value;
 });
+
 //Get the banks from the database
 const featchBanks = async () => {
   loading.value = true;
@@ -622,7 +583,7 @@ const columns = [
   },
   {
     title: "Receiving Branch",
-    dataIndex: "receivingBranchName", // or receivingBranch if name available
+    dataIndex: "receivingBranchName",
     key: "receivingBranchName",
   },
   {
@@ -670,7 +631,6 @@ const columns = [
     dataIndex: "bookQty",
     key: "bookQty",
   },
-
   {
     title: "Status",
     dataIndex: "statusName",
@@ -717,7 +677,7 @@ const previewColumns = [
   },
   {
     title: "Receiving Branch",
-    dataIndex: "receivingBranchName", // or receivingBranch if name available
+    dataIndex: "receivingBranchName",
     key: "receivingBranchName",
   },
   {
@@ -765,7 +725,6 @@ const previewColumns = [
     dataIndex: "bookQty",
     key: "bookQty",
   },
-
   {
     title: "Status",
     dataIndex: "statusName",
@@ -790,7 +749,6 @@ const challanColumns = [
     dataIndex: "micrNo",
     key: "micrNo",
   },
-
   {
     title: "Account Name",
     dataIndex: "accountName",
@@ -842,6 +800,7 @@ const filters = ref({
   requestDate: undefined as string | undefined,
 });
 
+const orderRequisitionStore = useOrderRequisitionStore();
 onMounted(() => {
   orderRequisitionStore.resetFilters();
   orderRequisitionStore.fetchOrderRequisitions();
@@ -859,8 +818,40 @@ const pagination = computed(() => ({
 
 const orderPagination = (p: any) =>
   orderRequisitionStore.setPagination(p.current, p.pageSize);
-// Generate check type variations with page counts
 
+// Generate check type variations with page counts and state tracking
+const generateCheckTypeVariations = () => {
+  const variations: CheckTypeVariation[] = [];
+
+  // Group orders by check type and page count
+  orderRequisitionStore.orderRequisitionForExport.forEach((order) => {
+    const existingVariation = variations.find(
+      (v) => v.type === order.chequeType && v.pages === order.leaves
+    );
+
+    if (existingVariation) {
+      existingVariation.count++;
+    } else {
+      variations.push({
+        type: order.chequeType,
+        pages: order.leaves,
+        count: 1,
+        loading: false,
+        completed: false,
+      });
+    }
+  });
+
+  // Sort by type and then by pages
+  checkTypeVariations.value = variations.sort((a, b) => {
+    if (a.type === b.type) {
+      return a.pages - b.pages;
+    }
+    return a.type.localeCompare(b.type);
+  });
+};
+
+// Check if any filter is applied
 const hasAppliedFilters = computed(() => !!filters.value.bank);
 
 const showExportPreview = () => {
@@ -872,19 +863,22 @@ const showExportPreview = () => {
     message.warning("No orders match the selected filters");
     return;
   }
+
   // Generate check type variations when modal opens
-  // generateCheckTypeVariations();
+  generateCheckTypeVariations();
   exportModalVisible.value = true;
 };
 
+// Enhanced export functions with state management
 const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
+  // Find the specific check type variation
   const variation = checkTypeVariations.value.find(
     (ct) => ct.type === checkType && ct.pages === pages
   );
 
   if (!variation || variation.completed) return;
 
-  setExportState(variation, { loading: true });
+  variation.loading = true;
 
   try {
     const matchingOrders =
@@ -893,7 +887,7 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
       );
 
     const todayDate = new Date().toISOString().split("T")[0];
-    const bankName = matchingOrders[0]?.bankName || "UnknownBank";
+    const bankName = matchingOrders[0].bankName;
     const fileName = `${bankName}_${checkType}_${pages}_${todayDate}_pages`;
 
     const formattedData = matchingOrders.map((order) => ({
@@ -911,71 +905,26 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
       "Account No": order.accountNo,
     }));
 
-    exportToExcel(formattedData, fileName, checkType);
-    setExportState(variation, { completed: true });
+    await exportToExcel(formattedData, fileName, checkType);
+
+    variation.completed = true;
+    message.success(`${checkType} (${pages} pages) exported successfully!`);
   } catch (error) {
     message.error(`Failed to export ${checkType} (${pages} pages)`);
   } finally {
-    setExportState(variation, { loading: false });
+    variation.loading = false;
   }
 };
 
-// const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
-//   // Find the specific check type variation
-//   const variation = checkTypeVariations.value.find(
-//     (ct) => ct.type === checkType && ct.pages === pages
-//   );
-
-//   if (!variation || variation.completed) return;
-
-//   variation.loading = true;
-//   exportStates.psi.loading = true;
-
-//   try {
-//     const matchingOrders =
-//       orderRequisitionStore.orderRequisitionForExport.filter(
-//         (order) => order.chequeType === checkType && order.leaves === pages
-//       );
-
-//     const todayDate = new Date().toISOString().split("T")[0];
-//     const bankName = matchingOrders[0].bankName;
-//     const fileName = `${bankName}_${checkType}_${pages}_${todayDate}_pages`;
-
-//     const formattedData = matchingOrders.map((order) => ({
-//       "Bank Name": order.bankName,
-//       "Branch Name": order.branchName,
-//       "Account Name": order.accountName,
-//       "Customer Address": order.receivingBranchName,
-//       "Cheque Prefix": order.chequePrefix,
-//       "MICR No": order.micrNo,
-//       "Cheque Serial": order.startNo,
-//       "Leaves Quantity": order.leaves,
-//       "Book Quantity": order.bookQty,
-//       "Routing No": order.routingNo,
-//       "Transaction Code": order.transactionCode,
-//       "Account No": order.accountNo,
-//     }));
-
-//     exportToExcel(formattedData, fileName, checkType);
-
-//     variation.completed = true;
-//     // alert(variation.completed);
-//   } catch (error) {
-//     message.error(`Failed to export ${checkType} (${pages} pages)`);
-//   } finally {
-//     variation.loading = false;
-//     exportStates.psi.loading = false;
-//   }
-// };
-
-const exportPSI = () => {
+const exportPSI = async () => {
   if (exportStates.psi.completed) return;
 
-  setPsiExportState({ loading: true });
+  exportStates.psi.loading = true;
 
   try {
     const psiOrders = orderRequisitionStore.orderRequisitionForExport;
     const bankName = psiOrders[0].bankName;
+
     const formattedData = psiOrders.map((order) => ({
       "Account No": order.accountNo,
       "Start No": order.startNo,
@@ -990,15 +939,19 @@ const exportPSI = () => {
       "Distribution Point Name": order.cusAddress,
       "Receiving Branch Name": order.receivingBranchName,
     }));
+
     const fileName = `PSI_Format_${bankName}${
       new Date().toISOString().split("T")[0]
     }`;
-    exportToExcel(formattedData, fileName, "PSI");
-    setPsiExportState({ completed: true });
+
+    await exportToExcel(formattedData, fileName, "PSI");
+
+    exportStates.psi.completed = true;
+    message.success("PSI export completed successfully!");
   } catch (error) {
     message.error("Failed to export PSI");
   } finally {
-    setPsiExportState({ loading: false });
+    exportStates.psi.loading = false;
   }
 };
 
@@ -1007,6 +960,7 @@ const showChallanPreview = () => {
     message.warning("Please complete all exports before previewing challan");
     return;
   }
+
   // Group by receiving branch
   const branches: Record<string, any[]> = {};
   orderRequisitionStore.orderRequisitionForExport.forEach((order) => {
@@ -1023,7 +977,7 @@ const showChallanPreview = () => {
 const confirmExportChallan = async () => {
   try {
     const payload = {
-      challanData: challanData.value, // assuming challanData is a ref or reactive
+      challanData: challanData.value,
     };
 
     const response = await createChallan(payload);
@@ -1033,13 +987,11 @@ const confirmExportChallan = async () => {
 
       if (challanIds.length > 0) {
         var challans = await getChallanExportService(challanIds);
-        // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
-        // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
+
         if (challans[0].vendorName === "Fintera Solution") {
           const logoBase64 = await toBase64(FinteralogoImage);
           const footerBase64 = await toBase64(FinteraFooterImage);
           const AuthSignatureBase64 = await toBase64(AuthSignature);
-          // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
           generateChallanPdf(
             challans,
             logoBase64,
@@ -1086,9 +1038,11 @@ const submitExport = () => {
     ct.completed = false;
     ct.loading = false;
   });
+
   orderRequisitionStore.fetchOrderRequisitions();
   orderRequisitionStore.fetchOrderRequisitionsForExport();
   orderRequisitionStore.resetFilters();
+
   message.success(
     `Updated status of ${orderRequisitionStore.orderRequisitionForExport.length} orders to "Downloaded"`
   );
@@ -1111,10 +1065,7 @@ const toBase64 = async (filePath: string) => {
 
 // Lifecycle hooks
 onMounted(() => {
-  // Get the banks from the database
   featchBanks();
-  // Simulate API call
-  // to fetch orders
 });
 </script>
 
