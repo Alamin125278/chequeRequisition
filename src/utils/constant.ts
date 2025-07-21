@@ -40,5 +40,8 @@ export default {
     getAllChallans: "/api/challans",
     fetchChallanItem: "/api/challan/items",
     summaryReport: "/api/summary-report",
+    getDashboardStats: "/api/dashboard/statcard",
+    getBankRequisitions: "/api/dashboard/bankwiserequisition",
+    getOrderTracking: "/api/dashboard/ordertracking",
   },
 };
