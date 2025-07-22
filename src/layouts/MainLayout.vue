@@ -7,6 +7,7 @@
         { 'sidebar-collapsed': isSidebarCollapsed },
         { 'sidebar-mobile-visible': isMobile && isSidebarVisible },
       ]"
+      collapsible
       v-show="isSidebarVisible"
     >
       <div class="sidebar-header">
@@ -37,6 +38,7 @@
             <a-sub-menu
               v-if="item.children && item.children.length > 0"
               :key="item.id"
+              style="padding: 0 8px 0 0px !important"
             >
               <template #icon>
                 <component :is="getIconComponent(item.icon)" />
@@ -47,7 +49,6 @@
                 v-for="child in item.children"
                 :key="child.id"
                 class="sb-menu-item submenu-child"
-                :style="{ paddingLeft: '48px' }"
                 @click="navigateTo(child.path)"
               >
                 {{ child.title }}
@@ -55,7 +56,12 @@
             </a-sub-menu>
 
             <!-- Menu item without children -->
-            <a-menu-item v-else :key="item?.id" @click="navigateTo(item.path)">
+            <a-menu-item
+              v-else
+              :key="item?.id"
+              @click="navigateTo(item.path)"
+              style="padding: 0 0 0 20px !important"
+            >
               <template #icon>
                 <component :is="getIconComponent(item.icon)" />
               </template>
@@ -110,7 +116,7 @@
             <span class="breadcrumb-current">{{ pageTitle }}</span>
           </div>
         </div>
-        <div class="flex items-center">
+        <div class="flex items-center hide-on-mobile hide-on-tablet">
           <div
             class="flex items-center justify-center sm:justify-end text-lg text-gray-800 p-3 rounded-xl font-inter transform hover:scale-105 transition-all duration-300 ease-in-out"
           >
@@ -568,9 +574,9 @@ const handleClickOutside = (event: MouseEvent) => {
   z-index: 1;
 }
 
-.custom-menu .submenu-child {
+/* .custom-menu .submenu-child {
   padding-left: 48px !important;
-}
+} */
 
 /* Sidebar styles */
 .sidebar {
@@ -591,7 +597,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 .sidebar-collapsed {
-  width: 80px;
+  width: 100px;
 }
 
 .sidebar-header {
@@ -1165,6 +1171,13 @@ const handleClickOutside = (event: MouseEvent) => {
   /* Hide username on mobile */
   .hide-on-mobile {
     display: none;
+  }
+
+  /* Hide UserName on Tablet */
+  @media screen and (min-width: 768px) {
+    .hide-on-tablet {
+      display: none;
+    }
   }
 
   /* Footer adjustments */

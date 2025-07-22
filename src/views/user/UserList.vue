@@ -269,6 +269,7 @@
       v-model:visible="modalVisible"
       :title="modalMode === 'add' ? 'Add New User' : 'Edit User'"
       :width="720"
+      style="top: 20px"
       :footer="null"
       class="user-modal"
     >
@@ -315,6 +316,29 @@
                     <UserOutlined class="text-secondary" />
                   </template>
                 </a-input>
+              </a-form-item>
+            </div>
+
+            <!-- Vendor Selection (conditional based on role) -->
+            <div
+              class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-4"
+              v-if="showVendorField"
+            >
+              <a-form-item label="Vendor" name="vendorId">
+                <a-select
+                  v-model:value="formState.vendorId"
+                  placeholder="Select vendor"
+                  class="rounded-md w-full"
+                >
+                  <a-select-option value="">Select vendor</a-select-option>
+                  <a-select-option
+                    v-for="vendor in vendors"
+                    :key="vendor.id"
+                    :value="vendor.id"
+                  >
+                    {{ vendor.vendorName }}
+                  </a-select-option>
+                </a-select>
               </a-form-item>
             </div>
 
@@ -610,9 +634,27 @@ interface Branch {
   id: number;
   branchName: string;
 }
+interface Vendor {
+  id: number;
+  vendorName: string;
+}
+const vendors = ref<Vendor[]>([]);
 const roles = ref<Role[]>([]);
 const banks = ref<Bank[]>([]);
 const branches = ref<Branch[]>([]);
+const vendorLoading = ref(false);
+
+const featchVendors = async () => {
+  vendorLoading.value = true;
+  try {
+    const result = await getVendorForBankService();
+    vendors.value = result;
+  } catch (e) {
+    console.error("Error fetching vendors", e);
+  } finally {
+    vendorLoading.value = false;
+  }
+};
 
 // Password modal states
 const passwordModalVisible = ref(false);
@@ -689,6 +731,10 @@ const handleBankChange = async () => {
 };
 
 // Computed properties for conditional field display
+const showVendorField = computed(() => {
+  return formState.role === 2;
+});
+// Computed properties for conditional field display
 const showBankField = computed(() => {
   return formState.role !== 1 && formState.role !== 2 && formState.role !== "";
 });
@@ -712,6 +758,9 @@ watch(
     if (newRole === 1 || newRole === 2) {
       formState.bankId = null;
       formState.branchId = null;
+    }
+    if (newRole !== 2) {
+      formState.vendorId = null;
     }
   }
 );
@@ -752,6 +801,16 @@ const rules = {
     },
   ],
   role: [{ required: true, message: "Please select a role" }],
+  vendorId: [
+    {
+      validator: (rule: any, value: any) => {
+        if (formState.role === "vendor" && !value) {
+          return Promise.reject("Please select a vendor");
+        }
+        return Promise.resolve();
+      },
+    },
+  ],
   bankId: [
     {
       validator: (rule: any, value: any) => {
@@ -924,6 +983,7 @@ import {
   getUserCountService,
   saveUserService,
 } from "../../services/user/user.service";
+import { getVendorForBankService } from "../../services/vendor/vendor.service";
 import { useUserStore } from "../../stores/userStore";
 const isImageChanged = ref(false);
 
@@ -964,6 +1024,7 @@ const showModal = (mode: any, record?: any) => {
   modalMode.value = mode;
   featchRoole();
   featchBanks();
+  featchVendors();
 
   if (mode === "add") {
     // Reset form for adding new user
@@ -977,6 +1038,7 @@ const showModal = (mode: any, record?: any) => {
       bankId: null,
       branchId: "",
       imagePath: "",
+      vendorId: null,
       isActive: "Active",
     });
     imageUrl.value = "";
@@ -999,6 +1061,7 @@ const showModal = (mode: any, record?: any) => {
       bankId: record.bankId,
       branchId: record.branchId,
       imagePath: record.imagePath,
+      vendorId: record.vendorId,
       isActive: activeStatus,
     });
     imageUrl.value = baseConfig.BaseURL + record.imagePath || "";

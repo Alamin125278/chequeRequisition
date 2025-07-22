@@ -30,7 +30,7 @@
             iconBgColor,
           ]"
         >
-          <component :is="icon" class="w-6 h-6 text-white" />
+          <component :is="icon" class="text-white" />
         </div>
       </div>
     </div>
