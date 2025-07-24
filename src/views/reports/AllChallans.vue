@@ -185,15 +185,16 @@
                     ><EyeOutlined />
                   </a-button>
                 </a-tooltip>
-                <!-- <a-tooltip title="Export Challan">
+                <a-tooltip title="Export Challan">
                   <a-button
-                    type="default"
+                    type="primary"
                     shape="circle"
                     class="btn-challan-export"
+                    @click="exportChallan(record.id)"
                   >
-                    <ExportOutlined />
+                    <FilePdfOutlined />
                   </a-button>
-                </a-tooltip> -->
+                </a-tooltip>
               </div>
             </template>
           </template>
@@ -275,16 +276,22 @@
 </template>
 
 <script setup lang="ts">
+import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
+import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
+import AuthSignature from "@/assets/signature.png";
+import { useChallanItemStore } from "@/stores/challanItemStore.ts";
 import {
   EyeOutlined,
+  FilePdfOutlined,
   FileTextOutlined,
   ReloadOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import { computed, onMounted, ref } from "vue";
-import { useChallanItemStore } from "../../stores/challanItemStore.ts";
+import { getChallanExportService } from "../../services/challan/challan.service";
 import { useChallanStore, type Challan } from "../../stores/challanStore";
+import { generateChallanPdf } from "../../utils/ExcelFile/generateChallanPdf";
 
 // State variables
 const loading = ref(false);
@@ -445,12 +452,6 @@ const refreshData = () => {
   }, 800);
 };
 
-// Export challan
-// const exportChallan = (challan: Challan) => {
-//   message.success(`Exporting challan ${challan.challanNo} as Excel file...`);
-//   // In a real application, this would trigger an API call to generate and download an Excel file
-// };
-
 const viewChallanItems = async (challan: Challan) => {
   isModalVisible.value = true;
   challanNo.value = challan.challanNumber;
@@ -461,11 +462,40 @@ const viewChallanItems = async (challan: Challan) => {
 };
 
 // Export all challans
-const exportAllChallans = () => {
-  message.success(
-    `Exporting all ${challanStore.fetchChallans.length} challans as Excel file...`
-  );
-  // In a real application, this would trigger an API call to generate and download an Excel file
+const exportChallan = async (id: number) => {
+  try {
+    const challanId = [id];
+    const challans = await getChallanExportService(challanId);
+
+    if (!challans || challans.length === 0) {
+      message.error("No challan data found.");
+    }
+
+    const logoBase64 = await toBase64(FinteralogoImage);
+    const footerBase64 = await toBase64(FinteraFooterImage);
+    const AuthSignatureBase64 = await toBase64(AuthSignature);
+
+    generateChallanPdf(challans, logoBase64, footerBase64, AuthSignatureBase64);
+    message.success("Challan exported successfully");
+  } catch (error) {
+    console.error("Failed to export challan:", error);
+    // Optional: show error to user using a toast or alert
+    message.error("Something went wrong while exporting the challan.");
+  }
+};
+
+const toBase64 = async (filePath: string) => {
+  return fetch(filePath)
+    .then((res) => res.blob())
+    .then(
+      (blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        })
+    );
 };
 
 // Fetch data on component mount
@@ -577,14 +607,18 @@ onMounted(() => {
   border-radius: var(--radius-md) !important;
 }
 
-.ant-btn-primary.btn-challan-view {
+.ant-btn-primary.btn-challan-export {
   background-color: var(--color-teal-500) !important;
   border-color: var(--color-teal-500) !important;
 }
-.ant-btn-primary.btn-challan-view:hover,
-.ant-btn-primary.btn-challan-view:focus {
+.ant-btn-primary.btn-challan-export:hover,
+.ant-btn-primary.btn-challan-export:focus {
   background-color: var(--color-teal-700) !important;
   border-color: var(--color-teal-700) !important;
+}
+.ant-btn-primary.btn-challan-view {
+  background-color: var(--color-orange-500) !important;
+  border-color: var(--color-orange-500) !important;
 }
 
 /* Responsive adjustments */

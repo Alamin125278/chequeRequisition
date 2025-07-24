@@ -38,7 +38,7 @@ const router = createRouter({
     {
       path: "/404",
       name: "404",
-      component: LoginPage,
+      component: () => import("@/views/unauthorize/unauthorize.vue"),
     },
     // App routes
     {
