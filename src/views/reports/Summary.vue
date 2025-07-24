@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -74,6 +74,23 @@
                   format="YYYY-MM-DD"
                   placeholder="Select end date"
                 />
+              </a-form-item>
+
+              <!-- Severity -->
+              <a-form-item
+                label="Severity"
+                name="severity"
+                :rules="[{ required: true, message: 'Please select severity' }]"
+              >
+                <a-select
+                  v-model:value="formState.severity"
+                  placeholder="Select severity"
+                  class="w-full"
+                >
+                  <a-select-option value="">Select Severity</a-select-option>
+                  <a-select-option value="1">Urgent</a-select-option>
+                  <a-select-option value="2">Normal</a-select-option>
+                </a-select>
               </a-form-item>
 
               <!-- Bank ID -->
@@ -475,6 +492,7 @@ const formState = reactive({
   startDate: undefined as string | undefined,
   endDate: undefined as string | undefined,
   bankId: null as number | null,
+  severity: null as number | null,
 });
 
 // Modal and loading states
@@ -503,7 +521,12 @@ const totals = computed((): Totals => {
 
 // Handle preview
 const handlePreview = async () => {
-  if (!formState.startDate || !formState.endDate || !formState.bankId) {
+  if (
+    !formState.startDate ||
+    !formState.endDate ||
+    !formState.bankId ||
+    !formState.severity
+  ) {
     message.error("Please fill all required fields");
     return;
   }
@@ -526,6 +549,7 @@ const handlePreview = async () => {
       bankId: formState.bankId,
       startDate: stDate,
       endDate: enDate,
+      severity: formState.severity,
     };
     // Generate mock data
     const response = await getSummaryReportService(params);
