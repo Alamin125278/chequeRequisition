@@ -2,6 +2,7 @@ export default {
   APIs: {
     login: "/api/auth/login",
     logout: "/api/auth/logout",
+    validateToken: "/api/auth/validate-token",
     users: "api/users",
     createUserInfo: "/api/user",
     getUserInfo: "/api/user/info",

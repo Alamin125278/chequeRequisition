@@ -1,5 +1,6 @@
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import MainLayout from "@/layouts/MainLayout.vue";
+import { getAuthorizationToken } from "@/services/auth/token.service";
 import { CheckRoutePermission } from "@/services/Route/checkRoute.service";
 import { useUserStore } from "@/stores/userStore";
 import AllBranches from "@/views/branch/AllBranches.vue";
@@ -36,9 +37,15 @@ const router = createRouter({
       ],
     },
     {
-      path: "/404",
-      name: "404",
+      path: "/unauthorized",
+      name: "UnAuthorized",
       component: () => import("@/views/unauthorize/unauthorize.vue"),
+    },
+    {
+      path: "/user-profile",
+      name: "User Profile",
+      component: () => import("@/views/user/UserProfile.vue"),
+      meta: { requiresAuth: false, requiresPermission: false },
     },
     // App routes
     {
@@ -60,11 +67,6 @@ const router = createRouter({
           path: "/branches",
           name: "All Branches",
           component: AllBranches, // Placeholder, would be a real page in production
-        },
-        {
-          path: "/user-profile",
-          name: "User Profile",
-          component: () => import("@/views/user/UserProfile.vue"),
         },
         {
           path: "/users",
@@ -156,32 +158,47 @@ const router = createRouter({
 // Navigation guard
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  // if (userStore.isLoggedIn) {
-  //   useAutoLogout();
-  // }
+  const token = getAuthorizationToken();
+
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requirePermission = to.matched.some(
     (record) => record.meta.requiresPermission
   );
 
-  const hasPermission = await CheckRoutePermission(to.path, requiresAuth);
-  // If route requires auth and user is not logged in, redirect to login
-  if (requiresAuth && !userStore.isLoggedIn) {
-    next({ name: "Login" });
+  const isLoggedIn = userStore.isLoggedIn;
+  const hasCurrentUser = !!userStore.currentUser;
+  if (!to.matched.length) {
+    return next({ name: "UnAuthorized" });
   }
-  // If user is logged in and trying to access auth pages, redirect to dashboard
-  else if (
-    userStore.isLoggedIn &&
-    (to.path === "/login" || to.path === "/register")
-  ) {
-    next({ name: "Dashboard" });
-  } else if (requirePermission && !hasPermission) {
-    console.log(hasPermission);
 
-    next({ name: "404" });
-  } else {
-    next();
+  const localStorageCleared = !token || localStorage.length === 0;
+
+  if (requiresAuth && localStorageCleared) {
+    userStore.isLoggedIn = false;
+    return next({ name: "Login" });
   }
+  // Check permission only if route requires it
+  let hasPermission = true;
+  if (requirePermission) {
+    hasPermission = await CheckRoutePermission(to.path, requiresAuth);
+  }
+
+  // Case 1: Route requires auth but user not logged in
+  if (requiresAuth && !isLoggedIn) {
+    return next({ name: "Login" });
+  }
+  // Case 2: User already logged in and trying to access login/register
+  if (isLoggedIn && (to.path === "/login" || to.path === "/register")) {
+    return next({ name: "Dashboard" });
+  }
+
+  // Case 3: Route needs permission but user doesn't have it
+  if (requirePermission && !hasPermission) {
+    return next({ name: "UnAuthorized" });
+  }
+
+  // Default: allow access
+  next();
 });
 
 export default router;
