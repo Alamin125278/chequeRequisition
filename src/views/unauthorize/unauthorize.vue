@@ -30,8 +30,8 @@
                   @click="goToLogin"
                   class="flex items-center justify-center"
                 >
-                  <UserOutlined class="mr-2" />
-                  Login
+                  <LogoutOutlined class="mr-2" />
+                  Logout
                 </a-button>
 
                 <a-button
@@ -84,22 +84,25 @@
   </div>
 </template>
 
-<script setup>
+<script setup lang="ts">
+import { removeAuthorizationTokenService } from "@/services/auth/token.service";
+import { useUserStore } from "@/stores/userStore";
 import {
   ArrowLeftOutlined,
   HomeOutlined,
   LockOutlined,
   MailOutlined,
   PhoneOutlined,
-  UserOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+const userStore = useUserStore();
 
 // Navigation methods
 const goToLogin = () => {
-  // Replace with your actual login route
+  userStore.isLoggedIn = false;
+  removeAuthorizationTokenService();
+  message.success("Logged out successfully");
   window.location.href = "/login";
-  message.info("Redirecting to login page...");
 };
 
 const goBack = () => {

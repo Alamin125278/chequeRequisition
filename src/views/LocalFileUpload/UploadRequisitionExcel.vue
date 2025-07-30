@@ -408,6 +408,8 @@ interface ImportedItem {
   agentNum?: string;
   serverity?: string;
   requestDate?: string;
+  homeBranchCode?: string;
+  deliveryBranchCode?: string;
 }
 
 // Current date for display
@@ -548,6 +550,18 @@ const columns = [
     title: "Distribution Point Name",
     dataIndex: "distributionPointName",
     key: "distributionPointName",
+    width: 150,
+  },
+  {
+    title: "Home Branch Code",
+    dataIndex: "homeBranchCode",
+    key: "homeBranchCode",
+    width: 150,
+  },
+  {
+    title: "Delivery Branch Code",
+    dataIndex: "deliveryBranchCode",
+    key: "deliveryBranchCode",
     width: 150,
   },
 ];
@@ -706,6 +720,8 @@ const processFile = () => {
             serverity: "Urgent",
             requestDate:
               row["Request_Date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: row["Home_Branch_Code"] || "",
+            deliveryBranchCode: row["Delivery_Branch_Code"] || "",
           };
         });
       } else if (selectedBank.value == 1) {
@@ -753,6 +769,8 @@ const processFile = () => {
             serverity: "Urgent",
             requestDate:
               row["Request_Date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: row["Home_Branch_Code"] || "",
+            deliveryBranchCode: row["Delivery_Branch_Code"] || "",
           };
         });
       }
@@ -852,6 +870,8 @@ const handleSubmit = async () => {
       serverity: 1,
       requestDate: item.requestDate, // "YYYY-MM-DD"
       agentNum: item.agentNum,
+      homeBranchCode: item.homeBranchCode,
+      deliveryBranchCode: item.deliveryBranchCode,
     }));
 
     const result = await saveBulkLocalFileUploadService(items);

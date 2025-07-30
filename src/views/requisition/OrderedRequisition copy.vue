@@ -185,7 +185,7 @@
           <div class="flex justify-between items-center mb-3">
             <h3 class="text-lg font-medium text-primary">Export Progress</h3>
             <span class="text-sm text-secondary">
-              {{ completedExports.length }} of
+              <!-- {{ completedExports.value.length }} of -->
               {{ totalRequiredExports }} completed
             </span>
           </div>

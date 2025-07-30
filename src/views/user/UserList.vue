@@ -1005,8 +1005,8 @@ const handleImageChange = (info: UploadChangeParam) => {
   if (info.file.status === "uploading") {
     return;
   }
-
   const file = info.file.originFileObj;
+  console.log(info.file);
 
   try {
     if (file) {

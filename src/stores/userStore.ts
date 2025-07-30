@@ -13,7 +13,7 @@ import { ref } from "vue";
 export interface User {
   id: number;
   name: string;
-  username: string;
+  userName: string;
   email: string;
   imagePath: string;
   role: number;

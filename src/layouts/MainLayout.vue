@@ -12,7 +12,7 @@
     >
       <div class="sidebar-header">
         <img
-          src="/public/image/logo_text.png"
+          :src="logoSrc"
           alt="Logo"
           class="logo"
           v-if="!isSidebarCollapsed"
@@ -74,7 +74,7 @@
       <div class="sidebar-footer">
         <div class="sidebar-footer-content">
           <span v-if="!isSidebarCollapsed"
-            >© {{ new Date().getFullYear() }} Fintera</span
+            >© {{ new Date().getFullYear() }} {{ companyName }}</span
           >
           <span v-else>©</span>
         </div>
@@ -236,16 +236,9 @@
             </a>
             <template #overlay>
               <a-menu class="user-menu">
-                <a-menu-item key="profile">
-                  <router-link to="/user-profile" class="menu-link">
-                    <UserOutlined />
-                    <span>Profile</span>
-                  </router-link>
-                </a-menu-item>
-
-                <a-menu-item key="settings">
-                  <SettingOutlined />
-                  Settings
+                <a-menu-item key="profile" @click="showProfileModal = true">
+                  <UserOutlined />
+                  <span>Profile Setting</span>
                 </a-menu-item>
                 <a-menu-divider />
                 <a-menu-item key="logout" @click="logout">
@@ -263,12 +256,17 @@
         <router-view />
       </main>
 
+      <UserProfileModal
+        v-if="showProfileModal"
+        v-model:visible="showProfileModal"
+      />
+
       <!-- Footer -->
       <footer class="footer">
         <div class="footer-content">
           <div class="footer-copyright">
             <span
-              >&copy; {{ new Date().getFullYear() }} Fintera Solutions. All
+              >&copy; {{ new Date().getFullYear() }} {{ companyName }}. All
               rights reserved.</span
             >
           </div>
@@ -284,6 +282,7 @@
 </template>
 
 <script setup lang="ts">
+import UserProfileModal from "@/components/dashboard/UserProfile.vue";
 import {
   AuditOutlined,
   BankOutlined,
@@ -330,12 +329,27 @@ const iconMap: Record<string, Component> = {
 function getIconComponent(iconName: string): Component | null {
   return iconMap[iconName] || null;
 }
+const logoSrc = computed(() => {
+  if (window.location.port !== "4000") {
+    return "/image/logo_text.png";
+  } else {
+    return "/image/FLEXITLogo.jpg";
+  }
+});
+const companyName = computed(() => {
+  if (window.location.port !== "4000") {
+    return "Fintera Solutions LTD.";
+  } else {
+    return "Flex IT LTD.";
+  }
+});
 
 // Router and stores
 const router = useRouter();
 const route = useRoute();
 const menuStore = useMenuStore();
 const userStore = useUserStore();
+const showProfileModal = ref(false);
 
 // Get menus from store using computed for reactivity
 const menus = computed(() => menuStore.menus);
@@ -974,17 +988,21 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 :deep(.user-menu .ant-dropdown-menu-item) {
-  padding: 12px 16px;
+  /* padding: 12px 16px; */
   transition: all 0.2s ease;
 }
 
 :deep(.user-menu .ant-dropdown-menu-item:hover) {
   background-color: rgba(0, 0, 0, 0.02);
 }
+.anticon {
+  vertical-align: 0.1em !important;
+}
 
 :deep(.user-menu .ant-dropdown-menu-item .anticon) {
   margin-right: 10px;
   font-size: 16px;
+  vertical-align: 0.1em !important;
 }
 
 .menu-link {
