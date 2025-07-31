@@ -278,6 +278,7 @@
 <script setup lang="ts">
 import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
 import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
+import FlexItlogoImage from "@/assets/challanImages/flexitHeader.png";
 import AuthSignature from "@/assets/signature.png";
 import { useChallanItemStore } from "@/stores/challanItemStore.ts";
 import {
@@ -471,11 +472,29 @@ const exportChallan = async (id: number) => {
       message.error("No challan data found.");
     }
 
-    const logoBase64 = await toBase64(FinteralogoImage);
-    const footerBase64 = await toBase64(FinteraFooterImage);
-    const AuthSignatureBase64 = await toBase64(AuthSignature);
-
-    generateChallanPdf(challans, logoBase64, footerBase64, AuthSignatureBase64);
+    if (challans[0].vendorName === "Fintera Solutions Limited") {
+      const logoBase64 = await toBase64(FinteralogoImage);
+      const footerBase64 = await toBase64(FinteraFooterImage);
+      const AuthSignatureBase64 = await toBase64(AuthSignature);
+      // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
+      generateChallanPdf(
+        challans,
+        logoBase64,
+        footerBase64,
+        AuthSignatureBase64
+      );
+    } else {
+      const logoBase64 = await toBase64(FlexItlogoImage);
+      const footerBase64 = await toBase64(FinteraFooterImage);
+      const AuthSignatureBase64 = await toBase64(AuthSignature);
+      // alert(logoBase64);
+      generateChallanPdf(
+        challans,
+        logoBase64,
+        footerBase64,
+        AuthSignatureBase64
+      );
+    }
     message.success("Challan exported successfully");
   } catch (error) {
     console.error("Failed to export challan:", error);

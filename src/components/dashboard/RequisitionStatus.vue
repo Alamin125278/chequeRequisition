@@ -26,6 +26,7 @@
             size="large"
             @change="fetchOrderTracking(timeRange)"
           >
+            <a-select-option value="today">Today</a-select-option>
             <a-select-option value="week">This Week</a-select-option>
             <a-select-option value="month">This Month</a-select-option>
             <a-select-option value="quarter">This Quarter</a-select-option>
@@ -262,7 +263,7 @@ import {
 } from "@ant-design/icons-vue";
 import { computed, onMounted, ref } from "vue";
 
-const timeRange = ref("week");
+const timeRange = ref("today");
 
 const statuses = ref<OrderTracking[]>([]);
 const isLoading = ref(false);

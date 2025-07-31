@@ -689,39 +689,50 @@ const processFile = () => {
       if (selectedBank.value == 2) {
         importedData.value = (jsonData as any[]).map((row, index) => {
           let chequeType = "";
-          if (row["Series"] == "SB") {
-            chequeType = "Savings";
-          } else if (row["Series"] == "CA") {
-            chequeType = "Current";
-          } else if (row["Series"] == "PO") {
-            chequeType = "Payment Order";
+
+          switch (row["Series"] || row["Type"]) {
+            case "SB":
+              chequeType = "Savings";
+              break;
+            case "CA":
+              chequeType = "Current";
+              break;
+            case "PO":
+              chequeType = "Payment Order";
+              break;
           }
+
           return {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 2,
-            branchName: row["Home_Branch"] || "",
-            routingNo: row["Routing_No"] || "",
-            accountNo: row["Account_no"] || "",
-            accountName: row["Account_Name"] || "",
+            branchName: row["Home_Branch"] ?? row["HomeBranch"] ?? "",
+            routingNo: row["Routing_No"] ?? row["RoutingNumber"] ?? "",
+            accountNo: row["Account_no"] ?? row["AccountNumber"] ?? "",
+            accountName: row["Account_Name"] ?? row["AccountHoldersName"] ?? "",
             chequeType: chequeType,
-            chequePrefix: row["Series"] || "",
-            series: row["Series"] || "",
-            transactionCode: row["Tr_Code"] || "",
-            leafCount: row["Lvs"] || "",
-            micrNo: row["MICR_Account"] || "",
-            startNo: row["StartNo"] || "",
-            endNo: row["End_No"] || "",
+            chequePrefix: row["Series"] ?? row["Type"] ?? "",
+            series: row["Series"] ?? row["Type"] ?? "",
+            transactionCode: row["Tr_Code"] ?? row["TransactionCode"] ?? "",
+            leafCount: row["Lvs"] ?? row["NoofLeaf"] ?? "",
+            micrNo: row["MICR_Account"] ?? row["MICRAccount"] ?? "",
+            startNo: row["StartNo"] ?? row["StartNO"] ?? "",
+            endNo: row["End_No"] ?? row["EndNo"] ?? "",
             bookQty: "1",
-            receivingBranch: row["Delivery_Branch"] || "",
-            distributionPointName: row["Delivery_Branch"] || "",
+            receivingBranch:
+              row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "",
+            distributionPointName:
+              row["PointAddress"] ?? row["Delivery_Branch"] ?? "",
             courierCode: "SCS",
-            agentNum: row["Agent_No"] || "",
-            serverity: "Urgent",
+            agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
+            serverity: "Normal",
             requestDate:
-              row["Request_Date"] || new Date().toISOString().slice(0, 10),
-            homeBranchCode: row["Home_Branch_Code"] || "",
-            deliveryBranchCode: row["Delivery_Branch_Code"] || "",
+              row["Request_Date"] ??
+              row["Date"] ??
+              new Date().toISOString().slice(0, 10),
+            homeBranchCode: row["Home_Branch_Code"] ?? row["HomeBrCode"] ?? "",
+            deliveryBranchCode:
+              row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
           };
         });
       } else if (selectedBank.value == 1) {
@@ -861,13 +872,13 @@ const handleSubmit = async () => {
       micrNo: item.micrNo,
       series: item.series,
       accountName: item.accountName,
-      cusAddress: item.receivingBranch,
+      cusAddress: item.distributionPointName,
       bookQty: Number(item.bookQty),
       transactionCode: Number(item.transactionCode),
       leaves: Number(item.leafCount),
       courierCode: item.courierCode ?? "SCS",
       receivingBranchName: item.receivingBranch,
-      serverity: 1,
+      serverity: 2,
       requestDate: item.requestDate, // "YYYY-MM-DD"
       agentNum: item.agentNum,
       homeBranchCode: item.homeBranchCode,

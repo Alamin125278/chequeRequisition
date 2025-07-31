@@ -455,6 +455,8 @@
 <script setup lang="ts">
 import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
 import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
+// import FlexItFooterImage from "@/assets/challanImages/flexitFooter.png";
+import FlexItlogoImage from "@/assets/challanImages/flexitHeader.png";
 import AuthSignature from "@/assets/signature.png";
 import {
   CheckOutlined,
@@ -898,7 +900,11 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
 
     const formattedData = matchingOrders.map((order) => ({
       "Bank Name": order.bankName,
-      "Branch Name": order.branchName,
+      "Branch Name": order.agentNum
+        ? `B- ${order.branchName} (${
+            order.receivingBranchName?.slice(-7) || ""
+          })`
+        : order.branchName,
       "Account Name": order.accountName,
       "Customer Address": order.receivingBranchName,
       "Cheque Prefix": order.chequePrefix,
@@ -985,7 +991,11 @@ const exportPSI = () => {
       "Routing No": order.routingNo,
       "Transaction Code": order.transactionCode,
       Name: order.accountName,
-      "Home Branch Name": order.branchName,
+      "Home Branch Name": order.agentNum
+        ? `B- ${order.branchName} (${
+            order.receivingBranchName?.slice(-7) || ""
+          })`
+        : order.branchName,
       "Ac Prefix": order.chequePrefix,
       "Distribution Point Name": order.cusAddress,
       "Receiving Branch Name": order.receivingBranchName,
@@ -1035,7 +1045,7 @@ const confirmExportChallan = async () => {
         var challans = await getChallanExportService(challanIds);
         // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
         // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
-        if (challans[0].vendorName === "Fintera Solution") {
+        if (challans[0].vendorName === "Fintera Solutions Limited") {
           const logoBase64 = await toBase64(FinteralogoImage);
           const footerBase64 = await toBase64(FinteraFooterImage);
           const AuthSignatureBase64 = await toBase64(AuthSignature);
@@ -1047,7 +1057,7 @@ const confirmExportChallan = async () => {
             AuthSignatureBase64
           );
         } else {
-          const logoBase64 = await toBase64(FinteralogoImage);
+          const logoBase64 = await toBase64(FlexItlogoImage);
           const footerBase64 = await toBase64(FinteraFooterImage);
           const AuthSignatureBase64 = await toBase64(AuthSignature);
           generateChallanPdf(

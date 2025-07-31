@@ -17,12 +17,7 @@
           class="logo"
           v-if="!isSidebarCollapsed"
         />
-        <img
-          src="/public/image/favicon.png"
-          alt="Logo"
-          class="logo-small"
-          v-else
-        />
+        <img :src="favSrc" alt="Logo" class="logo-small" v-else />
       </div>
 
       <div class="sidebar-content">
@@ -38,7 +33,7 @@
             <a-sub-menu
               v-if="item.children && item.children.length > 0"
               :key="item.id"
-              style="padding: 0 8px 0 0px !important"
+              style="padding: 0 2px 0 0px !important"
             >
               <template #icon>
                 <component :is="getIconComponent(item.icon)" />
@@ -330,17 +325,24 @@ function getIconComponent(iconName: string): Component | null {
   return iconMap[iconName] || null;
 }
 const logoSrc = computed(() => {
-  if (window.location.port !== "4000") {
+  if (window.location.port === "4000") {
     return "/image/logo_text.png";
   } else {
-    return "/image/FLEXITLogo.jpg";
+    return "/image/FlexitMainLogo.jpg";
+  }
+});
+const favSrc = computed(() => {
+  if (window.location.port === "4000") {
+    return "/image/favicon.png";
+  } else {
+    return "/image/flexITFavicon.jpg";
   }
 });
 const companyName = computed(() => {
-  if (window.location.port !== "4000") {
+  if (window.location.port === "4000") {
     return "Fintera Solutions LTD.";
   } else {
-    return "Flex IT LTD.";
+    return "FlexIT Services LTD.";
   }
 });
 
@@ -622,7 +624,7 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 .sidebar-collapsed {
-  width: 100px;
+  width: 80px;
 }
 
 .sidebar-header {
@@ -635,8 +637,8 @@ const handleClickOutside = (event: MouseEvent) => {
 }
 
 .logo {
-  height: 32px;
-  max-width: 180px;
+  height: 40px;
+  max-width: 220px;
   transition: all 0.3s ease;
 }
 

@@ -26,6 +26,7 @@ export interface OrderRequisition {
   reDate: string;
   statusName: string;
   cusAddress: string;
+  agentNum?: string;
 }
 export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const orderRequisition = ref<OrderRequisition[]>([]);

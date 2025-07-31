@@ -265,7 +265,7 @@ h6 {
   background-color: var(--primary-ui);
   color: var(--background);
   min-height: 100vh;
-  padding: var(--spacing-md);
+  /* padding: var(--spacing-md); */
 }
 
 .sidebar-link {

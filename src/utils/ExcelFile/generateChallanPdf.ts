@@ -888,6 +888,7 @@ interface Challan {
   courierName?: string;
   challanNumber: string;
   branchName: string;
+  cusAddress?: string | null;
   agentNum?: string | null;
   items?: ChallanItem[];
 }
@@ -968,7 +969,7 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 10,
       });
-      page.drawText(`Con: ${challan.agentNum || "N/A"}`, {
+      page.drawText(`Mob: ${challan.agentNum || "N/A"}`, {
         x: pageWidth - marginX - 150,
         y: pageHeight - marginY - 90,
         font,
@@ -1009,6 +1010,13 @@ export const generateChallanPdf = async (
         y,
         font,
         size: 11,
+      });
+      y -= 15;
+      page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+        x: marginX,
+        y,
+        font,
+        size: 10,
       });
 
       y -= 40;
@@ -1056,7 +1064,7 @@ export const generateChallanPdf = async (
         item.endNo,
         item.chequeType,
         item.serverity === 1 ? "Urgent" : "Normal",
-        item.branchName,
+        challan.agentNum ? `B- ${item.branchName}` : item.branchName,
       ];
 
       let cx = marginX;
