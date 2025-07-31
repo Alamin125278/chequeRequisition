@@ -5,6 +5,8 @@ export interface FetchSummaryParams {
   bankId: number;
   startDate: string;
   endDate: string;
+  severity: number;
+  agentType: boolean;
 }
 // interface SummaryReport {
 //   homeBranch: string;

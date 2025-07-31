@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -90,6 +90,26 @@
                   <a-select-option value="">Select Severity</a-select-option>
                   <a-select-option value="1">Urgent</a-select-option>
                   <a-select-option value="2">Normal</a-select-option>
+                </a-select>
+              </a-form-item>
+              <!-- Agent Type -->
+              <a-form-item
+                label="AgentType"
+                name="agentType"
+                :rules="[
+                  { required: true, message: 'Please select agent type' },
+                ]"
+              >
+                <a-select
+                  v-model:value="formState.agentType"
+                  placeholder="Select Type"
+                  class="w-full"
+                >
+                  <a-select-option :value="null">Select Type</a-select-option>
+                  <a-select-option :value="true">Agent Type</a-select-option>
+                  <a-select-option :value="false"
+                    >Non-Agent Type</a-select-option
+                  >
                 </a-select>
               </a-form-item>
 
@@ -269,7 +289,13 @@
                     {{ index + 1 }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
-                    {{ item.homeBranch }}
+                    {{
+                      item.isAgent && formState.bankId === 2
+                        ? `B- ${item.homeBranch} (${
+                            item.deliveryBranch?.slice(-7) || ""
+                          })`
+                        : item.homeBranch
+                    }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
                     {{ item.deliveryBranch }}
@@ -455,6 +481,7 @@ interface ReportItem {
   deliveryBranch: string;
   challanNo: string;
   challanDate: string;
+  isAgent: boolean;
   sb10: number;
   sb20: number;
   sb50: number;
@@ -493,6 +520,7 @@ const formState = reactive({
   endDate: undefined as string | undefined,
   bankId: null as number | null,
   severity: null as number | null,
+  agentType: undefined as boolean | undefined,
 });
 
 // Modal and loading states
@@ -550,6 +578,7 @@ const handlePreview = async () => {
       startDate: stDate,
       endDate: enDate,
       severity: formState.severity,
+      agentType: formState.agentType ?? false,
     };
     // Generate mock data
     const response = await getSummaryReportService(params);
@@ -690,7 +719,9 @@ const downloadExcel = async () => {
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([
         index + 1,
-        item.homeBranch,
+        item.isAgent && formState.bankId === 2
+          ? `B- ${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
+          : item.homeBranch,
         item.deliveryBranch,
         item.challanNo,
         item.challanDate,
@@ -707,7 +738,7 @@ const downloadExcel = async () => {
 
       row.eachCell((cell) => {
         cell.border = borderStyle;
-        cell.alignment = { horizontal: "center", vertical: "middle" };
+        cell.alignment = { horizontal: "left", vertical: "middle" };
       });
     });
 

@@ -301,10 +301,7 @@ import type { Component } from "vue";
 import { computed, onMounted, onUnmounted, ref, watch } from "vue";
 import { useRoute, useRouter } from "vue-router";
 import baseConfig from "../config/base-config";
-import {
-  removeAuthorizationTokenService,
-  validateTokenService,
-} from "../services/auth/token.service";
+import { removeAuthorizationTokenService } from "../services/auth/token.service";
 import { useMenuStore } from "../stores/menuStore";
 import { useUserStore } from "../stores/userStore";
 
@@ -552,14 +549,15 @@ const checkIfMobile = () => {
 
 // Lifecycle hooks
 onMounted(async () => {
-  const isValid = await validateTokenService();
-  if (!isValid) {
-    userStore.isLoggedIn = false;
-    removeAuthorizationTokenService();
-    message.error("Session expired. Please log in again.");
-    router.push("/login");
-    return;
-  }
+  // const isValid = await validateTokenService();
+  // alert(isValid);
+  // if (!isValid) {
+  //   userStore.isLoggedIn = false;
+  //   removeAuthorizationTokenService();
+  //   message.error("Session expired. Please log in again.");
+  //   router.push("/login");
+  //   return;
+  // }
   checkIfMobile();
   window.addEventListener("resize", checkIfMobile);
   document.addEventListener("click", handleClickOutside);

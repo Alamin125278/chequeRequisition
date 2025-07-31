@@ -1,6 +1,9 @@
 import AuthLayout from "@/layouts/AuthLayout.vue";
 import MainLayout from "@/layouts/MainLayout.vue";
-import { getAuthorizationToken } from "@/services/auth/token.service";
+import {
+  getAuthorizationToken,
+  validateTokenService,
+} from "@/services/auth/token.service";
 import { CheckRoutePermission } from "@/services/Route/checkRoute.service";
 import { useUserStore } from "@/stores/userStore";
 import AllBranches from "@/views/branch/AllBranches.vue";
@@ -8,6 +11,7 @@ import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
+import { message } from "ant-design-vue";
 import { createRouter, createWebHashHistory } from "vue-router";
 
 const router = createRouter({
@@ -159,6 +163,7 @@ const router = createRouter({
 router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
   const token = getAuthorizationToken();
+  const isValid = await validateTokenService();
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requirePermission = to.matched.some(
@@ -171,9 +176,12 @@ router.beforeEach(async (to, from, next) => {
     return next({ name: "UnAuthorized" });
   }
 
+  if (!isValid) {
+    localStorage.clear();
+  }
   const localStorageCleared = !token || localStorage.length === 0;
-
   if (requiresAuth && localStorageCleared) {
+    message.error("Session expired. Please log in again.");
     userStore.isLoggedIn = false;
     return next({ name: "Login" });
   }
