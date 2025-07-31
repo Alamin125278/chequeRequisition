@@ -47,7 +47,7 @@
         >
           Filter Orders Requisitions
         </h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
             <label class="block text-sm font-medium mb-1 text-secondary"
               >Bank</label
@@ -66,6 +66,22 @@
               >
                 {{ option.bankName }}
               </a-select-option>
+            </a-select>
+          </div>
+          <div>
+            <label class="block text-sm font-medium mb-1 text-secondary"
+              >Select Type</label
+            >
+            <a-select
+              v-model:value="filters.agentType"
+              placeholder="Select Type"
+              class="w-full"
+              @change="orderRequisitionStore.setAgentType"
+              allowClear
+            >
+              <a-select-option :value="null">All Type</a-select-option>
+              <a-select-option :value="true">Agent Type</a-select-option>
+              <a-select-option :value="false">Non-Agent Type</a-select-option>
             </a-select>
           </div>
           <div>
@@ -153,6 +169,26 @@
                     ? "Urgent"
                     : record.serverity === 2
                     ? "Normal"
+                    : "Unknown"
+                }}
+              </a-tag>
+            </template>
+            <template v-if="column.key === 'isAgent'">
+              <a-tag
+                :color="
+                  record.isAgent === true
+                    ? 'error'
+                    : record.isAgent === false
+                    ? 'success'
+                    : 'default'
+                "
+                class="px-2 py-0.5 rounded-md text-xs font-medium"
+              >
+                {{
+                  record.isAgent === true
+                    ? "Agent"
+                    : record.isAgent === false
+                    ? "Non-Agent"
                     : "Unknown"
                 }}
               </a-tag>
@@ -683,6 +719,11 @@ const columns = [
     dataIndex: "requestDate",
     key: "requestDate",
   },
+  {
+    title: "Is Agent",
+    dataIndex: "isAgent",
+    key: "isAgent",
+  },
 ];
 
 // Preview columns (simplified for modal)
@@ -842,6 +883,7 @@ const filters = ref({
   accountNumber: undefined as string | undefined,
   severity: undefined as string | undefined,
   requestDate: undefined as string | undefined,
+  agentType: undefined as boolean | undefined,
 });
 
 onMounted(() => {
@@ -863,7 +905,12 @@ const orderPagination = (p: any) =>
   orderRequisitionStore.setPagination(p.current, p.pageSize);
 // Generate check type variations with page counts
 
-const hasAppliedFilters = computed(() => !!filters.value.bank);
+const hasAppliedFilters = computed(
+  () =>
+    !!filters.value.bank &&
+    filters.value.agentType !== null &&
+    filters.value.agentType !== undefined
+);
 
 const showExportPreview = () => {
   orderRequisitionStore.fetchOrderRequisitionsForExport();
@@ -900,7 +947,7 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
 
     const formattedData = matchingOrders.map((order) => ({
       "Bank Name": order.bankName,
-      "Branch Name": order.agentNum
+      "Branch Name": order.isAgent
         ? `B- ${order.branchName} (${
             order.receivingBranchName?.slice(-7) || ""
           })`
@@ -991,7 +1038,7 @@ const exportPSI = () => {
       "Routing No": order.routingNo,
       "Transaction Code": order.transactionCode,
       Name: order.accountName,
-      "Home Branch Name": order.agentNum
+      "Home Branch Name": order.isAgent
         ? `B- ${order.branchName} (${
             order.receivingBranchName?.slice(-7) || ""
           })`

@@ -22,6 +22,7 @@ export interface LocalFileUploadCommand {
   serverity: number;
   requestDate?: string;
   agentNum?: string;
+  isAgent: boolean;
 }
 
 export interface LocalFileUploadResult {
@@ -47,6 +48,5 @@ export const saveBulkLocalFileUploadService = async (
     `${constant.APIs.localFileUpload}`,
     payload
   );
-  console.log(response);
   return response.data;
 };

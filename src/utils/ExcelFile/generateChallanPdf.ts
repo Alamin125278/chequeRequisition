@@ -890,6 +890,7 @@ interface Challan {
   branchName: string;
   cusAddress?: string | null;
   agentNum?: string | null;
+  isAgent: boolean;
   items?: ChallanItem[];
 }
 
@@ -1064,7 +1065,7 @@ export const generateChallanPdf = async (
         item.endNo,
         item.chequeType,
         item.serverity === 1 ? "Urgent" : "Normal",
-        challan.agentNum ? `B- ${item.branchName}` : item.branchName,
+        challan.isAgent ? `B- ${item.branchName}` : item.branchName,
       ];
 
       let cx = marginX;

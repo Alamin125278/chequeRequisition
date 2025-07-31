@@ -54,35 +54,59 @@
             <div
               class="mb-6 bg-background p-5 rounded-md border border-gray-200"
             >
-              <div class="flex items-center mb-4">
-                <BankOutlined class="text-accent mr-2 text-lg" />
-                <h3 class="text-md font-medium text-primary">Select Bank</h3>
-              </div>
+              <div class="flex flex-col md:flex-row gap-4">
+                <!-- Bank Section -->
+                <div class="w-full md:w-1/2">
+                  <!-- Header -->
+                  <div class="flex items-center mb-2">
+                    <BankOutlined class="text-accent mr-2 text-lg" />
+                    <h3 class="text-md font-medium text-primary">
+                      Select Bank
+                    </h3>
+                  </div>
+                  <!-- Select -->
+                  <a-select
+                    v-model:value="selectedBank"
+                    placeholder="Select Bank"
+                    class="w-full rounded-md"
+                    size="large"
+                    @change="handleBankChange"
+                    allowClear
+                  >
+                    <a-select-option value="">All Banks</a-select-option>
+                    <a-select-option
+                      v-for="option in banks"
+                      :key="option.id"
+                      :value="option.id"
+                    >
+                      {{ option.bankName }}
+                    </a-select-option>
+                  </a-select>
+                </div>
 
-              <!-- <a-select
-                v-model:value="selectedBank"
-                placeholder="Select Bank"
-                class="w-full md:w-1/3 rounded-md"
-                size="large"
-                :options="banks"
-              /> -->
-              <a-select
-                v-model:value="selectedBank"
-                placeholder="Select Bank"
-                class="w-full md:w-1/3 rounded-md"
-                size="large"
-                @change="handleBankChange"
-                allowClear
-              >
-                <a-select-option value="">All Banks</a-select-option>
-                <a-select-option
-                  v-for="option in banks"
-                  :key="option.id"
-                  :value="option.id"
-                >
-                  {{ option.bankName }}
-                </a-select-option>
-              </a-select>
+                <!-- Type Section -->
+                <div class="w-full md:w-1/2">
+                  <!-- Header -->
+                  <div class="flex items-center mb-2">
+                    <BankOutlined class="text-accent mr-2 text-lg" />
+                    <h3 class="text-md font-medium text-primary">
+                      Select Type
+                    </h3>
+                  </div>
+                  <!-- Select -->
+                  <a-select
+                    v-model:value="selectedType"
+                    placeholder="Select Type"
+                    class="w-full rounded-md"
+                    size="large"
+                  >
+                    <a-select-option :value="true">Agent Type</a-select-option>
+                    <a-select-option :value="false"
+                      >Non-Agent Type</a-select-option
+                    >
+                  </a-select>
+                </div>
+              </div>
             </div>
 
             <!-- File Upload Section -->
@@ -410,6 +434,7 @@ interface ImportedItem {
   requestDate?: string;
   homeBranchCode?: string;
   deliveryBranchCode?: string;
+  isAgent: string;
 }
 
 // Current date for display
@@ -564,10 +589,17 @@ const columns = [
     key: "deliveryBranchCode",
     width: 150,
   },
+  {
+    title: "Is Agent",
+    dataIndex: "isAgent",
+    key: "isAgent",
+    width: 150,
+  },
 ];
 
 // State variables
 const selectedBank = ref<number | null>(null);
+const selectedType = ref<boolean>(false);
 const selectedBankName = ref("");
 const file = ref<File | null>(null);
 const fileList = ref<any[]>([]);
@@ -733,6 +765,7 @@ const processFile = () => {
             homeBranchCode: row["Home_Branch_Code"] ?? row["HomeBrCode"] ?? "",
             deliveryBranchCode:
               row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
+            isAgent: selectedType.value === true ? "True" : "False",
           };
         });
       } else if (selectedBank.value == 1) {
@@ -782,6 +815,7 @@ const processFile = () => {
               row["Request_Date"] || new Date().toISOString().slice(0, 10),
             homeBranchCode: row["Home_Branch_Code"] || "",
             deliveryBranchCode: row["Delivery_Branch_Code"] || "",
+            isAgent: selectedType.value === true ? "True" : "False",
           };
         });
       }
@@ -810,52 +844,6 @@ const handleDiscard = () => {
   file.value = null;
   fileList.value = [];
 };
-
-// Handle form submission
-// const handleSubmit = async () => {
-//   isSubmitting.value = true;
-
-//   // Simulate API call to save the data
-//   try {
-//     for (const item of importedData.value) {
-//       const payload = {
-//         bankId: selectedBank.value,
-//         branchName: "Tejgoen",
-//         accountNo: item.accountNo,
-//         routingNo: item.routingNo,
-//         startNo: item.startNo,
-//         endNo: item.endNo,
-//         chequeType: item.chequeType,
-//         chequePrefix: item.chequePrefix,
-//         micrNo: item.micrNo,
-//         series: item.series,
-//         accountName: item.accountName,
-//         cusAddress: item.branchName,
-//         bookQty: item.bookQty,
-//         transactionCode: item.transactionCode,
-//         leaves: item.leafCount,
-//         courierCode: 1,
-//         receivingBranchName: "Tejgoen",
-//         serverity: 1,
-//         agentNum: item.agentNum,
-//         requestDate: item.requestDate,
-//       };
-//       await saveLocalFileUploadService(payload);
-//     }
-//     setTimeout(() => {
-//       isSubmitting.value = false;
-//       successMessage.value = "File Uploaded Successfully!";
-//       successDescription.value = `${importedData.value.length} items have been uploaded for ${selectedBankName.value}.`;
-//       showSuccessModal.value = true;
-//     }, 1000);
-//   } catch (error) {
-//     console.error("Upload failed", error);
-//     message.error("Failed to upload data.");
-//   } finally {
-//     isSubmitting.value = false;
-//   }
-// };
-
 const handleSubmit = async () => {
   isSubmitting.value = true;
 
@@ -883,10 +871,10 @@ const handleSubmit = async () => {
       agentNum: item.agentNum,
       homeBranchCode: item.homeBranchCode,
       deliveryBranchCode: item.deliveryBranchCode,
+      isAgent: selectedType.value,
     }));
 
     const result = await saveBulkLocalFileUploadService(items);
-
     if (result.data.isSuccess) {
       successMessage.value = "File Uploaded Successfully!";
       successDescription.value = `${items.length} items uploaded for ${selectedBankName.value}`;
@@ -911,6 +899,7 @@ const handleSuccessModalClose = () => {
   file.value = null;
   fileList.value = [];
   selectedBank.value = null;
+  selectedType.value = false;
 };
 </script>
 

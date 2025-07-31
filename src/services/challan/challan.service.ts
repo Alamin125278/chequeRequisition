@@ -30,6 +30,7 @@ export interface FetchChallanParams {
   challanNumber: string;
   branchName: string;
   agentNum?: string | null;
+  isAgent: boolean;
   items: ChallanItem[];
 }
 export interface FetchAllChallanParams {

@@ -10,12 +10,14 @@ export interface FetchOrderRequisitionParams {
   skip: number;
   limit: number;
   status: number;
+  isAgent?: boolean;
 }
 export interface FetchOrderRequisitionForExportParams {
   BankId?: number;
   search?: string;
   severity?: number;
   requestDate?: string;
+  isAgent?: boolean;
 }
 
 export interface FetchOrderRequisitionResponse {

@@ -27,6 +27,7 @@ export interface OrderRequisition {
   statusName: string;
   cusAddress: string;
   agentNum?: string;
+  isAgent: boolean;
 }
 export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const orderRequisition = ref<OrderRequisition[]>([]);
@@ -41,6 +42,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const status = ref<number>(3);
   const bank = ref<number | null>(null);
   const severity = ref<number | null>(null);
+  const agentType = ref<boolean | null>(null);
 
   const fetchOrderRequisitions = async () => {
     loading.value = true;
@@ -53,6 +55,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         severity: severity.value ?? undefined,
         requestDate: reDate.value ?? undefined,
         status: status.value ?? undefined,
+        isAgent: agentType.value ?? undefined,
       });
       orderRequisition.value = result.data;
       total.value = result.total;
@@ -70,8 +73,8 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         BankId: bank.value ?? undefined,
         severity: severity.value ?? undefined,
         requestDate: reDate.value ?? undefined,
+        isAgent: agentType.value ?? undefined,
       });
-      console.log(res);
       orderRequisitionForExport.value = res;
     } catch (e) {
       console.error("Error fetching orderRequisitions", e);
@@ -82,6 +85,11 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
 
   const setSearch = (text: string) => {
     search.value = text;
+    skip.value = 0;
+    fetchOrderRequisitions();
+  };
+  const setAgentType = (Type: boolean) => {
+    agentType.value = Type;
     skip.value = 0;
     fetchOrderRequisitions();
   };
@@ -131,5 +139,6 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
     setSeverity,
     setRequestDate,
     resetFilters,
+    setAgentType,
   };
 });
