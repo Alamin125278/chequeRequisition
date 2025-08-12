@@ -278,6 +278,7 @@
 <script setup lang="ts">
 import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
 import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
+import FlexItFooterImage from "@/assets/challanImages/flexitFooter.png";
 import FlexItlogoImage from "@/assets/challanImages/flexitHeader.png";
 import AuthSignature from "@/assets/signature.png";
 import { useChallanItemStore } from "@/stores/challanItemStore.ts";
@@ -485,7 +486,7 @@ const exportChallan = async (id: number) => {
       );
     } else {
       const logoBase64 = await toBase64(FlexItlogoImage);
-      const footerBase64 = await toBase64(FinteraFooterImage);
+      const footerBase64 = await toBase64(FlexItFooterImage);
       const AuthSignatureBase64 = await toBase64(AuthSignature);
       // alert(logoBase64);
       generateChallanPdf(

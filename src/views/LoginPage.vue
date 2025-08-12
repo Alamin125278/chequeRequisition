@@ -95,7 +95,7 @@ const loading = ref(false);
 const userStore = useUserStore();
 
 const logoSrc = computed(() => {
-  if (window.location.port !== "4000") {
+  if (window.location.port === "4000") {
     return "/image/logo_text.png";
   } else {
     return "/image/FLEXITLogo.jpg";

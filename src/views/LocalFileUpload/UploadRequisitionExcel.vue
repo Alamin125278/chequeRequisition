@@ -83,7 +83,6 @@
                     </a-select-option>
                   </a-select>
                 </div>
-
                 <!-- Type Section -->
                 <div class="w-full md:w-1/2">
                   <!-- Header -->
@@ -104,6 +103,26 @@
                     <a-select-option :value="false"
                       >Non-Agent Type</a-select-option
                     >
+                  </a-select>
+                </div>
+                <!-- Severity Section -->
+                <div class="w-full md:w-1/2">
+                  <!-- Header -->
+                  <div class="flex items-center mb-2">
+                    <BankOutlined class="text-accent mr-2 text-lg" />
+                    <h3 class="text-md font-medium text-primary">
+                      Select Severity
+                    </h3>
+                  </div>
+                  <!-- Select -->
+                  <a-select
+                    v-model:value="selectedSeverity"
+                    placeholder="Select Severity"
+                    class="w-full rounded-md"
+                    size="large"
+                  >
+                    <a-select-option :value="2">Normal</a-select-option>
+                    <a-select-option :value="1">Urgent</a-select-option>
                   </a-select>
                 </div>
               </div>
@@ -577,18 +596,18 @@ const columns = [
     key: "distributionPointName",
     width: 150,
   },
-  {
-    title: "Home Branch Code",
-    dataIndex: "homeBranchCode",
-    key: "homeBranchCode",
-    width: 150,
-  },
-  {
-    title: "Delivery Branch Code",
-    dataIndex: "deliveryBranchCode",
-    key: "deliveryBranchCode",
-    width: 150,
-  },
+  // {
+  //   title: "Home Branch Code",
+  //   dataIndex: "homeBranchCode",
+  //   key: "homeBranchCode",
+  //   width: 150,
+  // },
+  // {
+  //   title: "Delivery Branch Code",
+  //   dataIndex: "deliveryBranchCode",
+  //   key: "deliveryBranchCode",
+  //   width: 150,
+  // },
   {
     title: "Is Agent",
     dataIndex: "isAgent",
@@ -600,6 +619,7 @@ const columns = [
 // State variables
 const selectedBank = ref<number | null>(null);
 const selectedType = ref<boolean>(false);
+const selectedSeverity = ref<number>(2);
 const selectedBankName = ref("");
 const file = ref<File | null>(null);
 const fileList = ref<any[]>([]);
@@ -755,9 +775,9 @@ const processFile = () => {
               row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "",
             distributionPointName:
               row["PointAddress"] ?? row["Delivery_Branch"] ?? "",
-            courierCode: "SCS",
+            courierCode: "U",
             agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
-            serverity: "Normal",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
               row["Request_Date"] ??
               row["Date"] ??
@@ -772,6 +792,8 @@ const processFile = () => {
         importedData.value = (jsonData as any[]).map((row, index) => {
           let micrNo = row["Account No."] || "";
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
+          let homeBranchCode = row["Account No."] || "";
+          homeBranchCode = homeBranchCode.substring(0, 4);
           let series = row["Series"];
           let perfix = row["Prefix"];
           let printerCode = row["Printer Code"];
@@ -787,6 +809,9 @@ const processFile = () => {
             chequePrefix = perfix + printerCode + "-" + leaves + series;
           } else if (perfix == "O") {
             chequeType = "Payment Order";
+            chequePrefix = perfix + printerCode + "-" + leaves + series;
+          } else if (perfix == "C") {
+            chequeType = "Cash Credit";
             chequePrefix = perfix + printerCode + "-" + leaves + series;
           }
           return {
@@ -810,11 +835,11 @@ const processFile = () => {
             distributionPointName: row["Distribution Point Name"] || "",
             courierCode: row["Courier Code"] || "",
             agentNum: "",
-            serverity: "Urgent",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
               row["Request_Date"] || new Date().toISOString().slice(0, 10),
-            homeBranchCode: row["Home_Branch_Code"] || "",
-            deliveryBranchCode: row["Delivery_Branch_Code"] || "",
+            homeBranchCode: homeBranchCode,
+            deliveryBranchCode: row["Receiving Branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
           };
         });
@@ -866,7 +891,7 @@ const handleSubmit = async () => {
       leaves: Number(item.leafCount),
       courierCode: item.courierCode ?? "SCS",
       receivingBranchName: item.receivingBranch,
-      serverity: 2,
+      serverity: selectedSeverity.value,
       requestDate: item.requestDate, // "YYYY-MM-DD"
       agentNum: item.agentNum,
       homeBranchCode: item.homeBranchCode,
@@ -900,6 +925,7 @@ const handleSuccessModalClose = () => {
   fileList.value = [];
   selectedBank.value = null;
   selectedType.value = false;
+  selectedSeverity.value = 2;
 };
 </script>
 

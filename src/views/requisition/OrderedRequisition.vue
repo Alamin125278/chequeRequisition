@@ -491,7 +491,7 @@
 <script setup lang="ts">
 import FinteraFooterImage from "@/assets/challanImages/finterafooter.png";
 import FinteralogoImage from "@/assets/challanImages/finterlogo.png";
-// import FlexItFooterImage from "@/assets/challanImages/flexitFooter.png";
+import FlexItFooterImage from "@/assets/challanImages/flexitFooter.png";
 import FlexItlogoImage from "@/assets/challanImages/flexitHeader.png";
 import AuthSignature from "@/assets/signature.png";
 import {
@@ -1029,23 +1029,44 @@ const exportPSI = () => {
   try {
     const psiOrders = orderRequisitionStore.orderRequisitionForExport;
     const bankName = psiOrders[0].bankName;
+    // const formattedData = psiOrders.map((order) => ({
+    //   "Account No": order.accountNo,
+    //   "Start No": order.startNo,
+    //   "No of Leaves": order.leaves,
+    //   "End No": order.endNo,
+    //   "MICR No": order.micrNo,
+    //   "Routing No": order.routingNo,
+    //   "Transaction Code": order.transactionCode,
+    //   Name: order.accountName,
+    //   "Home Branch Name": order.isAgent
+    //     ? `B- ${order.branchName} (${
+    //         order.receivingBranchName?.slice(-7) || ""
+    //       })`
+    //     : order.branchName,
+    //   "Ac Prefix": order.chequePrefix,
+    //   "Distribution Point Name": order.cusAddress,
+    //   "Receiving Branch Name": order.receivingBranchName,
+    // }));
+
+    //  const todayDate = new Date().toISOString().split("T")[0];
+
     const formattedData = psiOrders.map((order) => ({
-      "Account No": order.accountNo,
-      "Start No": order.startNo,
-      "No of Leaves": order.leaves,
-      "End No": order.endNo,
-      "MICR No": order.micrNo,
-      "Routing No": order.routingNo,
-      "Transaction Code": order.transactionCode,
-      Name: order.accountName,
-      "Home Branch Name": order.isAgent
+      "Bank Name": order.bankName,
+      "Branch Name": order.isAgent
         ? `B- ${order.branchName} (${
             order.receivingBranchName?.slice(-7) || ""
           })`
         : order.branchName,
-      "Ac Prefix": order.chequePrefix,
-      "Distribution Point Name": order.cusAddress,
-      "Receiving Branch Name": order.receivingBranchName,
+      "Account Name": order.accountName,
+      "Customer Address": order.receivingBranchName,
+      "Cheque Prefix": order.chequePrefix,
+      "MICR No": order.micrNo,
+      "Cheque Serial": order.startNo,
+      "Leaves Quantity": order.leaves,
+      "End No": order.endNo,
+      "Routing No": order.routingNo,
+      "Transaction Code": order.transactionCode,
+      "Account No": order.accountNo,
     }));
     const fileName = `PSI_Format_${bankName}${
       new Date().toISOString().split("T")[0]
@@ -1105,7 +1126,7 @@ const confirmExportChallan = async () => {
           );
         } else {
           const logoBase64 = await toBase64(FlexItlogoImage);
-          const footerBase64 = await toBase64(FinteraFooterImage);
+          const footerBase64 = await toBase64(FlexItFooterImage);
           const AuthSignatureBase64 = await toBase64(AuthSignature);
           generateChallanPdf(
             challans,
