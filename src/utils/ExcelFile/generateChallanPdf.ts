@@ -905,6 +905,7 @@ export const generateChallanPdf = async (
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
   const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
 
+  // Image Embed করার জন্য ArrayBuffer নিয়ে আসা
   const headerImageBytes = await fetch(headerImageBase64).then((r) =>
     r.arrayBuffer()
   );
@@ -945,6 +946,38 @@ export const generateChallanPdf = async (
 
     return `${day} ${month} ${year}`;
   }
+  function drawWrappedText(
+    page: any,
+    text: string,
+    x: number,
+    y: number,
+    maxWidth: number,
+    font: any,
+    fontSize: number,
+    lineHeight: number
+  ) {
+    const words = text.split(" ");
+    let line = "";
+    let curY = y;
+
+    for (let i = 0; i < words.length; i++) {
+      const testLine = line ? line + " " + words[i] : words[i];
+      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+      if (testWidth > maxWidth && i > 0) {
+        // আগের লাইন ড্র করো
+        page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+        line = words[i]; // নতুন লাইন শুরু
+        curY -= lineHeight;
+      } else {
+        line = testLine;
+      }
+    }
+    // বাকি টেক্সট ড্র করো
+    // if (line) {
+    //   page.drawText(line, { x, y: curY, size: fontSize, font });
+    // }
+    page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+  }
 
   const pageWidth = 595.28;
   const pageHeight = 841.89;
@@ -963,7 +996,6 @@ export const generateChallanPdf = async (
     "Cus.Branch",
   ];
   const rowHeight = 22;
-  // const headerHeight = 50;
   const footerHeight = 50;
   const signatureHeight = 80;
 
@@ -972,6 +1004,7 @@ export const generateChallanPdf = async (
     for (const item of challan.items || []) {
       TotalBooks += item.bookQty;
     }
+
     let page = pdfDoc.addPage([pageWidth, pageHeight]);
     let y = pageHeight - marginY;
     let sl = 1;
@@ -1000,21 +1033,19 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 10,
       });
-      page.drawText(`Mob: ${challan.agentNum || "N/A"}`, {
+      page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
         x: pageWidth - marginX - 150,
         y: pageHeight - marginY - 90,
         font,
-        size: 10,
+        size: 9,
       });
 
-      if (challan.isAgent) {
-        page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
-          x: pageWidth - marginX - 150,
-          y: pageHeight - marginY - 105,
-          font,
-          size: 9,
-        });
-      }
+      page.drawText(`Courier Mob: ${challan.courierPhone}`, {
+        x: pageWidth - marginX - 150,
+        y: pageHeight - marginY - 105,
+        font,
+        size: 9,
+      });
 
       y = pageHeight - marginY - 20;
       page.drawText(challan.receivingBranchName, {
@@ -1051,15 +1082,17 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 13,
       });
+      if (challan.isAgent) {
+        y -= 15;
+        page.drawText(`Agent Mob: ${challan.agentNum || "N/A"}`, {
+          x: marginX,
+          y,
+          font,
+          size: 9,
+        });
+      }
       y -= 15;
-      page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
-        x: marginX,
-        y,
-        font,
-        size: 9,
-      });
-      y -= 15;
-      page.drawText(`Courier Mob: ${challan.courierPhone}`, {
+      page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
         x: marginX,
         y,
         font,
@@ -1138,18 +1171,36 @@ export const generateChallanPdf = async (
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
         });
-        page.drawText(String(row[i] ?? ""), {
-          x: cx + 3,
-          y: y + 5,
-          size: 7,
-          font,
-        });
+        // **Important fix:** Cus.Branch যদি বেশি লম্বা হয় তাহলে নিচের লাইনে আনার জন্য:
+        if (headers[i] === "Cus.Branch" || headers[i] === "Account Name") {
+          drawWrappedText(
+            page,
+            String(row[i] ?? ""),
+            cx + 3,
+            y + rowHeight - 7,
+            w - 6,
+            font,
+            7,
+            9
+          );
+        } else {
+          const textHeight = 7; // font size
+          const textY = y + (rowHeight - textHeight) / 2 + 3;
+          page.drawText(String(row[i] ?? ""), {
+            x: cx + 3,
+            y: textY,
+            size: 7,
+            font,
+          });
+        }
+
         cx += w;
       });
 
       const key = `${item.chequeType}(${item.leaves})`;
       summary[key] = (summary[key] || 0) + 1;
-      TotalBooks += item.bookQty;
+      // **TotalBooks ও এখানে যোগ করতেছন কিন্তু আগেও যোগ হয়, তাই এখানে বাদ দিলাম**
+      // TotalBooks += item.bookQty;
 
       y -= rowHeight;
       sl++;
@@ -1244,34 +1295,39 @@ export const generateChallanPdf = async (
     drawFooter();
   }
 
+  // pdf save & download
   const pdfBytes = await pdfDoc.save();
-  const blob = new Blob([pdfBytes], { type: "application/pdf" });
-  // const link = document.createElement("a");
-  // link.href = URL.createObjectURL(blob);
-  // const fileName = `styled_challan_${
-  //   new Date().toISOString().split("T")[0]
-  // }.pdf`;
-  // link.click();
-  // saveAs(blob, fileName);
-  if ("showSaveFilePicker" in window) {
-    const fileHandle = await (window as any).showSaveFilePicker({
-      suggestedName: `${challans[0].bankName}_challan_${
-        new Date().toISOString().split("T")[0]
-      }.pdf`,
-      types: [
-        {
-          description: "PDF Files",
-          accept: { "application/pdf": [".pdf"] },
-        },
-      ],
-    });
+  const safeBuffer = new Uint8Array(pdfBytes);
+  const blob = new Blob([safeBuffer], { type: "application/pdf" });
 
-    const writable = await fileHandle.createWritable();
-    await writable.write(blob);
-    await writable.close();
-  } else {
-    // fallback to window.open or saveAs
-    const url = URL.createObjectURL(blob);
-    window.open(url, "_blank");
-  }
+  // if ("showSaveFilePicker" in window) {
+  //   const fileHandle = await (window as any).showSaveFilePicker({
+  //     suggestedName: `${challans[0].bankName}_challan_${
+  //       new Date().toISOString().split("T")[0]
+  //     }.pdf`,
+  //     types: [
+  //       {
+  //         description: "PDF Files",
+  //         accept: { "application/pdf": [".pdf"] },
+  //       },
+  //     ],
+  //   });
+
+  //   const writable = await fileHandle.createWritable();
+  //   await writable.write(blob);
+  //   await writable.close();
+  // } else {
+  // fallback for unsupported browsers
+  const url = URL.createObjectURL(blob);
+  // window.open(url, "_blank");
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${challans[0].bankName}_challan_${
+    new Date().toISOString().split("T")[0]
+  }.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+  // }
 };

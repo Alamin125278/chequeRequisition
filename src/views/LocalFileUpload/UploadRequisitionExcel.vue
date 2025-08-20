@@ -301,12 +301,8 @@
                 :columns="columns"
                 :data-source="importedData"
                 :scroll="{ x: 1000, y: 400 }"
-                :pagination="{
-    pageSize: 10,
-    showSizeChanger: true,
-    pageSizeOptions: ['10', '20', '50'],
-    showTotal: (total: number) => `Total ${total} items`,
-  }"
+                :pagination="pagination"
+                @change="handlePagination"
                 bordered
                 size="middle"
                 class="custom-table"
@@ -618,6 +614,22 @@ const columns = [
   },
 ];
 
+const pagination = ref({
+  current: 1,
+  pageSize: 10,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "100", "200", "500"],
+  showTotal: (total: number) => `Total ${total} items`,
+});
+
+// const handlePagination = (page: number, pageSize: number) => {
+//   pagination.value.current = page;
+//   pagination.value.pageSize = pageSize;
+// };
+const handlePagination = (paginationInfo: any) => {
+  pagination.value.current = paginationInfo.current;
+  pagination.value.pageSize = paginationInfo.pageSize;
+};
 // State variables
 const selectedBank = ref<number | null>(null);
 const selectedType = ref<boolean>(false);
@@ -711,7 +723,6 @@ const resetFile = () => {
   fileList.value = [];
 };
 
-// Process the uploaded file
 // Process the uploaded file
 const processFile = async () => {
   if (!file.value) return;

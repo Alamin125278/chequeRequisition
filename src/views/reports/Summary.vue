@@ -233,44 +233,70 @@
                     Challan Date
                   </th>
                   <th
+                    v-if="totals.sb10 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     SB(10)
                   </th>
                   <th
+                    v-if="totals.sb20 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     SB(20)
                   </th>
                   <th
+                    v-if="totals.sb25 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
-                    SB(50)
+                    SB(25)
                   </th>
                   <th
+                    v-if="totals.cd10 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     CD(10)
                   </th>
                   <th
+                    v-if="totals.cd25 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     CD(25)
                   </th>
                   <th
+                    v-if="totals.cd50 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     CD(50)
                   </th>
                   <th
+                    v-if="totals.cd100 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     CD(100)
                   </th>
                   <th
+                    v-if="totals.po50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
+                  >
+                    PO(50)
+                  </th>
+                  <th
+                    v-if="totals.po100 > 0"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
                     PO(100)
+                  </th>
+                  <th
+                    v-if="totals.ca50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
+                  >
+                    CA(50)
+                  </th>
+                  <th
+                    v-if="totals.ca100 > 0"
+                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
+                  >
+                    CA(100)
                   </th>
                   <th
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
@@ -307,49 +333,70 @@
                     {{ item.challanDate }}
                   </td>
                   <td
+                    v-if="totals.sb10 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.sb10 }}
                   </td>
                   <td
+                    v-if="totals.sb20 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.sb20 }}
                   </td>
                   <td
+                    v-if="totals.sb25 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.sb25 }}
                   </td>
                   <td
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.sb50 }}
-                  </td>
-                  <td
+                    v-if="totals.cd10 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.cd10 }}
                   </td>
                   <td
+                    v-if="totals.cd25 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.cd25 }}
                   </td>
                   <td
+                    v-if="totals.cd50 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.cd50 }}
                   </td>
                   <td
+                    v-if="totals.cd100 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.cd100 }}
                   </td>
                   <td
+                    v-if="totals.po50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center"
+                  >
+                    {{ item.po50 }}
+                  </td>
+                  <td
+                    v-if="totals.po100 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
                     {{ item.po100 }}
+                  </td>
+                  <td
+                    v-if="totals.ca50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center"
+                  >
+                    {{ item.ca50 }}
+                  </td>
+                  <td
+                    v-if="totals.ca100 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center"
+                  >
+                    {{ item.ca100 }}
                   </td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-medium"
@@ -370,49 +417,70 @@
                     Grand Total
                   </td>
                   <td
+                    v-if="totals.sb10 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.sb10 }}
                   </td>
                   <td
+                    v-if="totals.sb20 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.sb20 }}
                   </td>
                   <td
+                    v-if="totals.sb25 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.sb25 }}
                   </td>
                   <td
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.sb50 }}
-                  </td>
-                  <td
+                    v-if="totals.cd10 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.cd10 }}
                   </td>
                   <td
+                    v-if="totals.cd25 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.cd25 }}
                   </td>
                   <td
+                    v-if="totals.cd50 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.cd50 }}
                   </td>
                   <td
+                    v-if="totals.cd100 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.cd100 }}
                   </td>
                   <td
+                    v-if="totals.po50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
+                  >
+                    {{ totals.po50 }}
+                  </td>
+                  <td
+                    v-if="totals.po100 > 0"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.po100 }}
+                  </td>
+                  <td
+                    v-if="totals.ca50 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
+                  >
+                    {{ totals.ca50 }}
+                  </td>
+                  <td
+                    v-if="totals.ca100 > 0"
+                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
+                  >
+                    {{ totals.ca100 }}
                   </td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
@@ -495,12 +563,14 @@ interface ReportItem {
   sb10: number;
   sb20: number;
   sb25: number;
-  sb50: number;
   cd10: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  po50: number;
   po100: number;
+  ca50: number;
+  ca100: number;
   total: number;
 }
 
@@ -508,12 +578,14 @@ interface Totals {
   sb10: number;
   sb20: number;
   sb25: number;
-  sb50: number;
   cd10: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  po50: number;
   po100: number;
+  ca50: number;
+  ca100: number;
   grandTotal: number;
 }
 
@@ -550,12 +622,14 @@ const totals = computed((): Totals => {
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
-    sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
     cd100: data.reduce((sum, item) => sum + item.cd100, 0),
+    po50: data.reduce((sum, item) => sum + item.po50, 0),
     po100: data.reduce((sum, item) => sum + item.po100, 0),
+    ca50: data.reduce((sum, item) => sum + item.ca50, 0),
+    ca100: data.reduce((sum, item) => sum + item.ca100, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
 });
@@ -741,12 +815,14 @@ const downloadExcel = async () => {
         item.sb10,
         item.sb20,
         item.sb25,
-        item.sb50,
         item.cd10,
         item.cd25,
         item.cd50,
         item.cd100,
+        item.po50,
         item.po100,
+        item.ca50,
+        item.ca100,
         item.total,
       ]);
 
@@ -765,12 +841,13 @@ const downloadExcel = async () => {
       "Grand Total",
       totals.value.sb10,
       totals.value.sb20,
-      totals.value.sb50,
       totals.value.cd10,
       totals.value.cd25,
       totals.value.cd50,
       totals.value.cd100,
-      totals.value.po100,
+      totals.value.po50,
+      totals.value.ca50,
+      totals.value.ca100,
       totals.value.grandTotal,
     ]);
 
