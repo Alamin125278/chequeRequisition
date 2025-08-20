@@ -17,7 +17,6 @@ export interface FetchBranchResponse {
 export const getBranchesService = async (
   params: FetchBranchParams
 ): Promise<FetchBranchResponse> => {
-  console.log(params);
   const response = await baseHttp().get(
     `${constant.APIs.branches}/?skip=${params.skip}&limit=${params.limit}&isActive=${params.status}&search=${params.search}`
   );
@@ -28,7 +27,6 @@ export const getBranchesService = async (
 };
 
 export const saveBranchService = async (branch: any, isEdit: boolean) => {
-  console.log(branch);
   if (isEdit) {
     const response = await baseHttp().patch(
       `${constant.APIs.updateBranch}/${branch.id}`,

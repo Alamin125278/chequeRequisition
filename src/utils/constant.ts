@@ -27,6 +27,7 @@ export default {
     deleteBranch: "/api/branch",
     countBranch: "/api/branch/count",
     getBranchForUser: "/api/branch/get-for-user",
+    getBranchId: "/api/branch/get-by-branch-code",
     getRoleForUser: "/api/userrole/getallforuser",
     uploadImage: "/api/upload-image",
     localFileUpload: "/api/local-file-upload/bulk",

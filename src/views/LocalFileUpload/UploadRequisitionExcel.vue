@@ -418,7 +418,9 @@ import { message } from "ant-design-vue";
 import { computed, onMounted, ref } from "vue";
 import * as XLSX from "xlsx";
 import { getBankForBranchService } from "../../services/bank/bank.service";
+import { saveBranchService } from "../../services/branch/branch.service";
 import {
+  getBranchId,
   saveBulkLocalFileUploadService,
   type LocalFileUploadCommand,
 } from "../../services/localFileUpload/localFileUpload.service";
@@ -710,7 +712,8 @@ const resetFile = () => {
 };
 
 // Process the uploaded file
-const processFile = () => {
+// Process the uploaded file
+const processFile = async () => {
   if (!file.value) return;
   isProcessing.value = true;
 
@@ -718,7 +721,7 @@ const processFile = () => {
   const fileName = file.value.name;
   const fileExtension = fileName.split(".").pop()?.toLowerCase();
 
-  reader.onload = (e) => {
+  reader.onload = async (e) => {
     let workbook;
     const data = e.target?.result;
 
@@ -737,9 +740,10 @@ const processFile = () => {
       const worksheet = workbook.Sheets[sheetName];
       const jsonData = XLSX.utils.sheet_to_json(worksheet);
 
-      // Map to your interface
+      const processedData: any[] = [];
+
       if (selectedBank.value == 2) {
-        importedData.value = (jsonData as any[]).map((row, index) => {
+        for (const [index, row] of (jsonData as any[]).entries()) {
           let chequeType = "";
 
           switch (row["Series"] || row["Type"]) {
@@ -754,7 +758,36 @@ const processFile = () => {
               break;
           }
 
-          return {
+          let branchId = null;
+          if (selectedType.value === true) {
+            const deliveryBrCode = row["DeliveryBrCode"] ?? "";
+            const delBrName = row["DeliveryBranchName"] ?? "";
+            try {
+              const response = await getBranchId(
+                selectedBank.value,
+                deliveryBrCode,
+                delBrName
+              );
+              branchId = response.data?.branchId ?? null;
+              if (branchId == 0 || branchId == null) {
+                const payload = {
+                  BankId: Number(selectedBank.value),
+                  branchName: delBrName,
+                  branchCode: deliveryBrCode,
+                  routingNo: "123",
+                  branchEmail: "agent@midland.net",
+                  branchPhone: "544",
+                  branchAddress: row["PointAddress"],
+                  isActive: "Active",
+                };
+                await saveBranchService(payload, false);
+              }
+            } catch (error) {
+              console.error("Failed to fetch branch ID:", error);
+            }
+          }
+
+          processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 2,
@@ -786,18 +819,25 @@ const processFile = () => {
             deliveryBranchCode:
               row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
             isAgent: selectedType.value === true ? "True" : "False",
-          };
-        });
+            branchId: branchId,
+          });
+        }
       } else if (selectedBank.value == 1) {
-        importedData.value = (jsonData as any[]).map((row, index) => {
+        for (const [index, row] of (jsonData as any[]).entries()) {
           let micrNo = row["Account No."] || "";
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
+
           let homeBranchCode = row["Account No."] || "";
           homeBranchCode = homeBranchCode.substring(0, 4);
-          let series = row["Series"];
-          let perfix = row["Prefix"];
-          let printerCode = row["Printer Code"];
-          let leaves = row["No. of Leaves"];
+
+          const series = row["Series"];
+          const perfix = row["Prefix"];
+          const printerCode = row["Printer Code"];
+          const leaves = row["No. of Leaves"];
+          let courierCode = row["Courier Code"];
+          if (courierCode == "U" || courierCode == "W") {
+            courierCode = "E";
+          }
 
           let chequeType = "";
           let chequePrefix = "";
@@ -814,7 +854,8 @@ const processFile = () => {
             chequeType = "Cash Credit";
             chequePrefix = perfix + printerCode + "-" + leaves + series;
           }
-          return {
+
+          processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 1,
@@ -833,7 +874,7 @@ const processFile = () => {
             bookQty: row["No. of Book"] || "",
             receivingBranch: row["Receiving Branch"] || "",
             distributionPointName: row["Distribution Point Name"] || "",
-            courierCode: row["Courier Code"] || "",
+            courierCode: courierCode,
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
@@ -841,10 +882,11 @@ const processFile = () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["Receiving Branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
-          };
-        });
+          });
+        }
       }
 
+      importedData.value = processedData;
       showImportedData.value = true;
       message.success("File processed successfully!");
     } catch (error) {

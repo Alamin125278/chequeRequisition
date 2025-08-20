@@ -27,6 +27,7 @@ export interface FetchChallanParams {
   challanDate: string;
   vendorName: string;
   courierName: string;
+  courierPhone: string;
   challanNumber: string;
   branchName: string;
   agentNum?: string | null;

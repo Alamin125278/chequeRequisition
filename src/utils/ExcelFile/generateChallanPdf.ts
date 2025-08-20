@@ -886,6 +886,7 @@ interface Challan {
   challanDate: string;
   vendorName?: string;
   courierName?: string;
+  courierPhone: string;
   challanNumber: string;
   branchName: string;
   cusAddress?: string | null;
@@ -920,6 +921,31 @@ export const generateChallanPdf = async (
     authorizedSignatureBytes
   );
 
+  function formatDate(dateInput: string | Date): string {
+    const date =
+      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
+    const day = date.getDate();
+    const monthNames: string[] = [
+      "January",
+      "February",
+      "March",
+      "April",
+      "May",
+      "June",
+      "July",
+      "August",
+      "September",
+      "October",
+      "November",
+      "December",
+    ];
+    const month: string = monthNames[date.getMonth()];
+    const year: number = date.getFullYear();
+
+    return `${day} ${month} ${year}`;
+  }
+
   const pageWidth = 595.28;
   const pageHeight = 841.89;
   const marginX = 24;
@@ -942,6 +968,10 @@ export const generateChallanPdf = async (
   const signatureHeight = 80;
 
   for (const challan of challans) {
+    let TotalBooks = 0;
+    for (const item of challan.items || []) {
+      TotalBooks += item.bookQty;
+    }
     let page = pdfDoc.addPage([pageWidth, pageHeight]);
     let y = pageHeight - marginY;
     let sl = 1;
@@ -977,6 +1007,15 @@ export const generateChallanPdf = async (
         size: 10,
       });
 
+      if (challan.isAgent) {
+        page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+          x: pageWidth - marginX - 150,
+          y: pageHeight - marginY - 105,
+          font,
+          size: 9,
+        });
+      }
+
       y = pageHeight - marginY - 20;
       page.drawText(challan.receivingBranchName, {
         x: marginX,
@@ -984,43 +1023,64 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 15,
       });
-      y -= 15;
+      y -= 18;
       page.drawText(challan.bankName, {
         x: marginX,
         y,
         font: fontBold,
         size: 13,
       });
-      y -= 15;
-      page.drawText(`Date: ${challan.challanDate}`, {
+      y -= 16;
+      page.drawText(`Date: ${formatDate(challan.challanDate)}`, {
         x: marginX,
         y,
         font,
-        size: 11,
+        size: 9,
       });
       y -= 15;
       page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
         x: marginX,
         y,
         font,
-        size: 11,
+        size: 9,
+      });
+
+      page.drawText(`Total Books: ${TotalBooks}`, {
+        x: pageWidth - marginX - 315,
+        y,
+        font: fontBold,
+        size: 13,
       });
       y -= 15;
       page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
         x: marginX,
         y,
         font,
-        size: 11,
+        size: 9,
       });
       y -= 15;
-      page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+      page.drawText(`Courier Mob: ${challan.courierPhone}`, {
         x: marginX,
         y,
         font,
-        size: 10,
+        size: 9,
+      });
+      y -= 22;
+      page.drawText("To", {
+        x: marginX,
+        y,
+        font: fontBold,
+        size: 12,
+      });
+      y -= 16;
+      page.drawText("Manager", {
+        x: marginX,
+        y,
+        font: fontBold,
+        size: 12,
       });
 
-      y -= 40;
+      y -= 32;
       const title = "Delivery Challan";
       page.drawText(title, {
         x: (pageWidth - fontBold.widthOfTextAtSize(title, 14)) / 2,
@@ -1028,7 +1088,7 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 14,
       });
-      y -= 40;
+      y -= 32;
 
       let x = marginX;
       headers.forEach((h, i) => {
@@ -1065,7 +1125,7 @@ export const generateChallanPdf = async (
         item.endNo,
         item.chequeType,
         item.serverity === 1 ? "Urgent" : "Normal",
-        challan.isAgent ? `B- ${item.branchName}` : item.branchName,
+        challan.isAgent ? `B-${item.branchName}` : item.branchName,
       ];
 
       let cx = marginX;
@@ -1089,6 +1149,7 @@ export const generateChallanPdf = async (
 
       const key = `${item.chequeType}(${item.leaves})`;
       summary[key] = (summary[key] || 0) + 1;
+      TotalBooks += item.bookQty;
 
       y -= rowHeight;
       sl++;

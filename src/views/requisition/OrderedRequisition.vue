@@ -948,9 +948,9 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
     const formattedData = matchingOrders.map((order) => ({
       "Bank Name": order.bankName,
       "Branch Name": order.isAgent
-        ? `B- ${order.branchName} (${
+        ? `B-${order.branchName} (${
             order.receivingBranchName?.slice(-7) || ""
-          })`
+          }) (${order.routingNo})`
         : order.branchName,
       "Account Name": order.accountName,
       "Customer Address": order.receivingBranchName,
@@ -1053,7 +1053,7 @@ const exportPSI = () => {
     const formattedData = psiOrders.map((order) => ({
       "Bank Name": order.bankName,
       "Branch Name": order.isAgent
-        ? `B- ${order.branchName} (${
+        ? `B-${order.branchName} (${
             order.receivingBranchName?.slice(-7) || ""
           })`
         : order.branchName,

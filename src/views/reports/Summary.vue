@@ -319,6 +319,11 @@
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
+                    {{ item.sb25 }}
+                  </td>
+                  <td
+                    class="border border-gray-300 px-3 py-2 text-sm text-center"
+                  >
                     {{ item.sb50 }}
                   </td>
                   <td
@@ -373,6 +378,11 @@
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
                     {{ totals.sb20 }}
+                  </td>
+                  <td
+                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
+                  >
+                    {{ totals.sb25 }}
                   </td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
@@ -484,6 +494,7 @@ interface ReportItem {
   isAgent: boolean;
   sb10: number;
   sb20: number;
+  sb25: number;
   sb50: number;
   cd10: number;
   cd25: number;
@@ -496,6 +507,7 @@ interface ReportItem {
 interface Totals {
   sb10: number;
   sb20: number;
+  sb25: number;
   sb50: number;
   cd10: number;
   cd25: number;
@@ -537,6 +549,7 @@ const totals = computed((): Totals => {
   return {
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
+    sb25: data.reduce((sum, item) => sum + item.sb25, 0),
     sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
@@ -727,6 +740,7 @@ const downloadExcel = async () => {
         item.challanDate,
         item.sb10,
         item.sb20,
+        item.sb25,
         item.sb50,
         item.cd10,
         item.cd25,

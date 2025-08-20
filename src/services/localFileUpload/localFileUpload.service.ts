@@ -33,6 +33,11 @@ export interface LocalFileUploadResult {
 export interface BulkLocalFileUploadPayload {
   items: LocalFileUploadCommand[];
 }
+export interface GetBranchParams {
+  bankId: number;
+  branchCode: string;
+  branchName: string;
+}
 
 export interface ResponseDto<T> {
   message: string;
@@ -47,6 +52,17 @@ export const saveBulkLocalFileUploadService = async (
   const response = await baseHttp().post(
     `${constant.APIs.localFileUpload}`,
     payload
+  );
+  return response.data;
+};
+
+export const getBranchId = async (
+  bankId: number,
+  branchCode: string,
+  branchName: string
+) => {
+  const response = await baseHttp().get(
+    `${constant.APIs.getBranchId}/?bankId=${bankId}&branchCode=${branchCode}&branchName=${branchName}`
   );
   return response.data;
 };
