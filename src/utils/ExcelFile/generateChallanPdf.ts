@@ -1077,7 +1077,7 @@ export const generateChallanPdf = async (
       });
 
       page.drawText(`Total Books: ${TotalBooks}`, {
-        x: pageWidth - marginX - 315,
+        x: pageWidth - marginX - 360,
         y,
         font: fontBold,
         size: 13,
@@ -1092,12 +1092,14 @@ export const generateChallanPdf = async (
         });
       }
       y -= 15;
-      page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
-        x: marginX,
-        y,
-        font,
-        size: 9,
-      });
+      if (challan.isAgent) {
+        page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+          x: marginX,
+          y,
+          font,
+          size: 9,
+        });
+      }
       y -= 22;
       page.drawText("To", {
         x: marginX,
@@ -1145,8 +1147,14 @@ export const generateChallanPdf = async (
       if (y < marginY + footerHeight + signatureHeight + rowHeight + 10) {
         drawFooter();
         page = pdfDoc.addPage([pageWidth, pageHeight]);
-        y = pageHeight - marginY;
-        drawHeader();
+        y = pageHeight - marginY - 130;
+        page.drawImage(headerImage, {
+          x: pageWidth - marginX - 150,
+          y: pageHeight - marginY - 60,
+          width: 140,
+          height: 70,
+        });
+        // drawHeader();
       }
 
       const row = [

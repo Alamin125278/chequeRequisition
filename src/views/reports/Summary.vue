@@ -233,70 +233,11 @@
                     Challan Date
                   </th>
                   <th
-                    v-if="totals.sb10 > 0"
+                    v-for="col in activeColumns"
+                    :key="col.key"
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
                   >
-                    SB(10)
-                  </th>
-                  <th
-                    v-if="totals.sb20 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    SB(20)
-                  </th>
-                  <th
-                    v-if="totals.sb25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    SB(25)
-                  </th>
-                  <th
-                    v-if="totals.cd10 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CD(10)
-                  </th>
-                  <th
-                    v-if="totals.cd25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CD(25)
-                  </th>
-                  <th
-                    v-if="totals.cd50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CD(50)
-                  </th>
-                  <th
-                    v-if="totals.cd100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CD(100)
-                  </th>
-                  <th
-                    v-if="totals.po50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    PO(50)
-                  </th>
-                  <th
-                    v-if="totals.po100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    PO(100)
-                  </th>
-                  <th
-                    v-if="totals.ca50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CA(50)
-                  </th>
-                  <th
-                    v-if="totals.ca100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
-                  >
-                    CA(100)
+                    {{ col.label }}
                   </th>
                   <th
                     class="border border-gray-300 px-3 py-2 text-center text-sm font-medium text-gray-900"
@@ -333,70 +274,11 @@
                     {{ item.challanDate }}
                   </td>
                   <td
-                    v-if="totals.sb10 > 0"
+                    v-for="col in activeColumns"
+                    :key="col.key"
                     class="border border-gray-300 px-3 py-2 text-sm text-center"
                   >
-                    {{ item.sb10 }}
-                  </td>
-                  <td
-                    v-if="totals.sb20 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.sb20 }}
-                  </td>
-                  <td
-                    v-if="totals.sb25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.sb25 }}
-                  </td>
-                  <td
-                    v-if="totals.cd10 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.cd10 }}
-                  </td>
-                  <td
-                    v-if="totals.cd25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.cd25 }}
-                  </td>
-                  <td
-                    v-if="totals.cd50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.cd50 }}
-                  </td>
-                  <td
-                    v-if="totals.cd100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.cd100 }}
-                  </td>
-                  <td
-                    v-if="totals.po50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.po50 }}
-                  </td>
-                  <td
-                    v-if="totals.po100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.po100 }}
-                  </td>
-                  <td
-                    v-if="totals.ca50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.ca50 }}
-                  </td>
-                  <td
-                    v-if="totals.ca100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center"
-                  >
-                    {{ item.ca100 }}
+                    {{ item[col.key] }}
                   </td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-medium"
@@ -417,70 +299,11 @@
                     Grand Total
                   </td>
                   <td
-                    v-if="totals.sb10 > 0"
+                    v-for="col in activeColumns"
+                    :key="col.key"
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
                   >
-                    {{ totals.sb10 }}
-                  </td>
-                  <td
-                    v-if="totals.sb20 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.sb20 }}
-                  </td>
-                  <td
-                    v-if="totals.sb25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.sb25 }}
-                  </td>
-                  <td
-                    v-if="totals.cd10 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.cd10 }}
-                  </td>
-                  <td
-                    v-if="totals.cd25 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.cd25 }}
-                  </td>
-                  <td
-                    v-if="totals.cd50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.cd50 }}
-                  </td>
-                  <td
-                    v-if="totals.cd100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.cd100 }}
-                  </td>
-                  <td
-                    v-if="totals.po50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.po50 }}
-                  </td>
-                  <td
-                    v-if="totals.po100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.po100 }}
-                  </td>
-                  <td
-                    v-if="totals.ca50 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.ca50 }}
-                  </td>
-                  <td
-                    v-if="totals.ca100 > 0"
-                    class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
-                  >
-                    {{ totals.ca100 }}
+                    {{ totals[col.key] }}
                   </td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm text-center font-bold"
@@ -563,14 +386,24 @@ interface ReportItem {
   sb10: number;
   sb20: number;
   sb25: number;
+  sba20: number;
+  msd20: number;
   cd10: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  cda25: number;
+  awcd25: number;
+  sna25: number;
+  msnd25: number;
   po50: number;
   po100: number;
+  poa50: number;
+  poi50: number;
   ca50: number;
   ca100: number;
+  fdr50: number;
+  mtdr50: number;
   total: number;
 }
 
@@ -578,14 +411,24 @@ interface Totals {
   sb10: number;
   sb20: number;
   sb25: number;
+  sba20: number;
+  msd20: number;
   cd10: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  cda25: number;
+  awcd25: number;
+  sna25: number;
+  msnd25: number;
   po50: number;
   po100: number;
+  poa50: number;
+  poi50: number;
   ca50: number;
   ca100: number;
+  fdr50: number;
+  mtdr50: number;
   grandTotal: number;
 }
 
@@ -622,16 +465,76 @@ const totals = computed((): Totals => {
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
+    sba20: data.reduce((sum, item) => sum + item.sba20, 0),
+    msd20: data.reduce((sum, item) => sum + item.msd20, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
     cd100: data.reduce((sum, item) => sum + item.cd100, 0),
+    cda25: data.reduce((sum, item) => sum + item.cda25, 0),
+    awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
+    sna25: data.reduce((sum, item) => sum + item.sna25, 0),
+    msnd25: data.reduce((sum, item) => sum + item.msnd25, 0),
     po50: data.reduce((sum, item) => sum + item.po50, 0),
     po100: data.reduce((sum, item) => sum + item.po100, 0),
+    poa50: data.reduce((sum, item) => sum + item.poa50, 0),
+    poi50: data.reduce((sum, item) => sum + item.poi50, 0),
     ca50: data.reduce((sum, item) => sum + item.ca50, 0),
     ca100: data.reduce((sum, item) => sum + item.ca100, 0),
+    fdr50: data.reduce((sum, item) => sum + item.fdr50, 0),
+    mtdr50: data.reduce((sum, item) => sum + item.mtdr50, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
+});
+
+type ReportColumnKey =
+  | "sb10"
+  | "sb20"
+  | "sb25"
+  | "sba20"
+  | "msd20"
+  | "cd10"
+  | "cd25"
+  | "cd50"
+  | "cd100"
+  | "cda25"
+  | "awcd25"
+  | "sna25"
+  | "msnd25"
+  | "po50"
+  | "po100"
+  | "poa50"
+  | "poi50"
+  | "ca50"
+  | "ca100"
+  | "fdr50"
+  | "mtdr50";
+const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
+  { key: "sb10", label: "SB(10)" },
+  { key: "sb20", label: "SB(20)" },
+  { key: "sb25", label: "SB(25)" },
+  { key: "sba20", label: "SBA(20)" },
+  { key: "msd20", label: "MSD(20)" },
+  { key: "cd10", label: "CD(10)" },
+  { key: "cd25", label: "CD(25)" },
+  { key: "cd50", label: "CD(50)" },
+  { key: "cd100", label: "CD(100)" },
+  { key: "cda25", label: "CDA(25)" },
+  { key: "awcd25", label: "AWCD(25)" },
+  { key: "sna25", label: "SNA(25)" },
+  { key: "msnd25", label: "MSND(25)" },
+  { key: "po50", label: "PO(50)" },
+  { key: "po100", label: "PO(100)" },
+  { key: "poa50", label: "POA(50)" },
+  { key: "poi50", label: "POI(50)" },
+  { key: "ca50", label: "CA(50)" },
+  { key: "ca100", label: "CA(100)" },
+  { key: "fdr50", label: "FDR(50)" },
+  { key: "mtdr50", label: "MTDR(50)" },
+];
+
+const activeColumns = computed(() => {
+  return conditionalHeaders.filter((h) => totals.value[h.key] > 0);
 });
 
 // Handle preview
@@ -761,15 +664,15 @@ const downloadExcel = async () => {
     };
 
     // Heading: Bank Name
-    sheet.mergeCells("E3:I3");
-    const bankCell = sheet.getCell("E3");
+    sheet.mergeCells("A3:I3");
+    const bankCell = sheet.getCell("B3");
     bankCell.value = `${bankName} Summary Report`;
     bankCell.font = { bold: true, size: 16 };
     bankCell.alignment = { horizontal: "center" };
 
     // Heading: Date Range
-    sheet.mergeCells("E4:I4");
-    const dateCell = sheet.getCell("E4");
+    sheet.mergeCells("A4:I4");
+    const dateCell = sheet.getCell("B4");
     dateCell.value = dateRange;
     dateCell.font = { bold: true, size: 12 };
     dateCell.alignment = { horizontal: "center" };
@@ -784,16 +687,14 @@ const downloadExcel = async () => {
       "Delivery Branch",
       "Challan No",
       "Challan Date",
-      "SB(10)",
-      "SB(20)",
-      "SB(50)",
-      "CD(10)",
-      "CD(25)",
-      "CD(50)",
-      "CD(100)",
-      "PO(100)",
+      ...conditionalHeaders
+        .filter((h) => totals.value[h.key] > 0)
+        .map((h) => h.label),
       "Total",
     ];
+    // const activeColumns = conditionalHeaders.filter(
+    //   (h) => totals.value[h.key] > 0
+    // );
 
     const headerRow = sheet.addRow(tableHeaders);
     headerRow.eachCell((cell) => {
@@ -812,17 +713,7 @@ const downloadExcel = async () => {
         item.deliveryBranch,
         item.challanNo,
         item.challanDate,
-        item.sb10,
-        item.sb20,
-        item.sb25,
-        item.cd10,
-        item.cd25,
-        item.cd50,
-        item.cd100,
-        item.po50,
-        item.po100,
-        item.ca50,
-        item.ca100,
+        ...activeColumns.value.map((h) => item[h.key]),
         item.total,
       ]);
 
@@ -839,15 +730,7 @@ const downloadExcel = async () => {
       "",
       "",
       "Grand Total",
-      totals.value.sb10,
-      totals.value.sb20,
-      totals.value.cd10,
-      totals.value.cd25,
-      totals.value.cd50,
-      totals.value.cd100,
-      totals.value.po50,
-      totals.value.ca50,
-      totals.value.ca100,
+      ...activeColumns.value.map((h) => totals.value[h.key]), // ✅ dynamically get totals
       totals.value.grandTotal,
     ]);
 

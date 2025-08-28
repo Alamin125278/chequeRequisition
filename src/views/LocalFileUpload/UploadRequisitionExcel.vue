@@ -399,6 +399,10 @@
 
 <script setup lang="ts">
 import {
+  fetchManageSerialService,
+  updateManageSerialService,
+} from "@/services/manageSerial/manageSerial.service";
+import {
   BankOutlined,
   CalendarOutlined,
   CheckCircleOutlined,
@@ -895,6 +899,194 @@ const processFile = async () => {
             isAgent: selectedType.value === true ? "True" : "False",
           });
         }
+      } else if (selectedBank.value == 3) {
+        for (const [index, row] of (jsonData as any[]).entries()) {
+          let micrNo = row["Account no"] || "";
+          let homeBranchCode = micrNo.substring(0, 4);
+          micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
+          let startNo = "0";
+          let endNo = "0";
+
+          const bookCount = row["Bks"] * row["Lvs"];
+          let chequeType = "";
+
+          switch (row["Prefix"]) {
+            case "SB":
+              chequeType = "Savings";
+              break;
+            case "CA":
+              chequeType = "Current";
+              break;
+            case "PO":
+              chequeType = "Payment Order";
+              break;
+          }
+
+          try {
+            const {
+              success,
+              data,
+              message: msg,
+            } = await fetchManageSerialService({
+              bankId: selectedBank.value || 3,
+              chequeType: row["Prefix"],
+              lvs: row["Lvs"],
+            });
+
+            if (!success) {
+              showImportedData.value = false;
+              message.error(msg);
+              return;
+            }
+
+            const currentEndingNo = parseInt(
+              data.manageSerialDto.endingNo || "0",
+              10
+            );
+
+            if (isNaN(currentEndingNo)) {
+              throw new Error("Invalid serial number from server.");
+            }
+
+            const nextStart = currentEndingNo + 1;
+            const nextEnd = nextStart + bookCount - 1;
+
+            startNo = nextStart.toString().padStart(7, "0");
+            endNo = nextEnd.toString().padStart(7, "0");
+            try {
+              await updateManageSerialService({
+                bankId: selectedBank.value || 3,
+                chequeType: row["Prefix"],
+                lvs: row["Lvs"],
+                endingNumber: endNo,
+              });
+            } catch (error: any) {
+              showImportedData.value = false;
+              message.error(`${error.response.data.Message}`);
+              return;
+            }
+          } catch (error) {
+            console.error("Error fetching serial info:", error);
+            message.error("Failed to fetch or calculate serial numbers.");
+          }
+
+          processedData.push({
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 3,
+            branchName: row["Home Branch"] || "",
+            routingNo: row["Routing No."] || "",
+            accountNo: row["Account no"] || "",
+            accountName: row["Account Name"] || "",
+            chequeType: chequeType,
+            chequePrefix: row["Prefix"] || "",
+            micrNo: micrNo,
+            series: row["Prefix"] || "",
+            transactionCode: row["Tr. Code"] || "",
+            leafCount: row["Lvs"] || "",
+            startNo: startNo,
+            endNo: endNo,
+            bookQty: row["Bks"] || "",
+            receivingBranch: row["Delivery Branch"] || "",
+            distributionPointName: row["Delivery Branch"] || "",
+            courierCode: "L",
+            agentNum: "",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            requestDate:
+              row["Request Date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: homeBranchCode,
+            deliveryBranchCode: row["Delivery Branch"] || "",
+            isAgent: selectedType.value === true ? "True" : "False",
+          });
+        }
+      } else if (selectedBank.value == 4) {
+        for (const [index, row] of (jsonData as any[]).entries()) {
+          let chequeType = "";
+          if (row["Delivery_Branch"] == "") {
+            row["Delivery_Branch"] = row["Home_Branch"];
+          }
+          if (row["Account_Name"] == "Mudaraba Term Deposit") {
+            chequeType = "MTDR";
+          } else if (row["Account_Name"] == "Fixed Deposit Receipt") {
+            chequeType = "FDR";
+          } else {
+            chequeType = row["Series"];
+          }
+
+          let accNo = "";
+          let homeBranchCode = "";
+          let trCode = 0;
+          if (chequeType == "MTDR" || chequeType == "FDR") {
+            accNo = "0000000000104";
+            trCode = 12;
+          } else {
+            accNo = row["Account_no"] || "";
+            trCode = row["Tr_Code"] || 0;
+          }
+          homeBranchCode = accNo.substring(0, 4);
+          let micrNo = accNo.length > 13 ? accNo.slice(-13) : accNo;
+
+          let startNo = parseInt(row["StartNo"]) || 0;
+          let endNo = parseInt(row["End_No"]) || 0;
+          let totalLvs = endNo - startNo + 1;
+          let bookQty = totalLvs / row["Lvs"];
+
+          // Check has Branch Or Create Branch
+          let homeBranchName = row["Home_Branch"] || "";
+          let branchId = null;
+          try {
+            const response = await getBranchId(
+              selectedBank.value,
+              homeBranchCode,
+              homeBranchName
+            );
+            branchId = response.data?.branchId ?? null;
+            if (branchId == 0 || branchId == null) {
+              const payload = {
+                BankId: Number(selectedBank.value),
+                branchName: homeBranchName,
+                branchCode: homeBranchCode,
+                routingNo: row["Routing_No"] || "",
+                branchEmail: "branch@bgcb.com",
+                branchPhone: "544",
+                branchAddress: homeBranchName,
+                isActive: "Active",
+              };
+              await saveBranchService(payload, false);
+            }
+          } catch (error) {
+            console.error("Failed to fetch branch ID:", error);
+          }
+
+          processedData.push({
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 3,
+            branchName: row["Home_Branch"] || "",
+            routingNo: row["Routing_No"] || "",
+            accountNo: accNo,
+            accountName: row["Account_Name"] || "",
+            chequeType: chequeType,
+            chequePrefix: chequeType,
+            micrNo: micrNo,
+            series: chequeType,
+            transactionCode: trCode,
+            leafCount: row["Lvs"] || "",
+            startNo: row["StartNo"] || "",
+            endNo: row["End_No"] || "",
+            bookQty: bookQty,
+            receivingBranch: row["Delivery_Branch"] || "",
+            distributionPointName: row["Delivery_Branch"] || "",
+            courierCode: "L",
+            agentNum: "",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            requestDate:
+              row["Requst Date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: homeBranchCode,
+            deliveryBranchCode: row["Delivery_Branch"] || "",
+            isAgent: selectedType.value === true ? "True" : "False",
+          });
+        }
       }
 
       importedData.value = processedData;
@@ -951,7 +1143,6 @@ const handleSubmit = async () => {
       deliveryBranchCode: item.deliveryBranchCode,
       isAgent: selectedType.value,
     }));
-
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {
       successMessage.value = "File Uploaded Successfully!";

@@ -45,5 +45,7 @@ export default {
     getDashboardStats: "/api/dashboard/statcard",
     getBankRequisitions: "/api/dashboard/bankwiserequisition",
     getOrderTracking: "/api/dashboard/ordertracking",
+    getEndNoBybankAndtype: "/api/serial/end-number",
+    updateEndNoBybankAndtype: "/api/serial/end-number",
   },
 };
