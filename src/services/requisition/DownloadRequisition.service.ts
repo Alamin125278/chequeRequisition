@@ -34,9 +34,12 @@ export const UpdateChequeStatusService = async (
   ids: number[],
   status: number
 ) => {
-  const response = await baseHttp().put(constant.APIs.updateChequeRequisition, {
-    requisitionIds: ids,
-    status,
-  });
+  const response = await baseHttp().patch(
+    constant.APIs.updateChequeRequisition,
+    {
+      requisitionIds: ids,
+      status,
+    }
+  );
   return response;
 };

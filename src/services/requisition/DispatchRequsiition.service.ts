@@ -31,8 +31,11 @@ export const getDispatchRequisitionsService = async (
 };
 
 export const UpdateChequeStatusService = async (ids: number[]) => {
-  const response = await baseHttp().put(constant.APIs.updateChequeRequisition, {
-    requisitionIds: ids,
-  });
+  const response = await baseHttp().patch(
+    constant.APIs.updateChequeRequisition,
+    {
+      requisitionIds: ids,
+    }
+  );
   return response;
 };

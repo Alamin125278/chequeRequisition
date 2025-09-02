@@ -708,7 +708,7 @@ const downloadExcel = async () => {
       const row = sheet.addRow([
         index + 1,
         item.isAgent && formState.bankId === 2
-          ? `B- ${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
+          ? `B-${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
           : item.homeBranch,
         item.deliveryBranch,
         item.challanNo,

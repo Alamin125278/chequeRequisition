@@ -945,24 +945,65 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
     const bankName = matchingOrders[0]?.bankName || "UnknownBank";
     const fileName = `${bankName}_${checkType}_${pages}_${todayDate}_pages`;
 
-    const formattedData = matchingOrders.map((order) => ({
-      "Bank Name": order.bankName,
-      "Branch Name": order.isAgent
-        ? `B-${order.branchName} (${
-            order.receivingBranchName?.slice(-7) || ""
-          }) (${order.routingNo})`
-        : order.branchName,
-      "Account Name": order.accountName,
-      "Customer Address": order.receivingBranchName,
-      "Cheque Prefix": order.chequePrefix,
-      "MICR No": order.micrNo,
-      "Cheque Serial": order.startNo,
-      "Leaves Quantity": order.leaves,
-      "Book Quantity": order.bookQty,
-      "Routing No": order.routingNo,
-      "Transaction Code": order.transactionCode,
-      "Account No": order.accountNo,
-    }));
+    // const formattedData = matchingOrders.map((order) => ({
+    //   "Bank Name": order.bankName,
+    //   "Branch Name": order.isAgent
+    //     ? `B-${order.branchName} (${
+    //         order.receivingBranchName?.slice(-7) || ""
+    //       }) (${order.routingNo})`
+    //     : order.branchName,
+    //   "Account Name": order.accountName,
+    //   "Customer Address": order.receivingBranchName,
+    //   "Cheque Prefix": order.chequePrefix,
+    //   "MICR No": order.micrNo,
+    //   "Cheque Serial": order.startNo,
+    //   "Leaves Quantity": order.leaves,
+    //   "Book Quantity": order.bookQty,
+    //   "Routing No": order.routingNo,
+    //   "Transaction Code": order.transactionCode,
+    //   "Account No": order.accountNo,
+    // }));
+    let formattedData: any[] = [];
+
+    matchingOrders.forEach((order) => {
+      const { bookQty, leaves, startNo } = order;
+      let branchName = "";
+      if (order.isAgent && order.bankName === "Midland Bank PLC") {
+        branchName = `B-${order.branchName} (${
+          order.receivingBranchName?.slice(-7) || ""
+        }) (${order.routingNo})`;
+      } else if (
+        order.bankName === "Modhumoti Bank PLC." &&
+        order.chequePrefix === "PO"
+      ) {
+        branchName = `${order.branchName} (${order.routingNo})`;
+      } else {
+        branchName = order.branchName;
+      }
+
+      let bookStartNo = parseInt(startNo);
+      for (let i = 0; i < bookQty; i++) {
+        const bookEndNo = (bookStartNo + leaves - 1)
+          .toString()
+          .padStart(7, "0");
+        let strStartNo = bookStartNo.toString().padStart(7, "0");
+        formattedData.push({
+          "Bank Name": order.bankName,
+          "Branch Name": branchName,
+          "Account Name": order.accountName,
+          "Customer Address": order.receivingBranchName,
+          "Cheque Prefix": order.chequePrefix,
+          "MICR No": order.micrNo,
+          "Cheque Serial": strStartNo,
+          "Leaves Quantity": order.leaves,
+          "Book Quantity": 1,
+          "Routing No": order.routingNo,
+          "Transaction Code": order.transactionCode,
+          "Account No": order.accountNo,
+        });
+        bookStartNo += order.leaves;
+      }
+    });
 
     exportToExcel(formattedData, fileName, checkType);
     setExportState(variation, { completed: true });
@@ -1050,24 +1091,60 @@ const exportPSI = () => {
 
     //  const todayDate = new Date().toISOString().split("T")[0];
 
-    const formattedData = psiOrders.map((order) => ({
-      "Bank Name": order.bankName,
-      "Branch Name": order.isAgent
-        ? `B-${order.branchName} (${
-            order.receivingBranchName?.slice(-7) || ""
-          })`
-        : order.branchName,
-      "Account Name": order.accountName,
-      "Customer Address": order.receivingBranchName,
-      "Cheque Prefix": order.chequePrefix,
-      "MICR No": order.micrNo,
-      "Cheque Serial": order.startNo,
-      "Leaves Quantity": order.leaves,
-      "End No": order.endNo,
-      "Routing No": order.routingNo,
-      "Transaction Code": order.transactionCode,
-      "Account No": order.accountNo,
-    }));
+    let formattedData: any[] = [];
+
+    psiOrders.forEach((order) => {
+      const { bookQty, leaves, startNo } = order;
+      let branchName = "";
+      if (order.isAgent && order.bankName === "Midland Bank PLC") {
+        branchName = `B-${order.branchName} (${
+          order.receivingBranchName?.slice(-7) || ""
+        })`;
+      } else {
+        branchName = order.branchName;
+      }
+
+      let bookStartNo = parseInt(startNo);
+      for (let i = 0; i < bookQty; i++) {
+        const bookEndNo = (bookStartNo + leaves - 1)
+          .toString()
+          .padStart(7, "0");
+        let strStartNo = bookStartNo.toString().padStart(7, "0");
+        formattedData.push({
+          "Bank Name": order.bankName,
+          "Branch Name": branchName,
+          "Account Name": order.accountName,
+          "Customer Address": order.receivingBranchName,
+          "Cheque Prefix": order.chequePrefix,
+          "MICR No": order.micrNo,
+          "Cheque Serial": strStartNo,
+          "Leaves Quantity": order.leaves,
+          "End No": bookEndNo,
+          "Routing No": order.routingNo,
+          "Transaction Code": order.transactionCode,
+          "Account No": order.accountNo,
+        });
+        bookStartNo += order.leaves;
+      }
+    });
+    // const formattedData = psiOrders.map((order) => ({
+    //   "Bank Name": order.bankName,
+    //   "Branch Name": order.isAgent
+    //     ? `B-${order.branchName} (${
+    //         order.receivingBranchName?.slice(-7) || ""
+    //       })`
+    //     : order.branchName,
+    //   "Account Name": order.accountName,
+    //   "Customer Address": order.receivingBranchName,
+    //   "Cheque Prefix": order.chequePrefix,
+    //   "MICR No": order.micrNo,
+    //   "Cheque Serial": order.startNo,
+    //   "Leaves Quantity": order.leaves,
+    //   "End No": order.endNo,
+    //   "Routing No": order.routingNo,
+    //   "Transaction Code": order.transactionCode,
+    //   "Account No": order.accountNo,
+    // }));
     const fileName = `PSI_Format_${bankName}${
       new Date().toISOString().split("T")[0]
     }`;

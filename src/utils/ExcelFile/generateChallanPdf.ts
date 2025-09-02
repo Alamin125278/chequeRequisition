@@ -946,7 +946,7 @@ export const generateChallanPdf = async (
 
     return `${day} ${month} ${year}`;
   }
-  function drawWrappedText(
+  function drawWrappedTextWithCharLimit(
     page: any,
     text: string,
     x: number,
@@ -954,29 +954,38 @@ export const generateChallanPdf = async (
     maxWidth: number,
     font: any,
     fontSize: number,
-    lineHeight: number
+    lineHeight: number,
+    maxChars: number = 35
   ) {
-    const words = text.split(" ");
+    // Step 1: Character limit check
+    let trimmedText = text;
+    if (text.length > maxChars) {
+      trimmedText = text.slice(0, maxChars).trim() + "...";
+    }
+
+    // Step 2: Word-wrapping the (possibly trimmed) text
+    const words = trimmedText.split(" ");
     let line = "";
     let curY = y;
 
     for (let i = 0; i < words.length; i++) {
       const testLine = line ? line + " " + words[i] : words[i];
       const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
       if (testWidth > maxWidth && i > 0) {
         // আগের লাইন ড্র করো
         page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
-        line = words[i]; // নতুন লাইন শুরু
+        line = words[i];
         curY -= lineHeight;
       } else {
         line = testLine;
       }
     }
-    // বাকি টেক্সট ড্র করো
-    // if (line) {
-    //   page.drawText(line, { x, y: curY, size: fontSize, font });
-    // }
-    page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+
+    // বাকি লাইন ড্র করো
+    if (line) {
+      page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+    }
   }
 
   const pageWidth = 595.28;
@@ -1052,14 +1061,14 @@ export const generateChallanPdf = async (
         x: marginX,
         y,
         font: fontBold,
-        size: 15,
+        size: 11,
       });
       y -= 18;
       page.drawText(challan.bankName, {
         x: marginX,
         y,
         font: fontBold,
-        size: 13,
+        size: 11,
       });
       y -= 16;
       page.drawText(`Date: ${formatDate(challan.challanDate)}`, {
@@ -1181,7 +1190,7 @@ export const generateChallanPdf = async (
         });
         // **Important fix:** Cus.Branch যদি বেশি লম্বা হয় তাহলে নিচের লাইনে আনার জন্য:
         if (headers[i] === "Cus.Branch" || headers[i] === "Account Name") {
-          drawWrappedText(
+          drawWrappedTextWithCharLimit(
             page,
             String(row[i] ?? ""),
             cx + 3,
@@ -1204,9 +1213,28 @@ export const generateChallanPdf = async (
 
         cx += w;
       });
+      let typeCode;
+      switch (item.chequeType?.toLowerCase()) {
+        case "savings":
+          typeCode = "SB";
+          break;
+        case "current":
+          typeCode = "CD";
+          break;
+        case "payment order":
+          typeCode = "PO";
+          break;
+        case "cash credit":
+          typeCode = "CC";
+          break;
+        default:
+          typeCode = item.chequeType;
+      }
 
-      const key = `${item.chequeType}(${item.leaves})`;
-      summary[key] = (summary[key] || 0) + 1;
+      const key = `${typeCode}(${item.leaves})`;
+      // summary[key] = (summary[key] || 0) + 1;
+      summary[key] = (summary[key] || 0) + item.bookQty;
+
       // **TotalBooks ও এখানে যোগ করতেছন কিন্তু আগেও যোগ হয়, তাই এখানে বাদ দিলাম**
       // TotalBooks += item.bookQty;
 
@@ -1227,10 +1255,10 @@ export const generateChallanPdf = async (
     const summaryValues = [
       "Total",
       ...sumKeys.map((k) => summary[k].toString()),
-      (sl - 1).toString(),
+      TotalBooks.toString(),
     ];
     let sx = marginX;
-    const summaryColWidth = 70;
+    const summaryColWidth = 50;
 
     summaryHeader.forEach((txt) => {
       page.drawRectangle({

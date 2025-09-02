@@ -900,12 +900,12 @@ const processFile = async () => {
           });
         }
       } else if (selectedBank.value == 3) {
+        let startNo = "0";
+        let endNo = "0";
         for (const [index, row] of (jsonData as any[]).entries()) {
           let micrNo = row["Account no"] || "";
           let homeBranchCode = micrNo.substring(0, 4);
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
-          let startNo = "0";
-          let endNo = "0";
 
           const bookCount = row["Bks"] * row["Lvs"];
           let chequeType = "";
@@ -999,6 +999,8 @@ const processFile = async () => {
             isAgent: selectedType.value === true ? "True" : "False",
           });
         }
+        startNo = "0";
+        endNo = "0";
       } else if (selectedBank.value == 4) {
         for (const [index, row] of (jsonData as any[]).entries()) {
           let chequeType = "";
