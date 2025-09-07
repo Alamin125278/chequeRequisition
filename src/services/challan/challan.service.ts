@@ -53,6 +53,7 @@ export interface FetchAllChallanResponse {
 }
 
 export const createChallan = async (payload: CreateChallanPayload) => {
+  console.log(payload);
   const res = await baseHttp().post(constant.APIs.createChallan, payload);
   return res.data;
 };

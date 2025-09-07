@@ -941,9 +941,17 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
         (order) => order.chequeType === checkType && order.leaves === pages
       );
 
-    const todayDate = new Date().toISOString().split("T")[0];
+    const todayDate = new Date()
+      .toLocaleDateString("en-GB")
+      .split("/")
+      .join("-");
     const bankName = matchingOrders[0]?.bankName || "UnknownBank";
-    const fileName = `${bankName}_${checkType}_${pages}_${todayDate}_pages`;
+    let fileName = "";
+    if (matchingOrders[0]?.isAgent) {
+      fileName = `${todayDate}_${bankName}_${checkType}_${pages}_agent`;
+    } else {
+      fileName = `${todayDate}_${bankName}_${checkType}_${pages}`;
+    }
 
     // const formattedData = matchingOrders.map((order) => ({
     //   "Bank Name": order.bankName,
@@ -1145,9 +1153,16 @@ const exportPSI = () => {
     //   "Transaction Code": order.transactionCode,
     //   "Account No": order.accountNo,
     // }));
-    const fileName = `PSI_Format_${bankName}${
-      new Date().toISOString().split("T")[0]
-    }`;
+    const todayDate = new Date()
+      .toLocaleDateString("en-GB")
+      .split("/")
+      .join("-");
+    let fileName = "";
+    if (psiOrders[0]?.isAgent) {
+      fileName = `${todayDate}_${bankName}PSI__agent`;
+    } else {
+      fileName = `${todayDate}_${bankName}_PSI`;
+    }
     exportToExcel(formattedData, fileName, "PSI");
     setPsiExportState({ completed: true });
   } catch (error) {

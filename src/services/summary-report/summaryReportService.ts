@@ -34,3 +34,11 @@ export const getSummaryReportService = async (params: FetchSummaryParams) => {
   });
   return response.data;
 };
+export const getCourierSummaryReportService = async (
+  params: FetchSummaryParams
+) => {
+  const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
+    params,
+  });
+  return response.data;
+};

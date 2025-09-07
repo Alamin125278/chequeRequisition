@@ -12,12 +12,12 @@
                 <FileTextOutlined class="h-6 w-6 text-white" />
               </div>
               <h1 class="ml-3 text-2xl font-semibold text-primary">
-                <span class="text-accent">Summary</span> Report
+                <span class="text-accent">Courier Summary</span> Report
               </h1>
             </div>
             <p class="mt-2 text-sm text-secondary max-w-2xl">
-              Generate comprehensive summary reports for cheque requisitions by
-              date range and bank.
+              Generate comprehensive courier summary reports for cheque
+              requisitions by date range and bank.
             </p>
           </div>
           <div class="mt-4 md:mt-0 md:ml-4">
@@ -194,7 +194,8 @@
         <div class="bg-background p-5 rounded-md border border-gray-200">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-medium text-primary flex items-center">
-              <FileTextOutlined class="mr-2 text-accent" /> Report Summary
+              <FileTextOutlined class="mr-2 text-accent" /> Courier Report
+              Summary
             </h3>
             <div class="text-sm text-secondary">
               {{ dayjs(formState.startDate)?.format("YYYY-MM-DD") }} to
@@ -211,11 +212,6 @@
                     class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
                   >
                     Sl No
-                  </th>
-                  <th
-                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
-                  >
-                    Home Branch
                   </th>
                   <th
                     class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
@@ -256,15 +252,6 @@
                     {{ index + 1 }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
-                    {{
-                      item.isAgent && formState.bankId === 2
-                        ? `B- ${item.homeBranch} (${
-                            item.deliveryBranch?.slice(-7) || ""
-                          })`
-                        : item.homeBranch
-                    }}
-                  </td>
-                  <td class="border border-gray-300 px-3 py-2 text-sm">
                     {{ item.deliveryBranch }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
@@ -291,7 +278,7 @@
                 <tr class="bg-gray-100 font-medium">
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm"
-                    colspan="4"
+                    colspan="3"
                   ></td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm font-bold"
@@ -345,7 +332,7 @@
 
 <script setup lang="ts">
 import signatureImage from "@/assets/signature.png";
-import { getSummaryReportService } from "@/services/summary-report/summaryReportService";
+import { getCourierSummaryReportService } from "@/services/summary-report/summaryReportService";
 import {
   CalendarOutlined,
   DownloadOutlined,
@@ -378,7 +365,7 @@ const featchBanks = async () => {
 };
 
 interface ReportItem {
-  homeBranch: string;
+  homeBranch?: string;
   deliveryBranch: string;
   challanNo: string;
   challanDate: string;
@@ -571,7 +558,7 @@ const handlePreview = async () => {
       agentType: formState.agentType ?? false,
     };
     // Generate mock data
-    const response = await getSummaryReportService(params);
+    const response = await getCourierSummaryReportService(params);
     if (response.success == true) {
       // alert(response.success);
       // console.log(response.data);
@@ -628,7 +615,7 @@ const downloadExcel = async () => {
 
     // Create workbook and sheet
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Summary Report");
+    const sheet = workbook.addWorksheet("Courier Summary Report");
     sheet.pageSetup = {
       paperSize: 9, // 9 = A4 size in ExcelJS
       orientation: "portrait", // or "landscape"
@@ -666,7 +653,7 @@ const downloadExcel = async () => {
     // Heading: Bank Name
     sheet.mergeCells("A3:I3");
     const bankCell = sheet.getCell("B3");
-    bankCell.value = `${bankName} Summary Report`;
+    bankCell.value = `${bankName} Courier Summary Report`;
     bankCell.font = { bold: true, size: 16 };
     bankCell.alignment = { horizontal: "center" };
 
@@ -683,7 +670,6 @@ const downloadExcel = async () => {
     // Table Header
     const tableHeaders = [
       "Sl No",
-      "Home Branch",
       "Delivery Branch",
       "Challan No",
       "Challan Date",
@@ -707,9 +693,6 @@ const downloadExcel = async () => {
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([
         index + 1,
-        item.isAgent && formState.bankId === 2
-          ? `B-${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
-          : item.homeBranch,
         item.deliveryBranch,
         item.challanNo,
         item.challanDate,
@@ -725,7 +708,6 @@ const downloadExcel = async () => {
 
     // Totals row
     const totalsRow = sheet.addRow([
-      "",
       "",
       "",
       "",
@@ -770,15 +752,13 @@ const downloadExcel = async () => {
     });
 
     // Set column widths
-    const columnWidths = [
-      8, 20, 20, 15, 15, 10, 10, 10, 10, 10, 10, 10, 10, 12,
-    ];
+    const columnWidths = [8, 20, 15, 15, 10, 10, 10, 10, 10, 10, 10, 10, 12];
     sheet.columns.forEach((col, index) => {
       col.width = columnWidths[index];
     });
 
     // Generate filename
-    const filename = `${dateRangeLabel}_Summary_Report_${bankName.replace(
+    const filename = `${dateRangeLabel}_Courier_Summary_Report_${bankName.replace(
       /\s+/g,
       "_"
     )}_${formState.agentType ? "Agent" : ""}.xlsx`;

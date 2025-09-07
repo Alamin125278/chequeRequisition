@@ -135,7 +135,7 @@ export const useChallanStore = defineStore("challan", () => {
     branch.value = null;
     chaDate.value = "";
   };
-
+  loading.value = true;
   const featchBanks = async () => {
     try {
       const result = await getBankForBranchService();
