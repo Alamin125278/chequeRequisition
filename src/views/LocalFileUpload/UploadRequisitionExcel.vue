@@ -727,6 +727,8 @@ const resetFile = () => {
   fileList.value = [];
 };
 
+let UpdatedEndingNo = "";
+
 // Process the uploaded file
 const processFile = async () => {
   if (!file.value) return;
@@ -850,9 +852,6 @@ const processFile = async () => {
           const printerCode = row["Printer Code"];
           const leaves = row["No. of Leaves"];
           let courierCode = row["Courier Code"];
-          if (courierCode == "U" || courierCode == "W") {
-            courierCode = "E";
-          }
 
           let chequeType = "";
           let chequePrefix = "";
@@ -868,6 +867,12 @@ const processFile = async () => {
           } else if (perfix == "C") {
             chequeType = "Cash Credit";
             chequePrefix = perfix + printerCode + "-" + leaves + series;
+          } else if (perfix == "F") {
+            chequeType = "FDR";
+            chequePrefix = "FDR";
+          } else if (perfix == "M") {
+            chequeType = "MTDR";
+            chequePrefix = "MTDR";
           }
 
           processedData.push({
@@ -888,12 +893,20 @@ const processFile = async () => {
             endNo: row["Ending No."] || "",
             bookQty: row["No. of Book"] || "",
             receivingBranch: row["Receiving Branch"] || "",
-            distributionPointName: row["Distribution Point Name"] || "",
+            distributionPointName:
+              row["Distribution Point Name"] || row["Receiving Branch"] || "",
             courierCode: courierCode,
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
-              row["Request_Date"] || new Date().toISOString().slice(0, 10),
+              row["Request Date"] && row["Request Date"].trim() !== ""
+                ? row["Request Date"]
+                    .replace(/\//g, "-")
+                    .split("-")
+                    .reverse()
+                    .join("-")
+                : new Date().toISOString().slice(0, 10),
+
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["Receiving Branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
@@ -901,7 +914,40 @@ const processFile = async () => {
         }
       } else if (selectedBank.value == 3) {
         let startNo = "0";
-        let endNo = "0";
+        let startNoNum = 0;
+        try {
+          const {
+            success,
+            data,
+            message: msg,
+          } = await fetchManageSerialService({
+            bankId: selectedBank.value || 3,
+            chequeType: "PO",
+            lvs: 100,
+          });
+
+          if (!success) {
+            showImportedData.value = false;
+            message.error(msg);
+            return;
+          }
+
+          const currentEndingNo = parseInt(
+            data.manageSerialDto.endingNo || "0",
+            10
+          );
+
+          if (isNaN(currentEndingNo)) {
+            throw new Error("Invalid serial number from server.");
+          }
+
+          const nextStart = currentEndingNo + 1;
+          startNoNum = nextStart;
+          startNo = nextStart.toString().padStart(7, "0");
+        } catch (error) {
+          console.error("Error fetching serial info:", error);
+          message.error("Failed to fetch or calculate serial numbers.");
+        }
         for (const [index, row] of (jsonData as any[]).entries()) {
           let micrNo = row["Account no"] || "";
           let homeBranchCode = micrNo.substring(0, 4);
@@ -909,6 +955,8 @@ const processFile = async () => {
 
           const bookCount = row["Bks"] * row["Lvs"];
           let chequeType = "";
+          const nextEnd = startNoNum + bookCount - 1;
+          const endNo = nextEnd.toString().padStart(7, "0");
 
           switch (row["Prefix"]) {
             case "SB":
@@ -920,54 +968,6 @@ const processFile = async () => {
             case "PO":
               chequeType = "Payment Order";
               break;
-          }
-
-          try {
-            const {
-              success,
-              data,
-              message: msg,
-            } = await fetchManageSerialService({
-              bankId: selectedBank.value || 3,
-              chequeType: row["Prefix"],
-              lvs: row["Lvs"],
-            });
-
-            if (!success) {
-              showImportedData.value = false;
-              message.error(msg);
-              return;
-            }
-
-            const currentEndingNo = parseInt(
-              data.manageSerialDto.endingNo || "0",
-              10
-            );
-
-            if (isNaN(currentEndingNo)) {
-              throw new Error("Invalid serial number from server.");
-            }
-
-            const nextStart = currentEndingNo + 1;
-            const nextEnd = nextStart + bookCount - 1;
-
-            startNo = nextStart.toString().padStart(7, "0");
-            endNo = nextEnd.toString().padStart(7, "0");
-            try {
-              await updateManageSerialService({
-                bankId: selectedBank.value || 3,
-                chequeType: row["Prefix"],
-                lvs: row["Lvs"],
-                endingNumber: endNo,
-              });
-            } catch (error: any) {
-              showImportedData.value = false;
-              message.error(`${error.response.data.Message}`);
-              return;
-            }
-          } catch (error) {
-            console.error("Error fetching serial info:", error);
-            message.error("Failed to fetch or calculate serial numbers.");
           }
 
           processedData.push({
@@ -998,9 +998,10 @@ const processFile = async () => {
             deliveryBranchCode: row["Delivery Branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
           });
+          startNoNum = nextEnd + 1;
+          startNo = startNoNum.toString().padStart(7, "0");
+          UpdatedEndingNo = endNo;
         }
-        startNo = "0";
-        endNo = "0";
       } else if (selectedBank.value == 4) {
         for (const [index, row] of (jsonData as any[]).entries()) {
           let chequeType = "";
@@ -1123,13 +1124,13 @@ const handleSubmit = async () => {
     const items: LocalFileUploadCommand[] = importedData.value.map((item) => ({
       bankId: selectedBank.value ?? 0,
       branchName: item.branchName,
-      accountNo: item.accountNo,
-      routingNo: item.routingNo,
+      accountNo: String(item.accountNo),
+      routingNo: String(item.routingNo),
       startNo: item.startNo,
       endNo: item.endNo,
       chequeType: item.chequeType,
       chequePrefix: item.chequePrefix,
-      micrNo: item.micrNo,
+      micrNo: String(item.micrNo),
       series: item.series,
       accountName: item.accountName,
       cusAddress: item.distributionPointName,
@@ -1147,6 +1148,20 @@ const handleSubmit = async () => {
     }));
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {
+      if (selectedBank.value == 3) {
+        try {
+          await updateManageSerialService({
+            bankId: selectedBank.value || 3,
+            chequeType: "PO",
+            lvs: 100,
+            endingNumber: UpdatedEndingNo,
+          });
+        } catch (error: any) {
+          showImportedData.value = false;
+          message.error(`${error.response.data.Message}`);
+          return;
+        }
+      }
       successMessage.value = "File Uploaded Successfully!";
       successDescription.value = `${items.length} items uploaded for ${selectedBankName.value}`;
       showSuccessModal.value = true;

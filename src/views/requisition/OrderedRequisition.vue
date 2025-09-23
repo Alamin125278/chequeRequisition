@@ -985,6 +985,8 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
         order.chequePrefix === "PO"
       ) {
         branchName = `${order.branchName} (${order.routingNo})`;
+      } else if (order.bankName === "Public Bank PLC.") {
+        branchName = order.branchName.split(",")[0];
       } else {
         branchName = order.branchName;
       }
@@ -1012,6 +1014,10 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
         bookStartNo += order.leaves;
       }
     });
+
+    formattedData.sort((a, b) =>
+      a["Customer Address"].localeCompare(b["Customer Address"])
+    );
 
     exportToExcel(formattedData, fileName, checkType);
     setExportState(variation, { completed: true });
@@ -1078,26 +1084,6 @@ const exportPSI = () => {
   try {
     const psiOrders = orderRequisitionStore.orderRequisitionForExport;
     const bankName = psiOrders[0].bankName;
-    // const formattedData = psiOrders.map((order) => ({
-    //   "Account No": order.accountNo,
-    //   "Start No": order.startNo,
-    //   "No of Leaves": order.leaves,
-    //   "End No": order.endNo,
-    //   "MICR No": order.micrNo,
-    //   "Routing No": order.routingNo,
-    //   "Transaction Code": order.transactionCode,
-    //   Name: order.accountName,
-    //   "Home Branch Name": order.isAgent
-    //     ? `B- ${order.branchName} (${
-    //         order.receivingBranchName?.slice(-7) || ""
-    //       })`
-    //     : order.branchName,
-    //   "Ac Prefix": order.chequePrefix,
-    //   "Distribution Point Name": order.cusAddress,
-    //   "Receiving Branch Name": order.receivingBranchName,
-    // }));
-
-    //  const todayDate = new Date().toISOString().split("T")[0];
 
     let formattedData: any[] = [];
 
@@ -1108,6 +1094,8 @@ const exportPSI = () => {
         branchName = `B-${order.branchName} (${
           order.receivingBranchName?.slice(-7) || ""
         })`;
+      } else if (order.bankName === "Public Bank PLC.") {
+        branchName = order.branchName.split(",")[0];
       } else {
         branchName = order.branchName;
       }
@@ -1135,6 +1123,11 @@ const exportPSI = () => {
         bookStartNo += order.leaves;
       }
     });
+
+    formattedData.sort((a, b) =>
+      a["Customer Address"].localeCompare(b["Customer Address"])
+    );
+
     // const formattedData = psiOrders.map((order) => ({
     //   "Bank Name": order.bankName,
     //   "Branch Name": order.isAgent
@@ -1185,58 +1178,59 @@ const showChallanPreview = () => {
     }
     branches[order.receivingBranchName].push(order);
   });
+  // Sorting the branch names A to Z and building a new sorted object
+  const sortedBranches: Record<string, any[]> = {};
+  Object.keys(branches)
+    .sort((a, b) => a.localeCompare(b)) // A to Z sort
+    .forEach((branchName) => {
+      sortedBranches[branchName] = branches[branchName];
+    });
 
-  challanData.value = branches;
+  challanData.value = sortedBranches;
   challanPreviewVisible.value = true;
 };
 
 const confirmExportChallan = async () => {
   try {
-    const payload = {
-      challanData: challanData.value, // assuming challanData is a ref or reactive
-    };
-
+    // ১. চালান তৈরি
+    const payload = { challanData: challanData.value };
     const response = await createChallan(payload);
 
-    if (response?.isCreated) {
-      var challanIds = response?.createdChallanIds ?? [];
-
-      if (challanIds.length > 0) {
-        var challans = await getChallanExportService(challanIds);
-        // var FinteralogoImage = "../../assets/images/Finteralogo.jpeg";
-        // var FinteraFooterImage = "../../assets/images/FinteraFooter.jpeg";
-        if (challans[0].vendorName === "Fintera Solutions Limited") {
-          const logoBase64 = await toBase64(FinteralogoImage);
-          const footerBase64 = await toBase64(FinteraFooterImage);
-          const AuthSignatureBase64 = await toBase64(AuthSignature);
-          // generateSingleSheetChallanExcel(challans, logoBase64, footerBase64);
-          generateChallanPdf(
-            challans,
-            logoBase64,
-            footerBase64,
-            AuthSignatureBase64
-          );
-        } else {
-          const logoBase64 = await toBase64(FlexItlogoImage);
-          const footerBase64 = await toBase64(FlexItFooterImage);
-          const AuthSignatureBase64 = await toBase64(AuthSignature);
-          generateChallanPdf(
-            challans,
-            logoBase64,
-            footerBase64,
-            AuthSignatureBase64
-          );
-        }
-        orderRequisitionStore.fetchOrderRequisitions();
-      } else {
-        message.error("Failed to Get challan");
-      }
-    } else {
-      message.error("Failed to create challan");
+    if (!response?.isCreated) {
+      return message.error("চালান তৈরি ব্যর্থ হয়েছে");
     }
+
+    // ২. চালান আইডি যাচাই
+    const challanIds = response.createdChallanIds ?? [];
+    if (challanIds.length === 0) {
+      return message.error("কোনো চালান আইডি পাওয়া যায়নি");
+    }
+
+    // ৩. আইডি এবং চালান ডেটা sort করা
+    challanIds.sort((a: number, b: number) => a - b);
+    let challans = await getChallanExportService(challanIds);
+    challans.sort((a, b) =>
+      a.receivingBranchName.localeCompare(b.receivingBranchName)
+    );
+
+    // ৪. Vendor অনুযায়ী লোগো/ফুটার নির্বাচন
+    const vendorName = challans[0].vendorName;
+    const isFintera = vendorName === "Fintera Solutions Limited";
+
+    const [logoBase64, footerBase64, authSignatureBase64] = await Promise.all([
+      toBase64(isFintera ? FinteralogoImage : FlexItlogoImage),
+      toBase64(isFintera ? FinteraFooterImage : FlexItFooterImage),
+      toBase64(AuthSignature),
+    ]);
+
+    // ৫. PDF তৈরি
+    generateChallanPdf(challans, logoBase64, footerBase64, authSignatureBase64);
+
+    // ৬. ডেটা রিফ্রেশ
+    orderRequisitionStore.fetchOrderRequisitions();
   } catch (error) {
-    console.error("Challan export error:", error);
-    message.error("An error occurred while exporting challan");
+    console.error("চালান এক্সপোর্ট ত্রুটি:", error);
+    message.error("চালান এক্সপোর্ট করার সময় একটি ত্রুটি ঘটেছে");
   } finally {
     challanPreviewVisible.value = false;
     submitExport();

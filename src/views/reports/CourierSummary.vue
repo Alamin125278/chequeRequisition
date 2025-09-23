@@ -216,6 +216,16 @@
                   <th
                     class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
                   >
+                    Courier Name
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
+                  >
+                    Requestion Date
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
+                  >
                     Delivery Branch
                   </th>
                   <th
@@ -252,6 +262,12 @@
                     {{ index + 1 }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
+                    {{ item.courierName }}
+                  </td>
+                  <td class="border border-gray-300 px-3 py-2 text-sm">
+                    {{ item.requestDate }}
+                  </td>
+                  <td class="border border-gray-300 px-3 py-2 text-sm">
                     {{ item.deliveryBranch }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
@@ -278,7 +294,7 @@
                 <tr class="bg-gray-100 font-medium">
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm"
-                    colspan="3"
+                    colspan="5"
                   ></td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm font-bold"
@@ -369,12 +385,14 @@ interface ReportItem {
   deliveryBranch: string;
   challanNo: string;
   challanDate: string;
+  courierName: string;
+  requestDate: string;
   isAgent: boolean;
   sb10: number;
   sb20: number;
   sb25: number;
-  sba20: number;
-  msd20: number;
+  sba10: number;
+  msd10: number;
   cd10: number;
   cd25: number;
   cd50: number;
@@ -390,6 +408,8 @@ interface ReportItem {
   ca50: number;
   ca100: number;
   fdr50: number;
+  fdr100: number;
+  mtdr25: number;
   mtdr50: number;
   total: number;
 }
@@ -398,8 +418,8 @@ interface Totals {
   sb10: number;
   sb20: number;
   sb25: number;
-  sba20: number;
-  msd20: number;
+  sba10: number;
+  msd10: number;
   cd10: number;
   cd25: number;
   cd50: number;
@@ -415,6 +435,8 @@ interface Totals {
   ca50: number;
   ca100: number;
   fdr50: number;
+  fdr100: number;
+  mtdr25: number;
   mtdr50: number;
   grandTotal: number;
 }
@@ -452,8 +474,8 @@ const totals = computed((): Totals => {
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
-    sba20: data.reduce((sum, item) => sum + item.sba20, 0),
-    msd20: data.reduce((sum, item) => sum + item.msd20, 0),
+    sba10: data.reduce((sum, item) => sum + item.sba10, 0),
+    msd10: data.reduce((sum, item) => sum + item.msd10, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
@@ -469,6 +491,8 @@ const totals = computed((): Totals => {
     ca50: data.reduce((sum, item) => sum + item.ca50, 0),
     ca100: data.reduce((sum, item) => sum + item.ca100, 0),
     fdr50: data.reduce((sum, item) => sum + item.fdr50, 0),
+    fdr100: data.reduce((sum, item) => sum + item.fdr100, 0),
+    mtdr25: data.reduce((sum, item) => sum + item.mtdr25, 0),
     mtdr50: data.reduce((sum, item) => sum + item.mtdr50, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
@@ -478,8 +502,8 @@ type ReportColumnKey =
   | "sb10"
   | "sb20"
   | "sb25"
-  | "sba20"
-  | "msd20"
+  | "sba10"
+  | "msd10"
   | "cd10"
   | "cd25"
   | "cd50"
@@ -495,13 +519,15 @@ type ReportColumnKey =
   | "ca50"
   | "ca100"
   | "fdr50"
+  | "fdr100"
+  | "mtdr25"
   | "mtdr50";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "sb10", label: "SB(10)" },
   { key: "sb20", label: "SB(20)" },
   { key: "sb25", label: "SB(25)" },
-  { key: "sba20", label: "SBA(20)" },
-  { key: "msd20", label: "MSD(20)" },
+  { key: "sba10", label: "SBA(10)" },
+  { key: "msd10", label: "MSD(10)" },
   { key: "cd10", label: "CD(10)" },
   { key: "cd25", label: "CD(25)" },
   { key: "cd50", label: "CD(50)" },
@@ -517,6 +543,8 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "ca50", label: "CA(50)" },
   { key: "ca100", label: "CA(100)" },
   { key: "fdr50", label: "FDR(50)" },
+  { key: "fdr100", label: "FDR(100)" },
+  { key: "mtdr25", label: "MTDR(25)" },
   { key: "mtdr50", label: "MTDR(50)" },
 ];
 
@@ -670,6 +698,8 @@ const downloadExcel = async () => {
     // Table Header
     const tableHeaders = [
       "Sl No",
+      "Courier Name",
+      "Requestion Date",
       "Delivery Branch",
       "Challan No",
       "Challan Date",
@@ -693,6 +723,8 @@ const downloadExcel = async () => {
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([
         index + 1,
+        item.courierName,
+        item.requestDate,
         item.deliveryBranch,
         item.challanNo,
         item.challanDate,
@@ -708,6 +740,8 @@ const downloadExcel = async () => {
 
     // Totals row
     const totalsRow = sheet.addRow([
+      "",
+      "",
       "",
       "",
       "",

@@ -12,12 +12,12 @@
                 <FileTextOutlined class="h-6 w-6 text-white" />
               </div>
               <h1 class="ml-3 text-2xl font-semibold text-primary">
-                <span class="text-accent">Summary</span> Report
+                <span class="text-accent">Branch Wise</span> Bill Report
               </h1>
             </div>
             <p class="mt-2 text-sm text-secondary max-w-2xl">
-              Generate comprehensive summary reports for cheque requisitions by
-              date range and bank.
+              Generate comprehensive branch wise bill reports for cheque
+              requisitions by date range and bank.
             </p>
           </div>
           <div class="mt-4 md:mt-0 md:ml-4">
@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -76,22 +76,6 @@
                 />
               </a-form-item>
 
-              <!-- Severity -->
-              <a-form-item
-                label="Severity"
-                name="severity"
-                :rules="[{ required: true, message: 'Please select severity' }]"
-              >
-                <a-select
-                  v-model:value="formState.severity"
-                  placeholder="Select severity"
-                  class="w-full"
-                >
-                  <a-select-option value="">Select Severity</a-select-option>
-                  <a-select-option value="1">Urgent</a-select-option>
-                  <a-select-option value="2">Normal</a-select-option>
-                </a-select>
-              </a-form-item>
               <!-- Agent Type -->
               <a-form-item
                 label="AgentType"
@@ -194,7 +178,8 @@
         <div class="bg-background p-5 rounded-md border border-gray-200">
           <div class="flex justify-between items-center mb-4">
             <h3 class="font-medium text-primary flex items-center">
-              <FileTextOutlined class="mr-2 text-accent" /> Report Summary
+              <FileTextOutlined class="mr-2 text-accent" /> Report Branch Wise
+              Bill
             </h3>
             <div class="text-sm text-secondary">
               {{ dayjs(formState.startDate)?.format("YYYY-MM-DD") }} to
@@ -216,6 +201,16 @@
                     class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
                   >
                     Home Branch
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
+                  >
+                    Courier Name
+                  </th>
+                  <th
+                    class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
+                  >
+                    Requestion Date
                   </th>
                   <th
                     class="border border-gray-300 px-3 py-2 text-left text-sm font-medium text-gray-900"
@@ -265,6 +260,12 @@
                     }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
+                    {{ item.courierName }}
+                  </td>
+                  <td class="border border-gray-300 px-3 py-2 text-sm">
+                    {{ item.requestDate }}
+                  </td>
+                  <td class="border border-gray-300 px-3 py-2 text-sm">
                     {{ item.deliveryBranch }}
                   </td>
                   <td class="border border-gray-300 px-3 py-2 text-sm">
@@ -291,7 +292,7 @@
                 <tr class="bg-gray-100 font-medium">
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm"
-                    colspan="4"
+                    colspan="6"
                   ></td>
                   <td
                     class="border border-gray-300 px-3 py-2 text-sm font-bold"
@@ -382,12 +383,14 @@ interface ReportItem {
   deliveryBranch: string;
   challanNo: string;
   challanDate: string;
+  courierName: string;
+  requestDate: string;
   isAgent: boolean;
   sb10: number;
   sb20: number;
   sb25: number;
-  sba20: number;
-  msd20: number;
+  sba10: number;
+  msd10: number;
   cd10: number;
   cd25: number;
   cd50: number;
@@ -403,6 +406,8 @@ interface ReportItem {
   ca50: number;
   ca100: number;
   fdr50: number;
+  fdr100: number;
+  mtdr25: number;
   mtdr50: number;
   total: number;
 }
@@ -411,8 +416,8 @@ interface Totals {
   sb10: number;
   sb20: number;
   sb25: number;
-  sba20: number;
-  msd20: number;
+  sba10: number;
+  msd10: number;
   cd10: number;
   cd25: number;
   cd50: number;
@@ -428,6 +433,8 @@ interface Totals {
   ca50: number;
   ca100: number;
   fdr50: number;
+  fdr100: number;
+  mtdr25: number;
   mtdr50: number;
   grandTotal: number;
 }
@@ -446,7 +453,6 @@ const formState = reactive({
   startDate: undefined as string | undefined,
   endDate: undefined as string | undefined,
   bankId: null as number | null,
-  severity: null as number | null,
   agentType: undefined as boolean | undefined,
 });
 
@@ -465,8 +471,8 @@ const totals = computed((): Totals => {
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
-    sba20: data.reduce((sum, item) => sum + item.sba20, 0),
-    msd20: data.reduce((sum, item) => sum + item.msd20, 0),
+    sba10: data.reduce((sum, item) => sum + item.sba10, 0),
+    msd10: data.reduce((sum, item) => sum + item.msd10, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
@@ -482,6 +488,8 @@ const totals = computed((): Totals => {
     ca50: data.reduce((sum, item) => sum + item.ca50, 0),
     ca100: data.reduce((sum, item) => sum + item.ca100, 0),
     fdr50: data.reduce((sum, item) => sum + item.fdr50, 0),
+    fdr100: data.reduce((sum, item) => sum + item.fdr100, 0),
+    mtdr25: data.reduce((sum, item) => sum + item.mtdr25, 0),
     mtdr50: data.reduce((sum, item) => sum + item.mtdr50, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
@@ -491,8 +499,8 @@ type ReportColumnKey =
   | "sb10"
   | "sb20"
   | "sb25"
-  | "sba20"
-  | "msd20"
+  | "sba10"
+  | "msd10"
   | "cd10"
   | "cd25"
   | "cd50"
@@ -508,13 +516,15 @@ type ReportColumnKey =
   | "ca50"
   | "ca100"
   | "fdr50"
+  | "fdr100"
+  | "mtdr25"
   | "mtdr50";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "sb10", label: "SB(10)" },
   { key: "sb20", label: "SB(20)" },
   { key: "sb25", label: "SB(25)" },
-  { key: "sba20", label: "SBA(20)" },
-  { key: "msd20", label: "MSD(20)" },
+  { key: "sba10", label: "SBA(10)" },
+  { key: "msd10", label: "MSD(10)" },
   { key: "cd10", label: "CD(10)" },
   { key: "cd25", label: "CD(25)" },
   { key: "cd50", label: "CD(50)" },
@@ -530,6 +540,8 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "ca50", label: "CA(50)" },
   { key: "ca100", label: "CA(100)" },
   { key: "fdr50", label: "FDR(50)" },
+  { key: "fdr100", label: "FDR(100)" },
+  { key: "mtdr25", label: "MTDR(25)" },
   { key: "mtdr50", label: "MTDR(50)" },
 ];
 
@@ -539,12 +551,7 @@ const activeColumns = computed(() => {
 
 // Handle preview
 const handlePreview = async () => {
-  if (
-    !formState.startDate ||
-    !formState.endDate ||
-    !formState.bankId ||
-    !formState.severity
-  ) {
+  if (!formState.startDate || !formState.endDate || !formState.bankId) {
     message.error("Please fill all required fields");
     return;
   }
@@ -567,7 +574,7 @@ const handlePreview = async () => {
       bankId: formState.bankId,
       startDate: stDate,
       endDate: enDate,
-      severity: formState.severity,
+      severity: 1,
       agentType: formState.agentType ?? false,
     };
     // Generate mock data
@@ -628,7 +635,7 @@ const downloadExcel = async () => {
 
     // Create workbook and sheet
     const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Summary Report");
+    const sheet = workbook.addWorksheet("Branch Wise Bill Report");
     sheet.pageSetup = {
       paperSize: 9, // 9 = A4 size in ExcelJS
       orientation: "portrait", // or "landscape"
@@ -666,7 +673,7 @@ const downloadExcel = async () => {
     // Heading: Bank Name
     sheet.mergeCells("A3:I3");
     const bankCell = sheet.getCell("B3");
-    bankCell.value = `${bankName} Summary Report`;
+    bankCell.value = `${bankName} Branch Wise Bill Report`;
     bankCell.font = { bold: true, size: 16 };
     bankCell.alignment = { horizontal: "center" };
 
@@ -684,6 +691,8 @@ const downloadExcel = async () => {
     const tableHeaders = [
       "Sl No",
       "Home Branch",
+      "Courier Name",
+      "Requestion Date",
       "Delivery Branch",
       "Challan No",
       "Challan Date",
@@ -710,6 +719,8 @@ const downloadExcel = async () => {
         item.isAgent && formState.bankId === 2
           ? `B-${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
           : item.homeBranch,
+        item.courierName,
+        item.requestDate,
         item.deliveryBranch,
         item.challanNo,
         item.challanDate,
@@ -725,6 +736,8 @@ const downloadExcel = async () => {
 
     // Totals row
     const totalsRow = sheet.addRow([
+      "",
+      "",
       "",
       "",
       "",
@@ -778,7 +791,7 @@ const downloadExcel = async () => {
     });
 
     // Generate filename
-    const filename = `${dateRangeLabel}_Summary_Report_${bankName.replace(
+    const filename = `${dateRangeLabel}_Branch_Wise_Bill_Report_${bankName.replace(
       /\s+/g,
       "_"
     )}_${formState.agentType ? "Agent" : ""}.xlsx`;

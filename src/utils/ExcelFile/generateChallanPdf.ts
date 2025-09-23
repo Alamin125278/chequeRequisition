@@ -79,6 +79,48 @@ export const generateChallanPdf = async (
     return `${day} ${month} ${year}`;
   }
 
+  // function drawWrappedTextWithCharLimit(
+  //   page: any,
+  //   text: string,
+  //   x: number,
+  //   y: number,
+  //   maxWidth: number,
+  //   font: any,
+  //   fontSize: number,
+  //   lineHeight: number,
+  //   maxChars: number = 30
+  // ) {
+  //   // Step 1: Character limit check
+  //   let trimmedText = text;
+  //   if (text.length > maxChars) {
+  //     trimmedText = text.slice(0, maxChars).trim() + "...";
+  //   }
+
+  //   // Step 2: Word-wrapping the (possibly trimmed) text
+  //   const words = trimmedText.split(" ");
+  //   let line = "";
+  //   let curY = y;
+
+  //   for (let i = 0; i < words.length; i++) {
+  //     const testLine = line ? line + " " + words[i] : words[i];
+  //     const testWidth = font.widthOfTextAtSize(testLine, fontSize);
+
+  //     if (testWidth > maxWidth && i > 0) {
+  //       // আগের লাইন ড্র করো
+  //       page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+  //       line = words[i];
+  //       curY -= lineHeight;
+  //     } else {
+  //       line = testLine;
+  //     }
+  //   }
+
+  //   // বাকি লাইন ড্র করো
+  //   if (line) {
+  //     page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+  //   }
+  // }
+
   function drawWrappedTextWithCharLimit(
     page: any,
     text: string,
@@ -90,13 +132,15 @@ export const generateChallanPdf = async (
     lineHeight: number,
     maxChars: number = 30
   ) {
-    // Step 1: Character limit check
-    let trimmedText = text;
-    if (text.length > maxChars) {
-      trimmedText = text.slice(0, maxChars).trim() + "...";
+    // Tab character রিপ্লেস করা
+    let trimmedText = text.replace(/\t/g, " ");
+
+    // Character limit চেক করা
+    if (trimmedText.length > maxChars) {
+      trimmedText = trimmedText.slice(0, maxChars).trim() + "...";
     }
 
-    // Step 2: Word-wrapping the (possibly trimmed) text
+    // Word wrapping
     const words = trimmedText.split(" ");
     let line = "";
     let curY = y;
@@ -106,7 +150,6 @@ export const generateChallanPdf = async (
       const testWidth = font.widthOfTextAtSize(testLine, fontSize);
 
       if (testWidth > maxWidth && i > 0) {
-        // আগের লাইন ড্র করো
         page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
         line = words[i];
         curY -= lineHeight;
@@ -175,7 +218,7 @@ export const generateChallanPdf = async (
         font: fontBold,
         size: 10,
       });
-      page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
+      page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
         x: pageWidth - marginX - 150,
         y: y - 30,
         font,
@@ -211,7 +254,7 @@ export const generateChallanPdf = async (
         size: 9,
       });
       contentY -= 15;
-      page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
+      page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
         x: marginX + 8,
         y: contentY,
         font,
@@ -399,8 +442,15 @@ export const generateChallanPdf = async (
     if (y < marginY + footerHeight + 100) {
       drawFooter();
       page = pdfDoc.addPage([pageWidth, pageHeight]);
-      y = pageHeight - marginY - 40;
-      drawHeader();
+      y = pageHeight - marginY - 60;
+      // drawHeader();
+      page.drawImage(headerImage, {
+        x: pageWidth - marginX - 150,
+        y: y,
+        width: 140,
+        height: 70,
+      });
+      y -= rowHeight + 22;
     }
 
     y -= 25;
