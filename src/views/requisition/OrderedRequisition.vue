@@ -330,7 +330,8 @@
               }"
             >
               <template #icon>
-                <CheckOutlined v-if="checkTypeVariation.completed" />
+                <LoadingOutlined v-if="checkTypeVariation.loading" />
+                <CheckOutlined v-else-if="checkTypeVariation.completed" />
                 <FileTextOutlined v-else />
               </template>
               <span>
@@ -872,8 +873,6 @@ const challanColumns = [
   },
 ];
 
-// State
-const orders = ref<any[]>([]);
 const loading = ref(true);
 const exportModalVisible = ref(false);
 const challanPreviewVisible = ref(false);
@@ -927,11 +926,14 @@ const showExportPreview = () => {
 };
 
 const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
-  const variation = checkTypeVariations.value.find(
+  const index = checkTypeVariations.value.findIndex(
     (ct) => ct.type === checkType && ct.pages === pages
   );
 
-  if (!variation || variation.completed) return;
+  if (index === -1 || checkTypeVariations.value[index].completed) return;
+
+  // ✅ নিশ্চিতভাবে reactive item এ কাজ করবো
+  const variation = checkTypeVariations.value[index];
 
   setExportState(variation, { loading: true });
 
@@ -952,25 +954,6 @@ const exportByCheckTypeAndPages = async (checkType: string, pages: number) => {
     } else {
       fileName = `${todayDate}_${bankName}_${checkType}_${pages}`;
     }
-
-    // const formattedData = matchingOrders.map((order) => ({
-    //   "Bank Name": order.bankName,
-    //   "Branch Name": order.isAgent
-    //     ? `B-${order.branchName} (${
-    //         order.receivingBranchName?.slice(-7) || ""
-    //       }) (${order.routingNo})`
-    //     : order.branchName,
-    //   "Account Name": order.accountName,
-    //   "Customer Address": order.receivingBranchName,
-    //   "Cheque Prefix": order.chequePrefix,
-    //   "MICR No": order.micrNo,
-    //   "Cheque Serial": order.startNo,
-    //   "Leaves Quantity": order.leaves,
-    //   "Book Quantity": order.bookQty,
-    //   "Routing No": order.routingNo,
-    //   "Transaction Code": order.transactionCode,
-    //   "Account No": order.accountNo,
-    // }));
     let formattedData: any[] = [];
 
     matchingOrders.forEach((order) => {

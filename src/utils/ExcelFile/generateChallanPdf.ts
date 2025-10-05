@@ -279,7 +279,7 @@ export const generateChallanPdf = async (
       }
 
       contentY -= 15;
-      if (challan.isAgent) {
+      if (challan.bankName === "Midland Bank PLC") {
         page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
           x: marginX + 8,
           y: contentY,

@@ -154,7 +154,7 @@
                 :loading="isLoading"
                 class="rounded-md px-8 bg-accent hover:bg-accent-dark border-accent hover:border-accent-dark flex items-center shadow-md"
               >
-                <EyeOutlined class="mr-2" /> Preview Report
+                <DownloadOutlined class="mr-2" /> Download Report
               </a-button>
             </div>
           </a-form>
@@ -352,7 +352,6 @@ import { getCourierSummaryReportService } from "@/services/summary-report/summar
 import {
   CalendarOutlined,
   DownloadOutlined,
-  EyeOutlined,
   FileTextOutlined,
   FilterOutlined,
   InfoCircleOutlined,
@@ -591,13 +590,19 @@ const handlePreview = async () => {
       // alert(response.success);
       // console.log(response.data);
       reportData.value = response.data.summaryReports;
+      reportData.value.sort((a, b) => {
+        const aLast6 = a.challanNo.slice(-6);
+        const bLast6 = b.challanNo.slice(-6);
+        return aLast6.localeCompare(bLast6);
+      });
+      downloadExcel();
       message.success("Report generated successfully");
     } else {
       message.error("Failed to generate report");
     }
     // reportData.value = generateMockData();
 
-    previewModalVisible.value = true;
+    previewModalVisible.value = false;
   } catch (error) {
     message.error("Failed to generate report");
   } finally {

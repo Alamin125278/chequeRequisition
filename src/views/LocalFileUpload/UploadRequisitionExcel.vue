@@ -776,31 +776,43 @@ const processFile = async () => {
           }
 
           let branchId = null;
+          let distributionPointNameAddress = "";
+          const deliveryBrCode = (
+            row["DeliveryBrCode"] ??
+            row["Delivery_Branch_Code"] ??
+            ""
+          ).trim();
+          const delBrName = (
+            row["DeliveryBranchName"] ??
+            row["Delivery_Branch"] ??
+            ""
+          )
+            .trim()
+            .toUpperCase();
+          try {
+            const response = await getBranchId(
+              selectedBank.value,
+              deliveryBrCode,
+              delBrName
+            );
+            branchId = response.data?.branch.id ?? null;
+            distributionPointNameAddress = response.data?.branch.branchAddress;
+          } catch (error) {
+            console.error("Failed to fetch branch ID:", error);
+          }
           if (selectedType.value === true) {
-            const deliveryBrCode = row["DeliveryBrCode"] ?? "";
-            const delBrName = row["DeliveryBranchName"] ?? "";
-            try {
-              const response = await getBranchId(
-                selectedBank.value,
-                deliveryBrCode,
-                delBrName
-              );
-              branchId = response.data?.branchId ?? null;
-              if (branchId == 0 || branchId == null) {
-                const payload = {
-                  BankId: Number(selectedBank.value),
-                  branchName: delBrName,
-                  branchCode: deliveryBrCode,
-                  routingNo: "123",
-                  branchEmail: "agent@midland.net",
-                  branchPhone: "544",
-                  branchAddress: row["PointAddress"],
-                  isActive: "Active",
-                };
-                await saveBranchService(payload, false);
-              }
-            } catch (error) {
-              console.error("Failed to fetch branch ID:", error);
+            if (branchId == 0 || branchId == null) {
+              const payload = {
+                BankId: Number(selectedBank.value),
+                branchName: delBrName,
+                branchCode: deliveryBrCode,
+                routingNo: "123",
+                branchEmail: "agent@midland.net",
+                branchPhone: "544",
+                branchAddress: row["PointAddress"],
+                isActive: "Active",
+              };
+              await saveBranchService(payload, false);
             }
           }
 
@@ -808,23 +820,33 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 2,
-            branchName: row["Home_Branch"] ?? row["HomeBranch"] ?? "",
+            branchName: (row["Home_Branch"] ?? row["HomeBranch"] ?? "").trim(),
             routingNo: row["Routing_No"] ?? row["RoutingNumber"] ?? "",
-            accountNo: row["Account_no"] ?? row["AccountNumber"] ?? "",
-            accountName: row["Account_Name"] ?? row["AccountHoldersName"] ?? "",
+            accountNo: (row["Account_no"] ?? row["AccountNumber"] ?? "").trim(),
+            accountName: (
+              row["Account_Name"] ??
+              row["AccountHoldersName"] ??
+              ""
+            ).trim(),
             chequeType: chequeType,
             chequePrefix: row["Series"] ?? row["Type"] ?? "",
             series: row["Series"] ?? row["Type"] ?? "",
             transactionCode: row["Tr_Code"] ?? row["TransactionCode"] ?? "",
             leafCount: row["Lvs"] ?? row["NoofLeaf"] ?? "",
-            micrNo: row["MICR_Account"] ?? row["MICRAccount"] ?? "",
+            micrNo: (row["MICR_Account"] ?? row["MICRAccount"] ?? "").trim(),
             startNo: row["StartNo"] ?? row["StartNO"] ?? "",
             endNo: row["End_No"] ?? row["EndNo"] ?? "",
             bookQty: "1",
-            receivingBranch:
-              row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "",
-            distributionPointName:
-              row["PointAddress"] ?? row["Delivery_Branch"] ?? "",
+            receivingBranch: (
+              row["Delivery_Branch"] ??
+              row["DeliveryBranchName"] ??
+              ""
+            ).trim(),
+            distributionPointName: (
+              row["PointAddress"] ??
+              distributionPointNameAddress ??
+              ""
+            ).trim(),
             courierCode: "U",
             agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
@@ -841,10 +863,10 @@ const processFile = async () => {
         }
       } else if (selectedBank.value == 1) {
         for (const [index, row] of (jsonData as any[]).entries()) {
-          let micrNo = row["Account No."] || "";
+          let micrNo = (row["Account No."] || "").trim();
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
 
-          let homeBranchCode = row["Account No."] || "";
+          let homeBranchCode = (row["Account No."] || "").trim();
           homeBranchCode = homeBranchCode.substring(0, 4);
 
           const series = row["Series"];
@@ -879,10 +901,10 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 1,
-            branchName: row["Branch Name"] || "",
+            branchName: (row["Branch Name"] || "").trim(),
             routingNo: row["Routing No."] || "",
-            accountNo: row["Account No."] || "",
-            accountName: row["Account Name"] || "",
+            accountNo: (row["Account No."] || "").trim(),
+            accountName: (row["Account Name"] || "").trim(),
             chequeType: chequeType,
             chequePrefix: chequePrefix,
             series: series,
@@ -892,9 +914,12 @@ const processFile = async () => {
             startNo: row["Starting No."] || "",
             endNo: row["Ending No."] || "",
             bookQty: row["No. of Book"] || "",
-            receivingBranch: row["Receiving Branch"] || "",
-            distributionPointName:
-              row["Distribution Point Name"] || row["Receiving Branch"] || "",
+            receivingBranch: (row["Receiving Branch"] || "").trim(),
+            distributionPointName: (
+              row["Distribution Point Name"] ||
+              row["Receiving Branch"] ||
+              ""
+            ).trim(),
             courierCode: courierCode,
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
@@ -908,7 +933,7 @@ const processFile = async () => {
                 : new Date().toISOString().slice(0, 10),
 
             homeBranchCode: homeBranchCode,
-            deliveryBranchCode: row["Receiving Branch"] || "",
+            deliveryBranchCode: (row["Receiving Branch"] || "").trim(),
             isAgent: selectedType.value === true ? "True" : "False",
           });
         }
@@ -1003,90 +1028,117 @@ const processFile = async () => {
           UpdatedEndingNo = endNo;
         }
       } else if (selectedBank.value == 4) {
-        for (const [index, row] of (jsonData as any[]).entries()) {
-          let chequeType = "";
-          if (row["Delivery_Branch"] == "") {
-            row["Delivery_Branch"] = row["Home_Branch"];
+        for (const [index, originalRow] of (jsonData as any[]).entries()) {
+          // Normalize keys to lowercase for case-insensitive access
+          const row: Record<string, any> = {};
+          for (const key of Object.keys(originalRow)) {
+            row[key.toLowerCase()] = originalRow[key];
           }
-          if (row["Account_Name"] == "Mudaraba Term Deposit") {
+
+          let chequeType = "";
+          if (!row["delivery_branch"]) {
+            row["delivery_branch"] = row["home_branch"];
+          }
+
+          if (row["account_name"] == "Mudaraba Term Deposit") {
             chequeType = "MTDR";
-          } else if (row["Account_Name"] == "Fixed Deposit Receipt") {
+          } else if (row["account_name"] == "Fixed Deposit Receipt") {
             chequeType = "FDR";
           } else {
-            chequeType = row["Series"];
+            chequeType = row["series"];
           }
 
           let accNo = "";
           let homeBranchCode = "";
           let trCode = 0;
+          let routingNo = "";
+
           if (chequeType == "MTDR" || chequeType == "FDR") {
             accNo = "0000000000104";
             trCode = 12;
+            routingNo = "1234567";
           } else {
-            accNo = row["Account_no"] || "";
-            trCode = row["Tr_Code"] || 0;
+            accNo = row["account_no"] || "";
+            trCode = row["tr_code"] || 0;
+            routingNo = row["routing_no"] || "";
           }
+
           homeBranchCode = accNo.substring(0, 4);
           let micrNo = accNo.length > 13 ? accNo.slice(-13) : accNo;
 
-          let startNo = parseInt(row["StartNo"]) || 0;
-          let endNo = parseInt(row["End_No"]) || 0;
+          let startNo = parseInt(row["startno"]) || 0;
+          let endNo = parseInt(row["end_no"]) || 0;
           let totalLvs = endNo - startNo + 1;
-          let bookQty = totalLvs / row["Lvs"];
+          let bookQty = totalLvs / row["lvs"];
 
-          // Check has Branch Or Create Branch
-          let homeBranchName = row["Home_Branch"] || "";
+          let homeBranchName = row["home_branch"] || "";
           let branchId = null;
-          try {
-            const response = await getBranchId(
-              selectedBank.value,
-              homeBranchCode,
-              homeBranchName
-            );
-            branchId = response.data?.branchId ?? null;
-            if (branchId == 0 || branchId == null) {
-              const payload = {
-                BankId: Number(selectedBank.value),
-                branchName: homeBranchName,
-                branchCode: homeBranchCode,
-                routingNo: row["Routing_No"] || "",
-                branchEmail: "branch@bgcb.com",
-                branchPhone: "544",
-                branchAddress: homeBranchName,
-                isActive: "Active",
-              };
-              await saveBranchService(payload, false);
+
+          if (
+            chequeType != "MTDR" &&
+            chequeType != "FDR" &&
+            chequeType != "POA" &&
+            chequeType != "POI"
+          ) {
+            try {
+              const response = await getBranchId(
+                selectedBank.value,
+                homeBranchCode,
+                homeBranchName
+              );
+              branchId = response.data?.branchId ?? null;
+
+              if (branchId == 0 || branchId == null) {
+                const payload = {
+                  BankId: Number(selectedBank.value),
+                  branchName: homeBranchName,
+                  branchCode: homeBranchCode,
+                  routingNo: routingNo,
+                  branchEmail: "branch@bgcb.com",
+                  branchPhone: "544",
+                  branchAddress: homeBranchName,
+                  isActive: "Active",
+                };
+                await saveBranchService(payload, false);
+              }
+            } catch (error) {
+              console.error("Failed to fetch branch ID:", error);
             }
-          } catch (error) {
-            console.error("Failed to fetch branch ID:", error);
           }
 
           processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
-            branchName: row["Home_Branch"] || "",
-            routingNo: row["Routing_No"] || "",
+            branchName: row["home_branch"] || "",
+            routingNo: routingNo,
             accountNo: accNo,
-            accountName: row["Account_Name"] || "",
+            accountName: row["account_name"] || "",
             chequeType: chequeType,
             chequePrefix: chequeType,
             micrNo: micrNo,
             series: chequeType,
             transactionCode: trCode,
-            leafCount: row["Lvs"] || "",
-            startNo: row["StartNo"] || "",
-            endNo: row["End_No"] || "",
+            leafCount: row["lvs"] || "",
+            startNo: row["startno"] || "",
+            endNo: row["end_no"] || "",
             bookQty: bookQty,
-            receivingBranch: row["Delivery_Branch"] || "",
-            distributionPointName: row["Delivery_Branch"] || "",
+            receivingBranch: row["delivery_branch"] || "",
+            distributionPointName: row["delivery_branch"] || "",
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
-              row["Requst Date"] || new Date().toISOString().slice(0, 10),
+              row["request date"] && row["request date"].trim() !== ""
+                ? row["request date"]
+                    .replace(/\//g, "-")
+                    .split("-")
+                    .reverse()
+                    .join("-")
+                : new Date().toISOString().slice(0, 10),
+
             homeBranchCode: homeBranchCode,
-            deliveryBranchCode: row["Delivery_Branch"] || "",
+            deliveryBranchCode: row["delivery_branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
           });
         }
