@@ -241,7 +241,7 @@ const pagination = computed(() => ({
   pageSize: dispatchStore.limit,
   total: dispatchStore.total,
   showSizeChanger: true,
-  pageSizeOptions: ["10", "20", "50"],
+  pageSizeOptions: ["10", "100", "500", "1000"],
   showTotal: (total: number) => `Total ${total} Dispatched Requisitions`,
 }));
 

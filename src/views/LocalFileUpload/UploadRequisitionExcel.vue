@@ -763,16 +763,17 @@ const processFile = async () => {
         for (const [index, row] of (jsonData as any[]).entries()) {
           let chequeType = "";
 
-          switch (row["Series"] || row["Type"]) {
-            case "SB":
-              chequeType = "Savings";
-              break;
-            case "CA":
-              chequeType = "Current";
-              break;
-            case "PO":
-              chequeType = "Payment Order";
-              break;
+          const series = (row["Series"] || "").trim().toUpperCase();
+          const type = (row["Type"] || "").trim().toUpperCase();
+
+          if (series === "SB" || type === "SB") {
+            chequeType = "Savings";
+          } else if (series === "CA" || type === "CA") {
+            chequeType = "Current";
+          } else if (series === "PO" || type === "PO") {
+            chequeType = "Payment Order";
+          } else {
+            chequeType = "Unknown";
           }
 
           let branchId = null;
@@ -829,8 +830,8 @@ const processFile = async () => {
               ""
             ).trim(),
             chequeType: chequeType,
-            chequePrefix: row["Series"] ?? row["Type"] ?? "",
-            series: row["Series"] ?? row["Type"] ?? "",
+            chequePrefix: (row["Series"] ?? row["Type"] ?? "").trim(),
+            series: (row["Series"] ?? row["Type"] ?? "").trim(),
             transactionCode: row["Tr_Code"] ?? row["TransactionCode"] ?? "",
             leafCount: row["Lvs"] ?? row["NoofLeaf"] ?? "",
             micrNo: (row["MICR_Account"] ?? row["MICRAccount"] ?? "").trim(),
@@ -869,11 +870,11 @@ const processFile = async () => {
           let homeBranchCode = (row["Account No."] || "").trim();
           homeBranchCode = homeBranchCode.substring(0, 4);
 
-          const series = row["Series"];
-          const perfix = row["Prefix"];
-          const printerCode = row["Printer Code"];
-          const leaves = row["No. of Leaves"];
-          let courierCode = row["Courier Code"];
+          const series = row["Series"].trim();
+          const perfix = row["Prefix"].trim();
+          const printerCode = row["Printer Code"].trim();
+          const leaves = row["No. of Leaves"].trim();
+          let courierCode = row["Courier Code"].trim();
 
           let chequeType = "";
           let chequePrefix = "";
@@ -1086,7 +1087,7 @@ const processFile = async () => {
                 homeBranchCode,
                 homeBranchName
               );
-              branchId = response.data?.branchId ?? null;
+              branchId = response.data?.branch.id ?? null;
 
               if (branchId == 0 || branchId == null) {
                 const payload = {
@@ -1139,6 +1140,88 @@ const processFile = async () => {
 
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery_branch"] || "",
+            isAgent: selectedType.value === true ? "True" : "False",
+          });
+        }
+      } else if (selectedBank.value == 5) {
+        for (const [index, originalRow] of (jsonData as any[]).entries()) {
+          // Normalize keys to lowercase for case-insensitive access
+          const row: Record<string, any> = {};
+          for (const key of Object.keys(originalRow)) {
+            row[key.toLowerCase()] = originalRow[key];
+          }
+          let accNo = row["account number"] || "";
+          let homeBranchCode = accNo.toString().substring(0, 4);
+          let homeBranchName = row["branch name"] || "";
+          let routingNo = (row["routing number"] || "").toString().trim();
+          let chequeType = "";
+          let branchId = null;
+          // alert(`${homeBranchCode} ${homeBranchName} ${routingNo}`);
+          try {
+            const response = await getBranchId(
+              selectedBank.value,
+              homeBranchCode,
+              homeBranchName
+            );
+            branchId = response.data?.branch?.id ?? null;
+
+            if (branchId == 0 || branchId == null) {
+              const payload = {
+                BankId: Number(selectedBank.value),
+                branchName: homeBranchName,
+                branchCode: homeBranchCode,
+                routingNo: routingNo,
+                branchEmail: "branch@sjiblbd.com",
+                branchPhone: "544",
+                branchAddress: homeBranchName,
+                isActive: "Active",
+              };
+              await saveBranchService(payload, false);
+            }
+          } catch (error) {
+            console.error("Failed to fetch branch ID:", error);
+          }
+
+          switch (row["type"]) {
+            case "SB":
+              chequeType = "Savings";
+              break;
+            case "CA":
+              chequeType = "Current";
+              break;
+            case "PO":
+              chequeType = "Payment Order";
+              break;
+          }
+
+          processedData.push({
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 3,
+            branchName: (row["branch name"] || "").trim().toUpperCase(),
+            routingNo: routingNo,
+            accountNo: accNo.toString().trim(),
+            accountName: row["account holder name"] || "",
+            chequeType: chequeType,
+            chequePrefix: row["type"] || "",
+            micrNo: (row["micr account"] || "").toString().trim(),
+            series: row["type"] || "",
+            transactionCode: row["transaction code"] || "",
+            leafCount: row["no of leaf"] || "",
+            startNo: (row["start no"] || "").toString().trim(),
+            endNo: (row["end no"] || "").toString().trim(),
+            bookQty: 1,
+            receivingBranch: (row["delivery branch"] || "")
+              .trim()
+              .toUpperCase(),
+            distributionPointName: row["delivery branch"] || "",
+            courierCode: "AS",
+            agentNum: "",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            requestDate:
+              row["request date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: homeBranchCode,
+            deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
           });
         }

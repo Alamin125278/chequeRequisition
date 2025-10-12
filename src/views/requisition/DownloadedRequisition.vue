@@ -328,7 +328,7 @@ const pagination = computed(() => ({
   pageSize: downloadedRequisitionStore.limit,
   total: downloadedRequisitionStore.total,
   showSizeChanger: true,
-  pageSizeOptions: ["10", "20", "50"],
+  pageSizeOptions: ["10", "100", "500", "1000"],
   showTotal: (total: number) => `Total ${total} Downloaded Requisitions`,
 }));
 

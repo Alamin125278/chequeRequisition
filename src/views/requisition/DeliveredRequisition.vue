@@ -236,7 +236,7 @@ const pagination = computed(() => ({
   pageSize: deliveredStore.limit,
   total: deliveredStore.total,
   showSizeChanger: true,
-  pageSizeOptions: ["10", "20", "50"],
+  pageSizeOptions: ["10", "100", "500", "1000"],
   showTotal: (total: number) => `Total ${total} Delivered Requisitions`,
 }));
 const deliveredItemColumns = [
