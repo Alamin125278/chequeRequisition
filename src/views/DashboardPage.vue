@@ -16,7 +16,7 @@
         :value="cardData.totalRequisition"
         :icon="SnippetsOutlined"
         icon-bg-color="bg-lime-500"
-        subtitle="Today"
+        subtitle="This Month"
       />
       <StatCard
         title="Ordered"
@@ -37,14 +37,14 @@
         :value="cardData.dispatchedRequisition"
         :icon="DeliveredProcedureOutlined"
         icon-bg-color="bg-purple-500"
-        subtitle="Today"
+        subtitle="This Month"
       />
       <StatCard
         title="Delivered"
         :value="cardData.deliveredRequisition"
         :icon="CheckCircleOutlined"
         icon-bg-color="bg-green-500"
-        subtitle="Today"
+        subtitle="This Month"
       />
     </div>
 

@@ -356,7 +356,7 @@ export const useOrderExport = () => {
       return `B-${order.branchName} (${
         order.receivingBranchName?.slice(-7) || ""
       })`;
-    } else if (order.bankName === "Public Bank PLC.") {
+    } else if (order.bankName === "Pubali Bank PLC.") {
       return order.branchName.split(",")[0];
     } else {
       return order.branchName;
@@ -375,7 +375,7 @@ export const useOrderExport = () => {
         order.chequePrefix === "PO")
     ) {
       return `${order.branchName} (${order.routingNo})`;
-    } else if (order.bankName === "Public Bank PLC.") {
+    } else if (order.bankName === "Pubali Bank PLC.") {
       return order.branchName.split(",")[0];
     } else {
       return order.branchName;

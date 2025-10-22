@@ -254,9 +254,9 @@ function calculateMaxAndStep(data: number[]) {
 
   let step = 10;
   if (paddedMax > 100) {
-    step = 50;
+    step = 2000;
   } else if (paddedMax > 50) {
-    step = 20;
+    step = 1000;
   }
 
   // Step size যেন max এর exact divisor হয় না তার জন্য চাইলে round করে nearest step নিন
