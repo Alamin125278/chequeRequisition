@@ -8,6 +8,11 @@ export interface FetchSummaryParams {
   severity: number;
   agentType: boolean;
 }
+export interface FetchConsumptionParams {
+  bankId: number;
+  startDate: string;
+  endDate: string;
+}
 // interface SummaryReport {
 //   homeBranch: string;
 //   deliveryBranch: string;
@@ -38,6 +43,30 @@ export const getCourierSummaryReportService = async (
   params: FetchSummaryParams
 ) => {
   const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
+    params,
+  });
+  return response.data;
+};
+export const getmonthlyConsumptionReportService = async (
+  params: FetchConsumptionParams
+) => {
+  const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
+    params,
+  });
+  return response.data;
+};
+export const getDailyProductionReportService = async (params: {
+  date: string;
+}) => {
+  const response = await baseHttp().get(constant.APIs.dailyProductionReport, {
+    params,
+  });
+  return response.data;
+};
+export const getConsumptionReportService = async (
+  params: FetchConsumptionParams
+) => {
+  const response = await baseHttp().get(constant.APIs.consumptionReport, {
     params,
   });
   return response.data;

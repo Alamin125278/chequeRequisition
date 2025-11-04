@@ -87,9 +87,8 @@
                   placeholder="Select severity"
                   class="w-full"
                 >
-                  <a-select-option value="">Select Severity</a-select-option>
-                  <a-select-option value="1">Urgent</a-select-option>
-                  <a-select-option value="2">Normal</a-select-option>
+                  <a-select-option :value="1">Urgent</a-select-option>
+                  <a-select-option :value="2">Normal</a-select-option>
                 </a-select>
               </a-form-item>
               <!-- Agent Type -->
@@ -451,11 +450,11 @@ const currentDate = computed(() => {
 
 // Form state
 const formState = reactive({
-  startDate: undefined as string | undefined,
-  endDate: undefined as string | undefined,
+  startDate: dayjs(),
+  endDate: dayjs(),
   bankId: null as number | null,
-  severity: null as number | null,
-  agentType: undefined as boolean | undefined,
+  severity: 2 as number | null,
+  agentType: false as boolean | undefined,
 });
 
 // Modal and loading states
@@ -573,10 +572,8 @@ const handlePreview = async () => {
   try {
     // Simulate API call
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    const dateObj = new Date(formState.startDate);
-    const dateOb = new Date(formState.endDate);
-    const stDate = dateObj.toISOString().split("T")[0];
-    const enDate = dateOb.toISOString().split("T")[0];
+    const stDate = formState.startDate.format("YYYY-MM-DD");
+    const enDate = formState.endDate.format("YYYY-MM-DD");
     const params = {
       bankId: formState.bankId,
       startDate: stDate,
@@ -595,8 +592,13 @@ const handlePreview = async () => {
         const bLast6 = b.challanNo.slice(-6);
         return aLast6.localeCompare(bLast6);
       });
-      downloadExcel();
-      message.success("Report generated successfully");
+      if (reportData.value.length === 0) {
+        message.warning("No data found for the selected options");
+        return;
+      } else {
+        downloadExcel();
+        message.success("Report generated successfully");
+      }
     } else {
       message.error("Failed to generate report");
     }
@@ -888,8 +890,8 @@ const fallbackDownload = (blob: Blob, filename: string) => {
 
 // Reset form
 const resetForm = () => {
-  formState.startDate = undefined;
-  formState.endDate = undefined;
+  formState.startDate = dayjs();
+  formState.endDate = dayjs();
   formState.bankId = null;
   reportData.value = [];
   message.success("Form has been reset");

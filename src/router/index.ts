@@ -155,6 +155,17 @@ const router = createRouter({
           component: () => import("@/views/reports/CourierSummary.vue"), // Placeholder, would be a real page in production
         },
         {
+          path: "/reports/production-report",
+          name: "Production Report",
+          component: () => import("@/views/reports/ProductionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/consumption-report",
+          name: "Consumption Report",
+          component: () =>
+            import("@/views/reports/MonthlyConsumptionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
           path: "/settings",
           name: "Settings",
           component: () => import("@/views/DashboardPage.vue"), // Placeholder, would be a real page in production

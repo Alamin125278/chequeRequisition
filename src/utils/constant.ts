@@ -43,6 +43,8 @@ export default {
     fetchChallanItem: "/api/challan/items",
     summaryReport: "/api/summary-report",
     courierSummaryReport: "/api/courier-summary-report",
+    dailyProductionReport: "/api/daily-production-report",
+    consumptionReport: "/api/consumption-report",
     getDashboardStats: "/api/dashboard/statcard",
     getBankRequisitions: "/api/dashboard/bankwiserequisition",
     getOrderTracking: "/api/dashboard/ordertracking",

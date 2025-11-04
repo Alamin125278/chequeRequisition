@@ -212,22 +212,16 @@ export const generateChallanPdf = async (
         height: 70,
       });
 
-      page.drawText(`Challan No: ${challan.challanNumber}`, {
-        x: pageWidth - marginX - 150,
-        y: y - 15,
-        font: fontBold,
-        size: 10,
-      });
       page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
         x: pageWidth - marginX - 150,
-        y: y - 30,
+        y: y - 15,
         font,
         size: 9,
       });
 
       page.drawText(`Courier Mob: ${challan.courierPhone}`, {
         x: pageWidth - marginX - 150,
-        y: y - 45,
+        y: y - 30,
         font,
         size: 9,
       });
@@ -245,6 +239,13 @@ export const generateChallanPdf = async (
         y: contentY,
         font: fontBold,
         size: 11,
+      });
+      contentY -= 16;
+      page.drawText(`Challan No: ${challan.challanNumber}`, {
+        x: marginX + 8,
+        y: contentY,
+        font: fontBold,
+        size: 10,
       });
       contentY -= 16;
       page.drawText(`Date: ${formatDate(challan.challanDate)}`, {
