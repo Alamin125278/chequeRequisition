@@ -414,13 +414,15 @@ import {
   InfoCircleOutlined,
   UploadOutlined,
 } from "@ant-design/icons-vue";
-import { message } from "ant-design-vue";
+import { message, Upload } from "ant-design-vue";
 import { computed, onMounted, ref } from "vue";
 import * as XLSX from "xlsx";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import { saveBranchService } from "../../services/branch/branch.service";
 import {
+  checkFileExistService,
   getBranchId,
+  localFileImportLogService,
   saveBulkLocalFileUploadService,
   type LocalFileUploadCommand,
 } from "../../services/localFileUpload/localFileUpload.service";
@@ -649,6 +651,7 @@ const showSuccessModal = ref(false);
 const successMessage = ref("");
 const successDescription = ref("");
 const loading = ref(true);
+const fileName = ref("");
 
 const banks = ref<Bank[]>([]);
 //Get the banks from the database
@@ -684,7 +687,7 @@ const formatFileSize = (bytes: number): string => {
 };
 
 // File upload handlers
-const beforeUpload = (file: File) => {
+const beforeUpload = async (file: File) => {
   const isCSVOrExcel =
     file.type === "text/csv" ||
     file.type === "application/vnd.ms-excel" ||
@@ -701,6 +704,12 @@ const beforeUpload = (file: File) => {
   const isLt2M = file.size / 1024 / 1024 < 2;
   if (!isLt2M) {
     message.error("File must be smaller than 2MB!");
+  }
+  fileName.value = file.name;
+  const res = await checkFileExistService(selectedBank.value ?? 0, file.name);
+  if (res.exists == true) {
+    message.error("This file already exists in the database!");
+    return Upload.LIST_IGNORE;
   }
 
   return false; // Prevent auto upload
@@ -794,7 +803,7 @@ const processFile = async () => {
             const response = await getBranchId(
               selectedBank.value,
               deliveryBrCode,
-              delBrName
+              delBrName.trim().toUpperCase()
             );
             branchId = response.data?.branch.id ?? null;
             distributionPointNameAddress = response.data?.branch.branchAddress;
@@ -805,7 +814,7 @@ const processFile = async () => {
             if (branchId == 0 || branchId == null) {
               const payload = {
                 BankId: Number(selectedBank.value),
-                branchName: delBrName,
+                branchName: delBrName.trim().toUpperCase(),
                 branchCode: deliveryBrCode,
                 routingNo: "123",
                 branchEmail: "agent@midland.net",
@@ -821,7 +830,9 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 2,
-            branchName: (row["Home_Branch"] ?? row["HomeBranch"] ?? "").trim(),
+            branchName: (row["Home_Branch"] ?? row["HomeBranch"] ?? "")
+              .trim()
+              .toUpperCase(),
             routingNo: row["Routing_No"] ?? row["RoutingNumber"] ?? "",
             accountNo: (row["Account_no"] ?? row["AccountNumber"] ?? "").trim(),
             accountName: (
@@ -842,7 +853,9 @@ const processFile = async () => {
               row["Delivery_Branch"] ??
               row["DeliveryBranchName"] ??
               ""
-            ).trim(),
+            )
+              .trim()
+              .toUpperCase(),
             distributionPointName: (
               row["PointAddress"] ??
               distributionPointNameAddress ??
@@ -1000,7 +1013,7 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
-            branchName: row["Home Branch"] || "",
+            branchName: row["Home Branch"] || "".trim().toUpperCase(),
             routingNo: row["Routing No."] || "",
             accountNo: row["Account no"] || "",
             accountName: row["Account Name"] || "",
@@ -1013,7 +1026,7 @@ const processFile = async () => {
             startNo: startNo,
             endNo: endNo,
             bookQty: row["Bks"] || "",
-            receivingBranch: row["Delivery Branch"] || "",
+            receivingBranch: row["Delivery Branch"] || "".trim().toUpperCase(),
             distributionPointName: row["Delivery Branch"] || "",
             courierCode: "L",
             agentNum: "",
@@ -1084,7 +1097,7 @@ const processFile = async () => {
             try {
               const response = await getBranchId(
                 selectedBank.value,
-                homeBranchCode,
+                homeBranchCode.trim().toUpperCase(),
                 homeBranchName
               );
               branchId = response.data?.branch.id ?? null;
@@ -1092,7 +1105,7 @@ const processFile = async () => {
               if (branchId == 0 || branchId == null) {
                 const payload = {
                   BankId: Number(selectedBank.value),
-                  branchName: homeBranchName,
+                  branchName: homeBranchName.trim().toUpperCase(),
                   branchCode: homeBranchCode,
                   routingNo: routingNo,
                   branchEmail: "branch@bgcb.com",
@@ -1111,7 +1124,7 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
-            branchName: row["home_branch"] || "",
+            branchName: row["home_branch"] || "".trim().toUpperCase(),
             routingNo: routingNo,
             accountNo: accNo,
             accountName: row["account_name"] || "",
@@ -1124,7 +1137,7 @@ const processFile = async () => {
             startNo: row["startno"] || "",
             endNo: row["end_no"] || "",
             bookQty: bookQty,
-            receivingBranch: row["delivery_branch"] || "",
+            receivingBranch: row["delivery_branch"] || "".trim().toUpperCase(),
             distributionPointName: row["delivery_branch"] || "",
             courierCode: "L",
             agentNum: "",
@@ -1156,7 +1169,6 @@ const processFile = async () => {
           let routingNo = (row["routing number"] || "").toString().trim();
           let chequeType = "";
           let branchId = null;
-          // alert(`${homeBranchCode} ${homeBranchName} ${routingNo}`);
           try {
             const response = await getBranchId(
               selectedBank.value,
@@ -1168,7 +1180,7 @@ const processFile = async () => {
             if (branchId == 0 || branchId == null) {
               const payload = {
                 BankId: Number(selectedBank.value),
-                branchName: homeBranchName,
+                branchName: homeBranchName.trim().toUpperCase(),
                 branchCode: homeBranchCode,
                 routingNo: routingNo,
                 branchEmail: "branch@sjiblbd.com",
@@ -1283,6 +1295,7 @@ const handleSubmit = async () => {
     }));
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {
+      await localFileImportLogService(selectedBank.value ?? 0, fileName.value);
       if (selectedBank.value == 3) {
         try {
           await updateManageSerialService({

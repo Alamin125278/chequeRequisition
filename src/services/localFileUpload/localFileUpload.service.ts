@@ -66,3 +66,37 @@ export const getBranchId = async (
   );
   return response.data;
 };
+
+export const checkFileExistService = async (
+  bankId: number,
+  fileName: string
+) => {
+  try {
+    // Query parameter হিসেবে bankId ও fileName পাঠানো
+    const response = await baseHttp().get(`${constant.APIs.checkFileExists}`, {
+      params: {
+        bankId,
+        fileName,
+      },
+    });
+    return response.data.data;
+  } catch (error) {
+    console.error("Error checking file existence:", error);
+    return false;
+  }
+};
+
+export const localFileImportLogService = async (
+  bankId: number,
+  fileName: string
+) => {
+  const response = await baseHttp().post(
+    `${constant.APIs.importLocalFileLog}`,
+    {
+      bankId,
+      fileName,
+    }
+  );
+  console.log(response.data);
+  return response.data;
+};

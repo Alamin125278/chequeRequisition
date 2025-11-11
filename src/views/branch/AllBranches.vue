@@ -126,6 +126,22 @@
               class="mt-4 md:mt-0 flex flex-col sm:flex-row items-center space-y-2 sm:space-y-0 sm:space-x-3"
             >
               <a-select
+                v-model:value="banksFilter"
+                placeholder="Filter by bank"
+                class="w-full sm:w-80"
+                allowClear
+                @change="branchStore.setBanks"
+              >
+                <a-select-option value="">All Banks</a-select-option>
+                <a-select-option
+                  v-for="option in banks"
+                  :key="option.id"
+                  :value="option.id"
+                >
+                  {{ option.bankName }}
+                </a-select-option>
+              </a-select>
+              <a-select
                 v-model:value="statusFilter"
                 placeholder="Filter by status"
                 class="w-full sm:w-40"
@@ -139,7 +155,7 @@
               <a-input-search
                 v-model:value="searchText"
                 placeholder="Search branches..."
-                class="w-full sm:w-64"
+                class="w-full sm:w-32"
                 @search="branchStore.setSearch"
                 allow-clear
               >
@@ -414,6 +430,7 @@ import { useBranchStore } from "../../stores/branchStore";
 // Search and filter states
 const searchText = ref("");
 const statusFilter = ref("");
+const banksFilter = ref("");
 const loading = ref(false);
 const modalVisible = ref(false);
 const modalMode = ref<"add" | "edit">("add");
@@ -552,6 +569,7 @@ const fetchBranchCounts = async () => {
 const branchStore = useBranchStore();
 onMounted(() => {
   branchStore.fetchBranches();
+  featchBanks();
   fetchBranchCounts();
 });
 

@@ -18,7 +18,7 @@ export const useBranchStore = defineStore("branch", () => {
   const branches = ref<Branch[]>([]);
   const total = ref<number>(0);
   const loading = ref<boolean>(false);
-
+  const bank = ref<number | null>(null);
   const search = ref<string>("");
   const status = ref<string>("");
   const skip = ref<number>(0);
@@ -30,6 +30,7 @@ export const useBranchStore = defineStore("branch", () => {
       const result = await getBranchesService({
         search: search.value,
         status: status.value,
+        bankId: bank.value ?? undefined,
         skip: skip.value,
         limit: limit.value,
       });
@@ -59,6 +60,15 @@ export const useBranchStore = defineStore("branch", () => {
     skip.value = (currentPage - 1) * pageSize;
     fetchBranches();
   };
+  const setBanks = (bankId: number) => {
+    if (bankId != null && bankId != undefined && bankId != 0) {
+      bank.value = bankId;
+    } else {
+      bank.value = null;
+    }
+    skip.value = 0;
+    fetchBranches();
+  };
 
   return {
     branches,
@@ -66,11 +76,13 @@ export const useBranchStore = defineStore("branch", () => {
     loading,
     search,
     status,
+    bank,
     skip,
     limit,
     fetchBranches,
     setSearch,
     setStatus,
     setPagination,
+    setBanks,
   };
 });

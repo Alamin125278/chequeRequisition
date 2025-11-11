@@ -23,6 +23,7 @@ interface Challan {
   branchName: string;
   cusAddress?: string | null;
   agentNum?: string | null;
+  reDate: string;
   isAgent: boolean;
   items?: ChallanItem[];
 }
@@ -212,16 +213,22 @@ export const generateChallanPdf = async (
         height: 70,
       });
 
-      page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
+      page.drawText(`Request Date: ${formatDate(challan.reDate)}`, {
         x: pageWidth - marginX - 150,
         y: y - 15,
+        font,
+        size: 9,
+      });
+      page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
+        x: pageWidth - marginX - 150,
+        y: y - 30,
         font,
         size: 9,
       });
 
       page.drawText(`Courier Mob: ${challan.courierPhone}`, {
         x: pageWidth - marginX - 150,
-        y: y - 30,
+        y: y - 45,
         font,
         size: 9,
       });

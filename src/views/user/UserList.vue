@@ -929,11 +929,6 @@ const fetchUserCounts = async () => {
 
 // Get data for users
 const userStore = useUserStore();
-onMounted(async () => {
-  userStore.fetchUsers();
-  await featchRoole();
-  await fetchUserCounts();
-});
 const pagination = computed(() => ({
   current: Math.floor(userStore.skip / userStore.limit) + 1,
   pageSize: userStore.limit,
@@ -958,14 +953,6 @@ const getRoleColor = (role: number) => {
 const handleRoleChange = (value: any) => {
   formState.role = value;
   handleBankChange();
-};
-
-// Simulate loading for better UX
-const simulateLoading = () => {
-  loading.value = true;
-  setTimeout(() => {
-    loading.value = false;
-  }, 500);
 };
 
 // Image upload handling
@@ -1006,7 +993,6 @@ const handleImageChange = (info: UploadChangeParam) => {
     return;
   }
   const file = info.file.originFileObj;
-  console.log(info.file);
 
   try {
     if (file) {
@@ -1104,7 +1090,6 @@ const handlePasswordChange = (currentPasswordUser: any) => {
       };
       try {
         var response = await changePasswordService(payload);
-        console.log(response);
         if (response.status === 200) {
           message.success(
             response.data?.message || "Password changed successfully"
@@ -1130,67 +1115,73 @@ const handlePasswordChange = (currentPasswordUser: any) => {
     });
 };
 
-// Handle modal submit
-const handleModalSubmit = () => {
-  formRef.value
-    .validate()
-    .then(async () => {
-      submitting.value = true;
-      let imagePath = "";
-      if (fileList.value.length > 0 && isImageChanged.value) {
-        const file = fileList.value[0].originFileObj;
-        if (file) {
-          try {
-            const uploadResult = await uploadImageService(file);
-            imagePath = uploadResult;
-          } catch (uploadError) {
-            console.log("Image upload failed", uploadError);
-            message.error("Image upload failed. Please try again.");
-            // submitting.value = false;
-            // modalVisible.value = false;
-            return;
-          }
-        }
-      } else {
-        imagePath = formState.imagePath;
-      }
+// Helper: Upload image if needed
+const handleImageUpload = async () => {
+  if (!isImageChanged.value || fileList.value.length === 0) {
+    return formState.imagePath || "";
+  }
 
-      const payload = {
-        id: currentUserId.value, // required for update
-        name: formState.name,
-        email: formState.email,
-        userName: formState.userName,
-        passwordHash: formState.password,
-        role: formState.role,
-        bankId: formState.bankId,
-        branchId: formState.branchId,
-        vendorId: formState.vendorId,
-        imagePath: imagePath,
-        isActive: formState.isActive,
-      };
+  const file = fileList.value[0]?.originFileObj;
+  if (!file) return formState.imagePath || "";
 
-      // Simulate API call
-      try {
-        await saveUserService(payload, modalMode.value === "edit");
-        message.success(
-          modalMode.value === "edit"
-            ? "User updated successfully"
-            : "User created successfully"
-        );
-        // refresh Users list
-        await userStore.fetchUsers();
-        await fetchUserCounts();
-        submitting.value = false;
-        modalVisible.value = false;
-        isImageChanged.value = false;
-      } catch (error: any) {
-        console.log("API error:", error);
-        message.error("Something went wrong. Please try again.");
-      }
-    })
-    .catch((error: any) => {
-      console.log("Validation failed:", error);
-    });
+  try {
+    return await uploadImageService(file);
+  } catch (error) {
+    console.error("Image upload failed:", error);
+    message.error("Image upload failed. Please try again.");
+    throw error; // Let caller handle aborting
+  }
+};
+
+// Helper: Build the user payload
+const buildUserPayload = (imagePath: string) => ({
+  id: currentUserId.value,
+  name: formState.name,
+  email: formState.email,
+  userName: formState.userName,
+  passwordHash: formState.password,
+  role: formState.role,
+  bankId: formState.bankId,
+  branchId: formState.branchId,
+  vendorId: formState.vendorId,
+  imagePath,
+  isActive: formState.isActive,
+});
+
+// Main submit handler
+const handleModalSubmit = async () => {
+  try {
+    await formRef.value.validate();
+    submitting.value = true;
+
+    // Upload image (if changed)
+    const imagePath = await handleImageUpload();
+
+    // Prepare user data
+    const payload = buildUserPayload(imagePath);
+
+    // Save user (create or edit)
+    await saveUserService(payload, modalMode.value === "edit");
+
+    // Success feedback
+    const successMsg =
+      modalMode.value === "edit"
+        ? "User updated successfully"
+        : "User created successfully";
+    message.success(successMsg);
+
+    // Refresh UI
+    await Promise.all([userStore.fetchUsers(), fetchUserCounts()]);
+
+    // Cleanup
+    modalVisible.value = false;
+    isImageChanged.value = false;
+  } catch (error) {
+    console.error("Error during submission:", error);
+    message.error("Something went wrong. Please try again.");
+  } finally {
+    submitting.value = false;
+  }
 };
 
 // Delete user
@@ -1213,6 +1204,12 @@ const showDeleteConfirm = (record: any) => {
     },
   });
 };
+
+onMounted(async () => {
+  await userStore.fetchUsers();
+  await featchRoole();
+  await fetchUserCounts();
+});
 </script>
 
 <style>

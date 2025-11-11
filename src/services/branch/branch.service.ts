@@ -5,6 +5,7 @@ import constant from "@/utils/constant";
 export interface FetchBranchParams {
   search?: string;
   status?: string;
+  bankId?: number;
   skip?: number;
   limit?: number;
 }
@@ -17,12 +18,12 @@ export interface FetchBranchResponse {
 export const getBranchesService = async (
   params: FetchBranchParams
 ): Promise<FetchBranchResponse> => {
-  const response = await baseHttp().get(
-    `${constant.APIs.branches}/?skip=${params.skip}&limit=${params.limit}&isActive=${params.status}&search=${params.search}`
-  );
+  const response = await baseHttp().get(`${constant.APIs.branches}`, {
+    params,
+  });
   return {
-    data: response.data.branchDtos,
-    total: response.data.totalBranch,
+    data: response.data.data.branchDtos,
+    total: response.data.data.totalBranch,
   };
 };
 

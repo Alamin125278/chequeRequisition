@@ -31,6 +31,7 @@ export interface FetchChallanParams {
   challanNumber: string;
   branchName: string;
   agentNum?: string | null;
+  reDate: string;
   isAgent: boolean;
   items: ChallanItem[];
 }
@@ -65,7 +66,7 @@ export const getChallanExportService = async (
     challanIds: challanIds,
   });
 
-  return res.data.challans;
+  return res.data.data.challans;
 };
 
 export const getAllChallanService = async (params: FetchAllChallanParams) => {

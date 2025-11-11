@@ -31,6 +31,8 @@ export default {
     getRoleForUser: "/api/userrole/getallforuser",
     uploadImage: "/api/upload-image",
     localFileUpload: "/api/local-file-upload/bulk",
+    checkFileExists: "/local-file-import-log/exists",
+    importLocalFileLog: "/local-file-import-log/import",
     createChequeRequisition: "/api/requisition",
     getOrderRequisitions: "/api/requisition/get-all-order-requisitions",
     getOrderRequisitionsForExport:
