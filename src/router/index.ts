@@ -89,6 +89,12 @@ const router = createRouter({
             import("@/views/LocalFileUpload/UploadRequisitionExcel.vue"), // Placeholder, would be a real page in production
         },
         {
+          path: "/excel-row-expander",
+          name: "Excel Row Expander",
+          component: () =>
+            import("@/views/LocalFileUpload/ExcelRowExpander.vue"), // Placeholder, would be a real page in production
+        },
+        {
           path: "/requisitions/new",
           name: " Requisition/ New Requisition",
           component: () => import("@/views/requisition/CreateRequisition.vue"), // Placeholder, would be a real page in production
@@ -164,6 +170,33 @@ const router = createRouter({
           name: "Consumption Report",
           component: () =>
             import("@/views/reports/MonthlyConsumptionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/role-management/menus",
+          name: "Manage Menus",
+          component: () => import("@/views/roleManagement/Menus.vue"),
+        },
+        {
+          path: "/role-management/roles",
+          name: "Manage Roles",
+          component: () => import("@/views/roleManagement/Roles.vue"),
+        },
+        {
+          path: "/role-management/role-permissions",
+          name: "Role Permissions",
+          component: () => import("@/views/roleManagement/RolePermissions.vue"),
+        },
+        {
+          path: "/role-management/user-permission-overrides",
+          name: "User Permission Overrides",
+          component: () =>
+            import("@/views/roleManagement/UserPermissionOverrides.vue"),
+        },
+        {
+          path: "/role-management/permission-matrix",
+          name: "Permission Matrix",
+          component: () =>
+            import("@/views/roleManagement/PermissionMatrix.vue"),
         },
         {
           path: "/settings",

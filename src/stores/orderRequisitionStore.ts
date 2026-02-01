@@ -28,6 +28,8 @@ export interface OrderRequisition {
   cusAddress: string;
   agentNum?: string;
   isAgent: boolean;
+  branchCode?: string;
+  deliveryBranchCode?: string;
 }
 export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const orderRequisition = ref<OrderRequisition[]>([]);

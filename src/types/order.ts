@@ -21,6 +21,8 @@ export interface OrderRequisition {
   isAgent: boolean;
   chequePrefix?: string;
   vendorName?: string;
+  branchCode?: string;
+  deliveryBranchCode?: string;
 }
 
 export interface Bank {

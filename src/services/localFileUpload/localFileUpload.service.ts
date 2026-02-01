@@ -59,11 +59,22 @@ export const saveBulkLocalFileUploadService = async (
 export const getBranchId = async (
   bankId: number,
   branchCode: string,
-  branchName: string
+  branchName: string | null
 ) => {
-  const response = await baseHttp().get(
-    `${constant.APIs.getBranchId}/?bankId=${bankId}&branchCode=${branchCode}&branchName=${branchName}`
-  );
+  const params: any = {
+    bankId,
+    branchCode,
+  };
+
+  // branchName null না হলে তবেই add হবে
+  if (branchName) {
+    params.branchName = branchName;
+  }
+
+  const response = await baseHttp().get(constant.APIs.getBranchId, {
+    params,
+  });
+
   return response.data;
 };
 

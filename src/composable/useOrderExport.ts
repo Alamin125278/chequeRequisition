@@ -130,7 +130,7 @@ export const useOrderExport = () => {
 
       let fileName = "";
       if (matchingOrders[0]?.isAgent) {
-        fileName = `${todayDate}_${bankName}_${checkType}_${pages}_agent`;
+        fileName = `${todayDate}_${bankName}_${checkType}_${pages}_Agent`;
       } else {
         fileName = `${todayDate}_${bankName}_${checkType}_${pages}`;
       }
@@ -165,7 +165,7 @@ export const useOrderExport = () => {
 
       let fileName = "";
       if (orders[0]?.isAgent) {
-        fileName = `${todayDate}_${bankName}PSI__agent`;
+        fileName = `${todayDate}_${bankName}PSI__Agent`;
       } else {
         fileName = `${todayDate}_${bankName}_PSI`;
       }
@@ -275,6 +275,7 @@ export const useOrderExport = () => {
 
       // PSI-এর জন্য আলাদা ব্রাঞ্চ নাম ফরম্যাটিং
       let branchName = getPSIFormattedBranchName(order);
+      let receivingBranchName = getPSIFormattedDeliveryBranchName(order);
 
       let bookStartNo = parseInt(startNo);
       for (let i = 0; i < bookQty; i++) {
@@ -287,7 +288,7 @@ export const useOrderExport = () => {
           "Bank Name": order.bankName,
           "Branch Name": branchName, // PSI-এর জন্য ফরম্যাট করা ব্রাঞ্চ নাম
           "Account Name": order.accountName,
-          "Customer Address": order.receivingBranchName,
+          "Customer Address": receivingBranchName,
           "Cheque Prefix": order.chequePrefix,
           "MICR No": order.micrNo,
           "Cheque Serial": strStartNo,
@@ -319,6 +320,7 @@ export const useOrderExport = () => {
 
       // চেক টাইপের জন্য আলাদা ব্রাঞ্চ নাম ফরম্যাটিং
       let branchName = getCheckTypeFormattedBranchName(order);
+      let receivingBranchName = getCheckTypeFormattedDeliveryBranchName(order);
 
       let bookStartNo = parseInt(startNo);
       for (let i = 0; i < bookQty; i++) {
@@ -328,7 +330,7 @@ export const useOrderExport = () => {
           "Bank Name": order.bankName,
           "Branch Name": branchName, // চেক টাইপের জন্য ফরম্যাট করা ব্রাঞ্চ নাম
           "Account Name": order.accountName,
-          "Customer Address": order.receivingBranchName,
+          "Customer Address": receivingBranchName,
           "Cheque Prefix": order.chequePrefix,
           "MICR No": order.micrNo,
           "Cheque Serial": strStartNo,
@@ -358,8 +360,17 @@ export const useOrderExport = () => {
       })`;
     } else if (order.bankName === "Pubali Bank PLC.") {
       return order.branchName.split(",")[0];
+    } else if (order.bankName === "Shimanto Bank PLC") {
+      return order.branchCode;
     } else {
       return order.branchName;
+    }
+  };
+  const getPSIFormattedDeliveryBranchName = (order: OrderRequisition) => {
+    if (order.bankName === "Shimanto Bank PLC") {
+      return order.branchCode;
+    } else {
+      return order.receivingBranchName;
     }
   };
   // চেক টাইপ এক্সপোর্টের জন্য ব্রাঞ্চ নাম ফরম্যাটিং
@@ -377,8 +388,17 @@ export const useOrderExport = () => {
       return `${order.branchName} (${order.routingNo})`;
     } else if (order.bankName === "Pubali Bank PLC.") {
       return order.branchName.split(",")[0];
+    } else if (order.bankName === "Shimanto Bank PLC") {
+      return order.branchCode;
     } else {
       return order.branchName;
+    }
+  };
+  const getCheckTypeFormattedDeliveryBranchName = (order: OrderRequisition) => {
+    if (order.bankName === "Shimanto Bank PLC") {
+      return order.branchCode;
+    } else {
+      return order.receivingBranchName;
     }
   };
 

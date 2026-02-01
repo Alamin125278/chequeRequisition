@@ -57,6 +57,7 @@ export const useBranchStore = defineStore("branch", () => {
 
   const setPagination = (currentPage: number, pageSize: number) => {
     limit.value = pageSize;
+    alert(currentPage);
     skip.value = (currentPage - 1) * pageSize;
     fetchBranches();
   };

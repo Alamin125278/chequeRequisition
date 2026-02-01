@@ -609,6 +609,17 @@ const downloadExcel = async () => {
         mainHeaders: ["SL", "Date", "PO-100", "Total Books", "Total Leaves"],
         dataKeys: ["po100"],
       },
+      "Jamuna Bank PLC": {
+        mainHeaders: [
+          "SL",
+          "Date",
+          "SB-10",
+          "CD-50",
+          "Total Books",
+          "Total Leaves",
+        ],
+        dataKeys: ["sb10", "cd50"],
+      },
       // Default configuration for other banks
       default: {
         mainHeaders: [

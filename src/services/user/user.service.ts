@@ -75,3 +75,9 @@ export const getLoggedInUserService = async () => {
   const response = await baseHttp().get(constant.APIs.getLoggedInUser);
   return response;
 };
+
+// Get Users For Menus Permission Override
+export const getUsersForMenusPermissionOverrideService = async () => {
+  const response = await baseHttp().get(`${constant.APIs.getUsers}`);
+  return response.data.data;
+};
