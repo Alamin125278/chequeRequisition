@@ -380,10 +380,13 @@ const featchBanks = async () => {
 
 interface ReportItem {
   homeBranch?: string;
+  bankId: number;
   deliveryBranch: string;
   challanNo: string;
   challanDate: string;
   courierName: string;
+  branchAddress: string;
+  branchPhone: string;
   requestDate: string;
   isAgent: boolean;
   sb10: number;
@@ -622,9 +625,10 @@ const downloadExcel = async () => {
     const signatureImageBase64 = await toBase64(signatureImage);
     // Get selected bank name
     const selectedBank = banks.value.find(
-      (bank) => bank.id === formState.bankId
+      (bank) => bank.id === formState.bankId,
     );
     const bankName = selectedBank?.bankName || "Unknown Bank";
+    const bankId = selectedBank?.id || 0;
 
     const start = dayjs(formState.startDate);
     const end = dayjs(formState.endDate);
@@ -640,10 +644,10 @@ const downloadExcel = async () => {
         dateRangeLabel = start.format("DD-MM-YYYY");
       } else {
         dateRange = `${start.format("D MMMM YYYY")} to ${end.format(
-          "D MMMM YYYY"
+          "D MMMM YYYY",
         )}`;
         dateRangeLabel = `${start.format("DD-MM-YYYY")}_to_${end.format(
-          "DD-MM-YYYY"
+          "DD-MM-YYYY",
         )}`;
       }
     }
@@ -686,14 +690,14 @@ const downloadExcel = async () => {
     };
 
     // Heading: Bank Name
-    sheet.mergeCells("A3:I3");
+    sheet.mergeCells("A3:L3");
     const bankCell = sheet.getCell("B3");
     bankCell.value = `${bankName} Courier Summary Report`;
     bankCell.font = { bold: true, size: 16 };
     bankCell.alignment = { horizontal: "center" };
 
     // Heading: Date Range
-    sheet.mergeCells("A4:I4");
+    sheet.mergeCells("A4:L4");
     const dateCell = sheet.getCell("B4");
     dateCell.value = dateRange;
     dateCell.font = { bold: true, size: 12 };
@@ -701,6 +705,7 @@ const downloadExcel = async () => {
 
     sheet.addRow([]);
     sheet.addRow([]);
+    const hasBranchInfo = bankId === 2 || bankId === 4 || bankId === 6;
 
     // Table Header
     const tableHeaders = [
@@ -708,6 +713,7 @@ const downloadExcel = async () => {
       "Courier Name",
       "Requestion Date",
       "Delivery Branch",
+      ...(hasBranchInfo ? ["Branch Address", "Branch Phone"] : []),
       "Challan No",
       "Challan Date",
       ...conditionalHeaders
@@ -733,12 +739,12 @@ const downloadExcel = async () => {
         item.courierName,
         item.requestDate,
         item.deliveryBranch,
+        ...(hasBranchInfo ? [item.branchAddress, item.branchPhone] : []),
         item.challanNo,
         item.challanDate,
         ...activeColumns.value.map((h) => item[h.key]),
         item.total,
       ]);
-
       row.eachCell((cell) => {
         cell.border = borderStyle;
         cell.alignment = { horizontal: "left", vertical: "middle" };
@@ -750,6 +756,7 @@ const downloadExcel = async () => {
       "",
       "",
       "",
+      ...(hasBranchInfo ? ["", ""] : []),
       "",
       "",
       "Grand Total",
@@ -801,7 +808,7 @@ const downloadExcel = async () => {
     // Generate filename
     const filename = `${dateRangeLabel}_Courier_Summary_Report_${bankName.replace(
       /\s+/g,
-      "_"
+      "_",
     )}_${formState.agentType ? "Agent" : ""}.xlsx`;
 
     // Create blob
@@ -858,7 +865,7 @@ const toBase64 = async (filePath: string) => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(blob);
-        })
+        }),
     );
 };
 

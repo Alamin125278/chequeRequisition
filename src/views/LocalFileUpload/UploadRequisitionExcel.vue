@@ -1088,37 +1088,37 @@ const processFile = async () => {
           let homeBranchName = row["home_branch"] || "";
           let branchId = null;
 
-          if (
-            chequeType != "MTDR" &&
-            chequeType != "FDR" &&
-            chequeType != "POA" &&
-            chequeType != "POI"
-          ) {
-            try {
-              const response = await getBranchId(
-                selectedBank.value,
-                homeBranchCode.trim().toUpperCase(),
-                homeBranchName,
-              );
-              branchId = response.data?.branch.id ?? null;
+          // if (
+          //   chequeType != "MTDR" &&
+          //   chequeType != "FDR" &&
+          //   chequeType != "POA" &&
+          //   chequeType != "POI"
+          // ) {
+          // try {
+          //   const response = await getBranchId(
+          //     selectedBank.value,
+          //     homeBranchCode.trim().toUpperCase(),
+          //     homeBranchName,
+          //   );
+          //   branchId = response.data?.branch.id ?? null;
 
-              if (branchId == 0 || branchId == null) {
-                const payload = {
-                  BankId: Number(selectedBank.value),
-                  branchName: homeBranchName.trim().toUpperCase(),
-                  branchCode: homeBranchCode,
-                  routingNo: routingNo,
-                  branchEmail: "branch@bgcb.com",
-                  branchPhone: "544",
-                  branchAddress: homeBranchName,
-                  isActive: "Active",
-                };
-                await saveBranchService(payload, false);
-              }
-            } catch (error) {
-              console.error("Failed to fetch branch ID:", error);
-            }
-          }
+          //   if (branchId == 0 || branchId == null) {
+          //     const payload = {
+          //       BankId: Number(selectedBank.value),
+          //       branchName: homeBranchName.trim().toUpperCase(),
+          //       branchCode: homeBranchCode,
+          //       routingNo: routingNo,
+          //       branchEmail: "branch@bgcb.com",
+          //       branchPhone: "544",
+          //       branchAddress: homeBranchName,
+          //       isActive: "Active",
+          //     };
+          //     await saveBranchService(payload, false);
+          //   }
+          // } catch (error) {
+          //   console.error("Failed to fetch branch ID:", error);
+          // }
+          // }
 
           processedData.push({
             key: index.toString(),

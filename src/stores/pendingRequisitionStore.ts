@@ -2,10 +2,9 @@ import { getBranchForUserService } from "@/services/branch/branch.service";
 import { getDownlaodedRequisitionsService } from "@/services/requisition/DownloadRequisition.service";
 import { defineStore } from "pinia";
 import { ref } from "vue";
-export interface DownloadRequisition {
+export interface PendingRequisition {
   id: number;
   bankName: string;
-  challanNo: string;
   accountNo: string;
   accountName: string;
   branchName: string;
@@ -23,16 +22,16 @@ interface Branch {
   id: number;
   branchName: string;
 }
-export const useDownloadedRequisitionStore = defineStore(
-  "downloadedRequisition",
+export const usePendingRequisitionStore = defineStore(
+  "pendingRequisition",
   () => {
-    const downloadedRequisition = ref<DownloadRequisition[]>([]);
+    const pendingRequisition = ref<PendingRequisition[]>([]);
     const total = ref<number>(0);
     const loading = ref<boolean>(false);
 
     const search = ref<string>("");
     const skip = ref<number>(0);
-    const status = ref<number>(4);
+    const status = ref<number>(3);
     const limit = ref<number>(10);
     const bank = ref<number | null>(null);
     const branch = ref<number | null>(null);
@@ -53,7 +52,7 @@ export const useDownloadedRequisitionStore = defineStore(
           requestDate: reDate.value ?? undefined,
           status: status.value ?? undefined,
         });
-        downloadedRequisition.value = result.data;
+        pendingRequisition.value = result.data;
         total.value = result.total;
       } catch (e) {
         console.error("Error fetching orderRequisitions", e);
@@ -67,8 +66,9 @@ export const useDownloadedRequisitionStore = defineStore(
       try {
         if (bankId != null && bankId != undefined && bankId != 0) {
           const result = await getBranchForUserService(bankId);
-          branches.value = result;
-          branches.value = result;
+          branches.value = [...result].sort((a, b) =>
+            a.branchName.localeCompare(b.branchName),
+          );
         }
       } catch (e) {
         console.error("Error fetching branches", e);
@@ -145,7 +145,7 @@ export const useDownloadedRequisitionStore = defineStore(
     return {
       branches,
       bank,
-      downloadedRequisition,
+      pendingRequisition,
       total,
       loading,
       search,

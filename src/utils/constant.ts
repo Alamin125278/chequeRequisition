@@ -56,6 +56,7 @@ export default {
     getChallansExport: "/api/challan/get-challans",
     getDownloadedRequistions: "/api/requisition/get-downloaded-requisitions",
     updateChequeRequisition: "/api/requisition/update-cheque-requisition",
+    updateChequeSeverity: "/api/requisition/update-cheque-severity",
     getAllChallans: "/api/challans",
     fetchChallanItem: "/api/challan/items",
     summaryReport: "/api/summary-report",

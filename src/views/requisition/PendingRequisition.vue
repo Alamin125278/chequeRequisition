@@ -8,11 +8,12 @@
         >
           <div class="flex-1 min-w-0">
             <div class="flex items-center">
-              <div class="flex-shrink-0 bg-accent rounded-md p-2">
-                <ClockCircleOutlined class="h-6 w-6 text-white" />
+              <div class="flex-shrink-0 bg-purple-500 rounded-md p-2">
+                <DownloadOutlined class="h-6 w-6 text-white" />
               </div>
               <h1 class="ml-3 text-2xl font-semibold text-primary">
-                <span class="text-accent">Pending</span> Requisition Management
+                <span class="text-purple-500">Pending</span> Requisition
+                Management
               </h1>
             </div>
             <p class="mt-2 text-sm text-secondary max-w-2xl">
@@ -24,7 +25,7 @@
             <a-tooltip title="Refresh data">
               <a-button
                 type="primary"
-                class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
+                class="bg-purple-500 border-purple-500 hover:bg-purple-600 hover:border-purple-600"
                 @click="refreshData"
               >
                 <template #icon><ReloadOutlined /></template>
@@ -38,166 +39,130 @@
 
     <!-- Stats Cards Section -->
     <div class="mx-auto py-6">
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-6">
-        <!-- Pending Items Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-amber-100 rounded-md p-3">
-                <ClockCircleOutlined class="h-6 w-6 text-amber-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Pending Items
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ pendingItems.length }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- High Severity Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-error-light rounded-md p-3">
-                <WarningOutlined class="h-6 w-6 text-error" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    High Severity
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ highSeverityCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Branches Card -->
-        <div class="bg-card overflow-hidden shadow-md rounded-md">
-          <div class="px-4 py-5 sm:p-6">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 bg-blue-100 rounded-md p-3">
-                <BranchesOutlined class="h-6 w-6 text-blue-500" />
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-secondary truncate">
-                    Branches
-                  </dt>
-                  <dd>
-                    <div class="text-2xl font-semibold text-primary">
-                      {{ uniqueBranchesCount }}
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <!-- Search and Filter Section -->
       <div class="bg-card shadow-md rounded-md p-4 mb-6">
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <h3
+          class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
+        >
+          Filter Pending Items
+        </h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           <a-input-search
             v-model:value="searchText"
             placeholder="Search by account number or name"
-            @search="handleSearch"
             class="w-full"
-            :allowClear="true"
+            @search="pendingRequisitionStore.setSearch"
+            allow-clear
           >
             <template #prefix>
               <SearchOutlined class="text-secondary" />
             </template>
           </a-input-search>
 
-          <a-select
-            v-model:value="severityFilter"
-            placeholder="Filter by severity"
-            class="w-full"
-            @change="handleSeverityFilterChange"
-            allowClear
-          >
-            <a-select-option value="">All Severities</a-select-option>
-            <a-select-option value="High">High</a-select-option>
-            <a-select-option value="Medium">Medium</a-select-option>
-            <a-select-option value="Low">Low</a-select-option>
-          </a-select>
+          <template v-if="banks.length === 1">
+            <a-input
+              :value="banks[0].bankName"
+              disabled
+              class="w-full"
+              style="background-color: #fff; color: #000; cursor: default"
+            />
+          </template>
+
+          <template v-else>
+            <a-select
+              v-model:value="bankFilter"
+              placeholder="Select Bank"
+              class="w-full"
+              @change="pendingRequisitionStore.setBank"
+              allowClear
+            >
+              <a-select-option value="">All Banks</a-select-option>
+              <a-select-option
+                v-for="option in banks"
+                :key="option.id"
+                :value="option.id"
+              >
+                {{ option.bankName }}
+              </a-select-option>
+            </a-select>
+          </template>
 
           <a-select
             v-model:value="branchFilter"
-            placeholder="Filter by Branch"
+            placeholder="Select Branch"
             class="w-full"
-            @change="handleBranchFilterChange"
+            show-search
+            option-filter-prop="label"
+            @change="pendingRequisitionStore.setBranch"
+            :disabled="!pendingRequisitionStore.bank"
             allowClear
           >
-            <a-select-option value="">All Branches</a-select-option>
-            <a-select-option value="Main">Main Branch</a-select-option>
-            <a-select-option value="North">North Branch</a-select-option>
-            <a-select-option value="South">South Branch</a-select-option>
-            <a-select-option value="East">East Branch</a-select-option>
-            <a-select-option value="West">West Branch</a-select-option>
+            <a-select-option value="" label="All Branches">
+              All Branches
+            </a-select-option>
+
+            <a-select-option
+              v-for="branch in pendingRequisitionStore.branches"
+              :key="branch.id"
+              :value="branch.id"
+              :label="branch.branchName"
+            >
+              {{ branch.branchName }}
+            </a-select-option>
           </a-select>
 
-          <a-range-picker
-            v-model:value="dateRange"
-            @change="handleDateRangeChange"
+          <a-select
+            placeholder="Filter by severity"
             class="w-full"
-            :placeholder="['Start Date', 'End Date']"
+            @change="pendingRequisitionStore.setSeverity"
+            allowClear
+          >
+            <a-select-option value="1">Urgent</a-select-option>
+            <a-select-option value="2">Normal</a-select-option>
+          </a-select>
+
+          <a-date-picker
+            v-model:value="dateRange"
+            @change="pendingRequisitionStore.setRequestDate"
+            class="w-full"
+            placeholder="Select Request Date"
           />
         </div>
       </div>
 
       <!-- Bulk Actions -->
-      <div class="mb-4 flex flex-wrap gap-3 items-center">
-        <a-tooltip title="Approve all selected items">
-          <a-button
-            v-if="hasSelectedItems"
-            type="primary"
-            @click="handleBulkApprove"
-            class="bg-success border-success hover:bg-success-dark hover:border-success-dark"
-          >
-            <template #icon><CheckOutlined /></template>
-            Approve Selected ({{ selectedRowKeys.length }})
-          </a-button>
-        </a-tooltip>
+      <div class="mb-4 flex flex-col gap-2">
+        <div class="flex flex-wrap gap-3 items-center">
+          <a-tooltip title="Severity Change all selected items">
+            <a-button
+              v-if="hasSelectedItems"
+              type="primary"
+              @click="handleBulkSeverity"
+              class="bg-purple-500 border-purple-500 hover:bg-purple-600 hover:border-purple-600"
+            >
+              <template #icon><SendOutlined /></template>
+              Severity Change Selected ({{ selectedRowKeys.length }})
+            </a-button>
+          </a-tooltip>
 
-        <span
-          v-if="selectedRowKeys.length > 0"
-          class="text-sm text-secondary ml-2"
-        >
-          {{ selectedRowKeys.length }} item(s) selected
-        </span>
+          <span
+            v-if="selectedRowKeys.length > 0"
+            class="text-sm text-secondary ml-2"
+          >
+            {{ selectedRowKeys.length }} item(s) selected
+          </span>
+        </div>
       </div>
 
       <!-- Pending Requisition Items Table -->
       <div class="bg-card shadow-md rounded-md overflow-hidden">
         <a-table
-          :dataSource="filteredPendingItems"
+          :dataSource="pendingRequisitionStore.pendingRequisition"
           :columns="pendingItemColumns"
           :loading="loading"
-          :pagination="{
-            pageSize: 10,
-            showSizeChanger: true,
-            pageSizeOptions: ['10', '20', '50'],
-          }"
-          :rowSelection="{
-            selectedRowKeys: selectedRowKeys,
-            onChange: onSelectChange,
-          }"
+          :pagination="pagination"
+          :rowSelection="rowSelection"
+          @change="pendingPagination"
           rowKey="id"
           class="custom-table"
           :scroll="{ x: 1200 }"
@@ -205,216 +170,59 @@
         >
           <template #bodyCell="{ column, record }">
             <!-- Severity Column -->
-            <template v-if="column.key === 'severity'">
+            <template v-if="column.key === 'serverity'">
               <a-tag
-                :color="getSeverityColor(record.severity)"
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                      ? 'warning'
+                      : 'default'
+                "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
-                {{ record.severity }}
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                      ? "Normal"
+                      : "Unknown"
+                }}
               </a-tag>
             </template>
 
             <!-- Status Column -->
-            <template v-if="column.key === 'status'">
+            <template v-if="column.key === 'statusName'">
               <a-tag
-                color="warning"
+                color="purple"
                 class="px-3 py-1 rounded-md text-xs font-medium"
               >
-                Pending
+                {{ record.statusName }}
               </a-tag>
             </template>
 
             <!-- Actions Column -->
             <template v-if="column.key === 'actions'">
               <div class="flex flex-wrap justify-center gap-1">
-                <!-- Approve Button -->
-                <a-tooltip title="Approve this requisition">
+                <!-- Severity Change Button -->
+                <a-tooltip title="Severity Change this requisition">
                   <a-button
                     type="primary"
                     shape="circle"
-                    class="btn-pending"
-                    @click="approveItem(record)"
+                    class="btn-dispatch"
+                    @click="severityChangeItem(record)"
                   >
-                    <CheckOutlined />
+                    <InteractionOutlined />
                   </a-button>
                 </a-tooltip>
-
-                <!-- Edit and Delete buttons -->
-                <div class="flex gap-1 ml-1">
-                  <a-tooltip title="Edit requisition details">
-                    <a-button
-                      type="primary"
-                      shape="circle"
-                      class="flex items-center justify-center bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
-                      @click="editItem(record)"
-                    >
-                      <EditOutlined />
-                    </a-button>
-                  </a-tooltip>
-
-                  <a-tooltip title="Delete this requisition">
-                    <a-button
-                      type="primary"
-                      shape="circle"
-                      danger
-                      class="flex items-center justify-center"
-                      @click="deleteItem(record)"
-                    >
-                      <DeleteOutlined />
-                    </a-button>
-                  </a-tooltip>
-                </div>
               </div>
             </template>
           </template>
         </a-table>
 
         <!-- Empty State -->
-        <div
-          v-if="!loading && pendingItems.length === 0"
-          class="text-center py-12 bg-background rounded-md"
-        >
-          <InboxOutlined
-            style="font-size: 48px"
-            class="text-secondary opacity-30"
-          />
-          <p class="mt-3 text-primary text-lg font-medium">
-            No pending requisitions found
-          </p>
-          <p class="text-secondary">All requisitions have been processed</p>
-        </div>
       </div>
     </div>
-
-    <!-- Edit Item Modal -->
-    <a-modal
-      v-model:visible="editModalVisible"
-      title="Edit Pending Requisition"
-      :width="720"
-      :footer="null"
-      class="requisition-modal"
-    >
-      <div class="p-4">
-        <a-form v-if="editingItem" :model="editingItem" layout="vertical">
-          <div class="mb-6 pb-4 border-b border-gray-100">
-            <h3
-              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
-            >
-              Account Information
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <a-form-item label="Account Number" name="accountNo">
-                <a-input
-                  v-model:value="editingItem.accountNo"
-                  placeholder="Enter account number"
-                  class="rounded-md"
-                />
-              </a-form-item>
-
-              <a-form-item label="Account Name" name="accountName">
-                <a-input
-                  v-model:value="editingItem.accountName"
-                  placeholder="Enter account name"
-                  class="rounded-md"
-                />
-              </a-form-item>
-            </div>
-          </div>
-
-          <div class="mb-6 pb-4 border-b border-gray-100">
-            <h3
-              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
-            >
-              Cheque Details
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <a-form-item label="Start Number" name="startNo">
-                <a-input-number
-                  v-model:value="editingItem.startNo"
-                  placeholder="Enter start number"
-                  class="w-full rounded-md"
-                />
-              </a-form-item>
-
-              <a-form-item label="End Number" name="endNo">
-                <a-input-number
-                  v-model:value="editingItem.endNo"
-                  placeholder="Enter end number"
-                  class="w-full rounded-md"
-                />
-              </a-form-item>
-
-              <a-form-item label="Book Quantity" name="bookQuantity">
-                <a-input-number
-                  v-model:value="editingItem.bookQuantity"
-                  placeholder="Enter book quantity"
-                  class="w-full rounded-md"
-                />
-              </a-form-item>
-            </div>
-          </div>
-
-          <div class="mb-6">
-            <h3
-              class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
-            >
-              Additional Information
-            </h3>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <a-form-item label="Severity" name="severity">
-                <a-select
-                  v-model:value="editingItem.severity"
-                  placeholder="Select severity"
-                  class="rounded-md w-full"
-                >
-                  <a-select-option value="High">High</a-select-option>
-                  <a-select-option value="Medium">Medium</a-select-option>
-                  <a-select-option value="Low">Low</a-select-option>
-                </a-select>
-              </a-form-item>
-
-              <a-form-item label="Branch" name="branchName">
-                <a-select
-                  v-model:value="editingItem.branchName"
-                  placeholder="Select branch"
-                  class="rounded-md w-full"
-                >
-                  <a-select-option value="Main Branch"
-                    >Main Branch</a-select-option
-                  >
-                  <a-select-option value="North Branch"
-                    >North Branch</a-select-option
-                  >
-                  <a-select-option value="South Branch"
-                    >South Branch</a-select-option
-                  >
-                  <a-select-option value="East Branch"
-                    >East Branch</a-select-option
-                  >
-                  <a-select-option value="West Branch"
-                    >West Branch</a-select-option
-                  >
-                </a-select>
-              </a-form-item>
-            </div>
-          </div>
-
-          <div
-            class="flex justify-end space-x-3 mt-6 pt-4 border-t border-gray-100"
-          >
-            <a-button @click="editModalVisible = false"> Cancel </a-button>
-            <a-button
-              type="primary"
-              @click="handleEditSave"
-              :loading="editLoading"
-              class="bg-accent border-accent hover:bg-accent-dark hover:border-accent-dark"
-            >
-              Save Changes
-            </a-button>
-          </div>
-        </a-form>
-      </div>
-    </a-modal>
 
     <!-- Confirmation Modal -->
     <a-modal
@@ -434,11 +242,7 @@
           <a-button
             type="primary"
             @click="handleConfirmAction"
-            :class="
-              confirmModalAction === 'delete'
-                ? 'bg-error border-error hover:bg-error-dark hover:border-error-dark'
-                : confirmModalButtonClass
-            "
+            class="bg-purple-500 border-purple-500 hover:bg-purple-600 hover:border-purple-600"
           >
             {{ confirmModalOkText }}
           </a-button>
@@ -450,122 +254,165 @@
 
 <script setup lang="ts">
 import {
-  BranchesOutlined,
-  CheckOutlined,
-  ClockCircleOutlined,
-  DeleteOutlined,
-  EditOutlined,
-  InboxOutlined,
+  DownloadOutlined,
+  InteractionOutlined,
   ReloadOutlined,
   SearchOutlined,
-  WarningOutlined,
+  SendOutlined,
 } from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
 import type { Dayjs } from "dayjs";
 import { computed, onMounted, ref, watch } from "vue";
+import { getBankForBranchService } from "../../services/bank/bank.service";
+import { UpdateChequeSeverityService } from "../../services/requisition/PendingRequisition.service";
+import {
+  usePendingRequisitionStore,
+  type PendingRequisition,
+} from "../../stores/pendingRequisitionStore";
 
-interface ChequeItem {
+interface Bank {
   id: number;
-  requisitionNo?: string;
-  accountNo: string;
-  routingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  severity: string;
-  branchName: string;
-  accountName: string;
-  customerAddress: string;
-  bookQuantity: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receivingBranch: string;
-  status?: string;
-  requestDate: string;
+  bankName: string;
 }
 
 // State variables
 const loading = ref(true);
 const searchText = ref("");
 const severityFilter = ref("");
+const bankFilter = ref("");
 const branchFilter = ref("");
 const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-const allItems = ref<ChequeItem[]>([]);
+const selectedRows = ref<PendingRequisition[]>([]);
 const selectedRowKeys = ref<number[]>([]);
 const confirmModalVisible = ref(false);
 const confirmModalTitle = ref("");
 const confirmModalMessage = ref("");
 const confirmModalOkText = ref("");
 const confirmModalAction = ref("");
-const confirmModalButtonClass = ref("");
-const itemToAction = ref<ChequeItem | null>(null);
-const editModalVisible = ref(false);
-const editingItem = ref<ChequeItem | null>(null);
-const editLoading = ref(false);
+const itemToAction = ref<number[]>([]);
+const itemToSeverity = ref<number[]>([]);
+const challanNoFilter = ref("");
 
-// Filter to only pending items
-const pendingItems = computed(() => {
-  return allItems.value.filter(
-    (item) => !item.status || item.status === "Pending"
-  );
+const pendingRequisitionStore = usePendingRequisitionStore();
+
+const banks = ref<Bank[]>([]);
+//Get the banks from the database
+const featchBanks = async () => {
+  loading.value = true;
+  try {
+    const result = await getBankForBranchService();
+    banks.value = result;
+    if (banks.value.length === 1) {
+      var bankId = result[0].id;
+      pendingRequisitionStore.bank = bankId;
+      await pendingRequisitionStore.featchBranches(bankId);
+    }
+  } catch (e) {
+    console.error("Error fetching banks", e);
+  } finally {
+    loading.value = false;
+  }
+};
+
+onMounted(() => {
+  pendingRequisitionStore.resetFilters();
+  pendingRequisitionStore.fetchDownloadRequisitions();
+  // Get the banks from the database
+  featchBanks();
 });
 
-// Count of high severity items
-const highSeverityCount = computed(() => {
-  return pendingItems.value.filter((item) => item.severity === "High").length;
-});
+const pagination = computed(() => ({
+  current:
+    Math.floor(pendingRequisitionStore.skip / pendingRequisitionStore.limit) +
+    1,
+  pageSize: pendingRequisitionStore.limit,
+  total: pendingRequisitionStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "50", "100", "150"],
+  showTotal: (total: number) => `Total ${total} Downloaded Requisitions`,
+}));
 
-// Count of unique branches
-const uniqueBranchesCount = computed(() => {
-  const branches = new Set(pendingItems.value.map((item) => item.branchName));
-  return branches.size;
-});
+const pendingPagination = (p: any) =>
+  pendingRequisitionStore.setPagination(p.current, p.pageSize);
 
 // Computed property to check if any items are selected
 const hasSelectedItems = computed(() => selectedRowKeys.value.length > 0);
 
+const rowSelection = computed(() => ({
+  selectedRowKeys: selectedRowKeys.value,
+  onChange: (keys: number[], rows: PendingRequisition[]) => {
+    selectedRowKeys.value = keys;
+    selectedRows.value = rows;
+  },
+}));
+
+// Check if all selected items belong to the same bank
+const selectedItemsSameBank = computed(() => {
+  if (selectedRowKeys.value.length <= 1) return true;
+
+  const selectedItems = selectedRows.value.filter((item) =>
+    selectedRowKeys.value.includes(item.id),
+  );
+
+  if (selectedItems.length === 0) return true;
+
+  const firstBankName = selectedItems[0].bankName;
+  return selectedItems.every((item) => item.bankName === firstBankName);
+});
+// Check if all selected items belong to the same severity
+const selectedItemsSameSeverity = computed(() => {
+  if (selectedRowKeys.value.length <= 1) return true;
+  const selectedItems = selectedRows.value.filter((item) =>
+    selectedRowKeys.value.includes(item.id),
+  );
+  if (selectedItems.length === 0) return true;
+  const firstSeverity = selectedItems[0].serverity;
+  return selectedItems.every((item) => item.serverity === firstSeverity);
+});
+
 // Pending item columns for the table
 const pendingItemColumns = [
+  {
+    title: "Bank",
+    dataIndex: "bankName",
+    key: "bankName",
+    width: 150,
+  },
   {
     title: "Account No",
     dataIndex: "accountNo",
     key: "accountNo",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountNo.localeCompare(b.accountNo),
     width: 150,
   },
   {
     title: "Account Name",
     dataIndex: "accountName",
     key: "accountName",
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      a.accountName.localeCompare(b.accountName),
     width: 180,
   },
   {
-    title: "Branch",
+    title: "Severity",
+    dataIndex: "serverity",
+    key: "serverity",
+    width: 120,
+  },
+  {
+    title: "Home Branch",
     dataIndex: "branchName",
     key: "branchName",
     width: 150,
-    filters: [
-      { text: "Main Branch", value: "Main Branch" },
-      { text: "North Branch", value: "North Branch" },
-      { text: "South Branch", value: "South Branch" },
-      { text: "East Branch", value: "East Branch" },
-      { text: "West Branch", value: "West Branch" },
-    ],
-    onFilter: (value: string, record: ChequeItem) =>
-      record.branchName === value,
+  },
+  {
+    title: "Receiving Branch",
+    dataIndex: "receivingBranchName",
+    key: "receivingBranchName",
+    width: 150,
   },
   {
     title: "Start No",
     dataIndex: "startNo",
     key: "startNo",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.startNo - b.startNo,
   },
   {
     title: "End No",
@@ -575,22 +422,16 @@ const pendingItemColumns = [
   },
   {
     title: "Book Qty",
-    dataIndex: "bookQuantity",
-    key: "bookQuantity",
+    dataIndex: "bookQty",
+    key: "bookQty",
     width: 120,
-    sorter: (a: ChequeItem, b: ChequeItem) => a.bookQuantity - b.bookQuantity,
   },
+
   {
-    title: "Severity",
-    dataIndex: "severity",
-    key: "severity",
+    title: "Status",
+    dataIndex: "statusName",
+    key: "statusName",
     width: 120,
-    filters: [
-      { text: "High", value: "High" },
-      { text: "Medium", value: "Medium" },
-      { text: "Low", value: "Low" },
-    ],
-    onFilter: (value: string, record: ChequeItem) => record.severity === value,
   },
   {
     title: "Request Date",
@@ -598,20 +439,13 @@ const pendingItemColumns = [
     key: "requestDate",
     width: 150,
     render: (text: string) => formatDate(text),
-    sorter: (a: ChequeItem, b: ChequeItem) =>
-      new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
   },
-  {
-    title: "Status",
-    dataIndex: "status",
-    key: "status",
-    width: 120,
-  },
+
   {
     title: "Actions",
     key: "actions",
     fixed: "right",
-    width: 160,
+    width: 100,
     align: "center",
   },
 ];
@@ -626,278 +460,105 @@ const formatDate = (dateString: string) => {
   });
 };
 
-// Computed property for filtered pending items
-const filteredPendingItems = computed(() => {
-  let result = [...pendingItems.value];
-
-  // Apply search filter
-  if (searchText.value) {
-    const searchLower = searchText.value.toLowerCase();
-    result = result.filter(
-      (item) =>
-        item.accountNo.toLowerCase().includes(searchLower) ||
-        item.accountName.toLowerCase().includes(searchLower) ||
-        item.branchName.toLowerCase().includes(searchLower)
-    );
-  }
-
-  // Apply severity filter
-  if (severityFilter.value) {
-    result = result.filter((item) => item.severity === severityFilter.value);
-  }
-
-  // Apply branch filter
-  if (branchFilter.value) {
-    result = result.filter((item) =>
-      item.branchName.includes(branchFilter.value)
-    );
-  }
-
-  // Apply date range filter
-  if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-    const startDate = dateRange.value[0].valueOf();
-    const endDate = dateRange.value[1].valueOf();
-
-    result = result.filter((item) => {
-      const reqDate = new Date(item.requestDate).getTime();
-      return reqDate >= startDate && reqDate <= endDate;
-    });
-  }
-
-  return result;
-});
-
-// Fetch cheque items data
-const fetchItems = async () => {
-  loading.value = true;
-  try {
-    // In a real application, this would be an API call
-    // For demo purposes, we'll use mock data
-    setTimeout(() => {
-      allItems.value = generateMockItems();
-      loading.value = false;
-    }, 1000);
-  } catch (error) {
-    message.error("Failed to fetch requisition items");
-    loading.value = false;
-  }
-};
-
 // Refresh data
 const refreshData = () => {
   loading.value = true;
   selectedRowKeys.value = [];
   setTimeout(() => {
-    allItems.value = generateMockItems();
+    pendingRequisitionStore.resetFilters();
     loading.value = false;
     message.success("Data refreshed successfully");
   }, 800);
 };
 
-// Generate mock data for demonstration
-const generateMockItems = (): ChequeItem[] => {
-  const statuses = [
-    "Pending",
-    "Approved",
-    "Ordered",
-    "Download",
-    "Dispatch",
-    "Delivery Receive",
-  ];
-  const branches = [
-    "Main Branch",
-    "North Branch",
-    "South Branch",
-    "East Branch",
-    "West Branch",
-  ];
-  const severities = ["High", "Medium", "Low"];
-
-  return Array.from({ length: 50 }, (_, i) => {
-    // For pending page, make more items have Pending status
-    const randomStatus =
-      Math.random() < 0.7
-        ? "Pending"
-        : statuses[Math.floor(Math.random() * statuses.length)];
-
-    return {
-      id: i + 1,
-      accountNo: `AC-${100000 + i}`,
-      routingNo: `RT-${200000 + i}`,
-      startNo: 1000 + i * 100,
-      endNo: 1099 + i * 100,
-      prefix: `PFX-${i % 5}`,
-      series: `S-${i % 3}`,
-      severity: severities[i % 3],
-      branchName: branches[i % 5],
-      accountName: `Account Holder ${i + 1}`,
-      customerAddress: `123 Main St, City ${i + 1}, Country`,
-      bookQuantity: Math.floor(Math.random() * 5) + 1,
-      transactionCode: 1000 + i,
-      leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-      courierCode: `CR-${1000 + i}`,
-      distributionPointName: `Distribution Point ${(i % 5) + 1}`,
-      receivingBranch: branches[(i + 2) % 5],
-      status: i % 10 === 0 ? undefined : randomStatus,
-      requestDate: new Date(
-        2023,
-        Math.floor(Math.random() * 12),
-        Math.floor(Math.random() * 28) + 1
-      ).toISOString(),
-    };
-  });
-};
-
-// Get color for severity tag
-const getSeverityColor = (severity: string) => {
-  const colorMap: Record<string, string> = {
-    High: "error",
-    Medium: "warning",
-    Low: "success",
-  };
-
-  return colorMap[severity] || "default";
-};
-
-// Handle search
-const handleSearch = (value: string) => {
-  searchText.value = value;
-};
-
-// Handle severity filter change
-const handleSeverityFilterChange = (value: string) => {
-  severityFilter.value = value;
-};
-
-// Handle branch filter change
-const handleBranchFilterChange = (value: string) => {
-  branchFilter.value = value;
-};
-
-// Handle date range change
-const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
-  dateRange.value = dates;
-};
-
-// Handle row selection change
-const onSelectChange = (keys: number[]) => {
-  selectedRowKeys.value = keys;
-};
-
-// Approve a single item
-const approveItem = (record: ChequeItem) => {
-  confirmModalTitle.value = `Approve Item`;
-  confirmModalMessage.value = `Are you sure you want to approve this item?`;
-  confirmModalOkText.value = "Approve";
-  confirmModalAction.value = "approve";
-  confirmModalButtonClass.value =
-    "bg-success border-success hover:bg-success-dark hover:border-success-dark";
-  itemToAction.value = record;
+// Dispatch a single item
+const severityChangeItem = (record: PendingRequisition) => {
+  confirmModalTitle.value = `Severity Change Item`;
+  confirmModalMessage.value = `Are you sure you want to severity change this item to the next stage?`;
+  confirmModalOkText.value = "Severity Change";
+  confirmModalAction.value = "severityChange";
+  itemToAction.value = [record.id];
+  itemToSeverity.value = [record.serverity];
   confirmModalVisible.value = true;
 };
 
-// Handle bulk approve
-const handleBulkApprove = () => {
+// Handle bulk Dispatch
+const handleBulkSeverity = () => {
   if (selectedRowKeys.value.length === 0) {
     message.warning("Please select at least one item");
     return;
   }
 
-  confirmModalTitle.value = `Approve Selected Items`;
-  confirmModalMessage.value = `Are you sure you want to approve ${selectedRowKeys.value.length} selected item(s)?`;
-  confirmModalOkText.value = "Approve All";
-  confirmModalAction.value = "bulkApprove";
-  confirmModalButtonClass.value =
-    "bg-success border-success hover:bg-success-dark hover:border-success-dark";
-  confirmModalVisible.value = true;
-};
-
-// Edit item
-const editItem = (record: ChequeItem) => {
-  editingItem.value = { ...record };
-  editModalVisible.value = true;
-};
-
-// Delete item
-const deleteItem = (record: ChequeItem) => {
-  confirmModalTitle.value = "Delete Item";
-  confirmModalMessage.value = `Are you sure you want to delete this item (${record.accountNo})?`;
-  confirmModalOkText.value = "Delete";
-  confirmModalAction.value = "delete";
-  confirmModalButtonClass.value = "";
-  itemToAction.value = record;
-  confirmModalVisible.value = true;
-};
-
-// Handle edit save
-const handleEditSave = () => {
-  if (!editingItem.value) return;
-
-  editLoading.value = true;
-
-  // In a real application, this would be an API call
-  setTimeout(() => {
-    const index = allItems.value.findIndex(
-      (item) => item.id === editingItem.value?.id
+  if (!selectedItemsSameBank.value) {
+    message.error("Cannot dispatch items from different banks together");
+    return;
+  }
+  if (!selectedItemsSameSeverity.value) {
+    message.error(
+      "Cannot severity change items from different severities together",
     );
+    return;
+  }
 
-    // if (index !== -1) {
-    //   allItems.value[index] = { ...editingItem.value };
-    //   message.success("Item updated successfully");
-    // }
-
-    editLoading.value = false;
-    editModalVisible.value = false;
-    editingItem.value = null;
-  }, 500);
+  confirmModalTitle.value = `Severity Change Selected Items`;
+  confirmModalMessage.value = `Are you sure you want to severity change ${selectedRowKeys.value.length} selected item(s) to the next stage?`;
+  confirmModalOkText.value = "Severity Change All";
+  confirmModalAction.value = "bulkSeverityChange";
+  confirmModalVisible.value = true;
 };
 
 // Handle confirm action
-const handleConfirmAction = () => {
-  if (confirmModalAction.value === "approve" && itemToAction.value) {
-    const itemIndex = allItems.value.findIndex(
-      (item) => item.id === itemToAction.value?.id
-    );
-
-    if (itemIndex !== -1) {
-      // Update the item status
-      allItems.value[itemIndex].status = "Approved";
-      message.success(`Item approved successfully`);
+const handleConfirmAction = async () => {
+  if (
+    confirmModalAction.value === "severityChange" &&
+    itemToAction.value &&
+    itemToSeverity.value
+  ) {
+    const itemIndex = itemToAction.value;
+    let serverity = 0;
+    if (itemToSeverity.value[0] === 1) {
+      serverity = 2;
+    } else {
+      serverity = 1;
     }
-  } else if (confirmModalAction.value === "bulkApprove") {
-    // Update all selected items
-    allItems.value = allItems.value.map((item) => {
-      if (selectedRowKeys.value.includes(item.id)) {
-        return { ...item, status: "Approved" };
+
+    if (itemIndex[0] !== -1) {
+      const response = await UpdateChequeSeverityService(itemIndex, serverity);
+      if (response.data.isUpdated) {
+        message.success(`Item severity changed successfully`);
+      } else {
+        message.error("Failed to severity change item");
       }
-      return item;
-    });
-
-    message.success(
-      `Successfully approved ${selectedRowKeys.value.length} item(s)`
-    );
-    selectedRowKeys.value = []; // Clear selection after bulk update
-  } else if (confirmModalAction.value === "delete" && itemToAction.value) {
-    // Delete the item
-    allItems.value = allItems.value.filter(
-      (item) => item.id !== itemToAction.value?.id
-    );
-    message.success("Item deleted successfully");
+    }
+  } else if (confirmModalAction.value === "bulkSeverityChange") {
+    var itemIds = selectedRowKeys.value;
+    let serverity = 0;
+    if (selectedRows.value[0].serverity === 1) {
+      serverity = 2;
+    } else {
+      serverity = 1;
+    }
+    const response = await UpdateChequeSeverityService(itemIds, serverity);
+    if (response.data.isUpdated) {
+      message.success(
+        `Successfully severity changed ${selectedRowKeys.value.length} item(s)`,
+      );
+      selectedRowKeys.value = []; // Clear selection after bulk update
+    } else {
+      message.error("Failed to severity change items");
+    }
   }
-
+  pendingRequisitionStore.fetchDownloadRequisitions();
   confirmModalVisible.value = false;
-  itemToAction.value = null;
 };
 
 // Reset selection when filtered items change
-watch([severityFilter, branchFilter, searchText], () => {
-  selectedRowKeys.value = [];
-});
-
-// Fetch data on component mount
-onMounted(() => {
-  fetchItems();
-});
+watch(
+  [severityFilter, bankFilter, branchFilter, searchText, challanNoFilter],
+  () => {
+    selectedRowKeys.value = [];
+  },
+);
 </script>
 
 <style scoped>
@@ -919,25 +580,22 @@ onMounted(() => {
 }
 
 .custom-table :deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
-  background-color: rgba(107, 142, 35, 0.05);
+  background-color: rgba(147, 51, 234, 0.05);
 }
 
 /* Custom modal styles */
-.requisition-modal :deep(.ant-modal-content),
 .confirm-modal :deep(.ant-modal-content) {
   border-radius: var(--radius-md);
   overflow: hidden;
   box-shadow: var(--shadow-md);
 }
 
-.requisition-modal :deep(.ant-modal-header),
 .confirm-modal :deep(.ant-modal-header) {
   background-color: var(--card-bg);
   border-bottom: 1px solid var(--background);
   padding: 16px 24px;
 }
 
-.requisition-modal :deep(.ant-modal-title),
 .confirm-modal :deep(.ant-modal-title) {
   font-weight: 600;
   font-size: 18px;
@@ -953,7 +611,8 @@ onMounted(() => {
 .ant-input,
 .ant-input-affix-wrapper,
 .ant-select-selector,
-.ant-input-number {
+.ant-input-number,
+.ant-picker {
   border-color: #e5e7eb !important;
   border-radius: var(--radius-sm) !important;
 }
@@ -961,8 +620,9 @@ onMounted(() => {
 .ant-input:hover,
 .ant-input-affix-wrapper:hover,
 .ant-select-selector:hover,
-.ant-input-number:hover {
-  border-color: var(--accent-cta) !important;
+.ant-input-number:hover,
+.ant-picker:hover {
+  border-color: #a855f7 !important;
 }
 
 .ant-input:focus,
@@ -971,14 +631,15 @@ onMounted(() => {
 .ant-input-affix-wrapper-focused,
 .ant-select-focused .ant-select-selector,
 .ant-select-selector:focus,
-.ant-input-number-focused {
-  border-color: var(--accent-cta) !important;
-  box-shadow: 0 0 0 2px rgba(107, 142, 35, 0.2) !important;
+.ant-input-number-focused,
+.ant-picker-focused {
+  border-color: #a855f7 !important;
+  box-shadow: 0 0 0 2px rgba(168, 85, 247, 0.2) !important;
 }
 
 /* Custom tag styles */
 .ant-tag-success {
-  background-color: rgba(34, 139, 34, 0.1) !important;
+  background-color: rgba(34, 197, 94, 0.1) !important;
   border-color: var(--success) !important;
   color: var(--success) !important;
 }
@@ -995,67 +656,15 @@ onMounted(() => {
   color: #c2410c !important;
 }
 
+.ant-tag-purple {
+  background-color: rgba(147, 51, 234, 0.1) !important;
+  border-color: #9333ea !important;
+  color: #9333ea !important;
+}
+
 /* Ant Design button overrides */
 .ant-btn-primary {
-  background-color: var(--accent-cta) !important;
-  border-color: var(--accent-cta) !important;
   border-radius: var(--radius-md) !important;
-}
-
-.ant-btn-primary:hover,
-.ant-btn-primary:focus {
-  background-color: #5a7a1f !important;
-  border-color: #5a7a1f !important;
-}
-
-/* Exception for Pending buttons */
-.ant-btn-primary.btn-pending {
-  background-color: var(--color-purple-500) !important;
-  border-color: var(--color-purple-500) !important;
-}
-
-.ant-btn-primary.btn-pending:hover,
-.ant-btn-primary.btn-pending:focus {
-  background-color: var(--color-purple-700) !important;
-  border-color: var(--color-purple-700) !important;
-}
-
-/* Exception for danger buttons */
-.ant-btn-dangerous.ant-btn-primary {
-  background-color: var(--error) !important;
-  border-color: var(--error) !important;
-}
-
-.ant-btn-dangerous.ant-btn-primary:hover,
-.ant-btn-dangerous.ant-btn-primary:focus {
-  background-color: var(--error-dark) !important;
-  border-color: var(--error-dark) !important;
-}
-
-/* Shadow utilities */
-.shadow-sm {
-  box-shadow: var(--shadow-sm) !important;
-}
-
-.shadow-md {
-  box-shadow: var(--shadow-md) !important;
-}
-
-.shadow-lg {
-  box-shadow: var(--shadow-lg) !important;
-}
-
-/* Rounded utilities */
-.rounded-sm {
-  border-radius: var(--radius-sm) !important;
-}
-
-.rounded-md {
-  border-radius: var(--radius-md) !important;
-}
-
-.rounded-lg {
-  border-radius: var(--radius-lg) !important;
 }
 
 /* Center icons in buttons */
@@ -1063,6 +672,17 @@ onMounted(() => {
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+}
+/* Exception for Dispatch button */
+.ant-btn-primary.btn-dispatch {
+  background-color: var(--color-amber-500) !important;
+  border-color: var(--color-amber-500) !important;
+}
+
+.ant-btn-primary.btn-dispatch:hover,
+.ant-btn-primary.btn-dispatch:focus {
+  background-color: var(--color-amber-700) !important;
+  border-color: var(--color-amber-700) !important;
 }
 
 /* Responsive adjustments */
