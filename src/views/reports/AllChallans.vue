@@ -94,13 +94,19 @@
             <a-select
               placeholder="All branches"
               class="rounded-md w-full"
+              show-search
+              option-filter-prop="label"
               @change="challanStore.setBranch"
+              allow-clear
             >
-              <a-select-option value="">All branches</a-select-option>
+              <a-select-option value="" label="All Branches"
+                >All branches</a-select-option
+              >
               <a-select-option
                 v-for="branch in challanStore.branches"
                 :key="branch.id"
                 :value="branch.id"
+                :label="branch.branchName"
               >
                 {{ branch.branchName }}
               </a-select-option>
@@ -254,8 +260,8 @@
                   record.serverity === 1
                     ? 'error'
                     : record.serverity === 2
-                    ? 'warning'
-                    : 'default'
+                      ? 'warning'
+                      : 'default'
                 "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
@@ -263,8 +269,8 @@
                   record.serverity === 1
                     ? "Urgent"
                     : record.serverity === 2
-                    ? "Normal"
-                    : "Unknown"
+                      ? "Normal"
+                      : "Unknown"
                 }}
               </a-tag>
             </template>
@@ -482,7 +488,7 @@ const exportChallan = async (id: number) => {
         challans,
         logoBase64,
         footerBase64,
-        AuthSignatureBase64
+        AuthSignatureBase64,
       );
     } else {
       const logoBase64 = await toBase64(FlexItlogoImage);
@@ -493,7 +499,7 @@ const exportChallan = async (id: number) => {
         challans,
         logoBase64,
         footerBase64,
-        AuthSignatureBase64
+        AuthSignatureBase64,
       );
     }
     message.success("Challan exported successfully");
@@ -514,7 +520,7 @@ const toBase64 = async (filePath: string) => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(blob);
-        })
+        }),
     );
 };
 

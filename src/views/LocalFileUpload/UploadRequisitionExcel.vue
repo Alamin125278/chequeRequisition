@@ -861,7 +861,7 @@ const processFile = async () => {
               distributionPointNameAddress ??
               ""
             ).trim(),
-            courierCode: "MCS",
+            courierCode: "M",
             agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:

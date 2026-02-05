@@ -80,15 +80,20 @@
             v-model:value="branchFilter"
             placeholder="Select Branch"
             class="w-full"
+            show-search
+            option-filter-prop="label"
             @change="dispatchStore.setBranch"
             :disabled="!dispatchStore.bank"
             allowClear
           >
-            <a-select-option value="">All Branches</a-select-option>
+            <a-select-option value="" label="All Branches"
+              >All Branches</a-select-option
+            >
             <a-select-option
               v-for="branch in dispatchStore.branches"
               :key="branch.id"
               :value="branch.id"
+              :label="branch.branchName"
             >
               {{ branch.branchName }}
             </a-select-option>
@@ -160,8 +165,8 @@
                   record.serverity === 1
                     ? 'error'
                     : record.serverity === 2
-                    ? 'warning'
-                    : 'default'
+                      ? 'warning'
+                      : 'default'
                 "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
@@ -169,8 +174,8 @@
                   record.serverity === 1
                     ? "Urgent"
                     : record.serverity === 2
-                    ? "Normal"
-                    : "Unknown"
+                      ? "Normal"
+                      : "Unknown"
                 }}
               </a-tag>
             </template>

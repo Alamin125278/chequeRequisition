@@ -80,15 +80,20 @@
             v-model:value="branchFilter"
             placeholder="Select Branch"
             class="w-full"
+            show-search
+            option-filter-prop="label"
             @change="downloadedRequisitionStore.setBranch"
             :disabled="!downloadedRequisitionStore.bank"
             allowClear
           >
-            <a-select-option value="">All Branches</a-select-option>
+            <a-select-option value="" label="All Branches">
+              All Branches
+            </a-select-option>
             <a-select-option
               v-for="branch in downloadedRequisitionStore.branches"
               :key="branch.id"
               :value="branch.id"
+              :label="branch.branchName"
             >
               {{ branch.branchName }}
             </a-select-option>
@@ -179,8 +184,8 @@
                   record.serverity === 1
                     ? 'error'
                     : record.serverity === 2
-                    ? 'warning'
-                    : 'default'
+                      ? 'warning'
+                      : 'default'
                 "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
@@ -188,8 +193,8 @@
                   record.serverity === 1
                     ? "Urgent"
                     : record.serverity === 2
-                    ? "Normal"
-                    : "Unknown"
+                      ? "Normal"
+                      : "Unknown"
                 }}
               </a-tag>
             </template>
@@ -323,7 +328,7 @@ onMounted(() => {
 const pagination = computed(() => ({
   current:
     Math.floor(
-      downloadedRequisitionStore.skip / downloadedRequisitionStore.limit
+      downloadedRequisitionStore.skip / downloadedRequisitionStore.limit,
     ) + 1,
   pageSize: downloadedRequisitionStore.limit,
   total: downloadedRequisitionStore.total,
@@ -351,7 +356,7 @@ const selectedItemsSameBank = computed(() => {
   if (selectedRowKeys.value.length <= 1) return true;
 
   const selectedItems = selectedRows.value.filter((item) =>
-    selectedRowKeys.value.includes(item.id)
+    selectedRowKeys.value.includes(item.id),
   );
 
   if (selectedItems.length === 0) return true;
@@ -518,7 +523,7 @@ const handleConfirmAction = async () => {
     const response = await UpdateChequeStatusService(itemIds, 5);
     if (response.data.isUpdated) {
       message.success(
-        `Successfully dispatched ${selectedRowKeys.value.length} item(s)`
+        `Successfully dispatched ${selectedRowKeys.value.length} item(s)`,
       );
       selectedRowKeys.value = []; // Clear selection after bulk update
     } else {
@@ -534,7 +539,7 @@ watch(
   [severityFilter, bankFilter, branchFilter, searchText, challanNoFilter],
   () => {
     selectedRowKeys.value = [];
-  }
+  },
 );
 </script>
 

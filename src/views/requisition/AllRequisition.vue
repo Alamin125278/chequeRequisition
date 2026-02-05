@@ -120,13 +120,19 @@
                 v-model:value="formState.branchId"
                 placeholder="All branches"
                 class="rounded-md w-full"
+                show-search
+                option-filter-prop="label"
                 @change="allRequisitionsStore.setBranch"
+                allow-clear
               >
-                <a-select-option value="">All branches</a-select-option>
+                <a-select-option value="" label="All Branches"
+                  >All branches</a-select-option
+                >
                 <a-select-option
                   v-for="branch in allRequisitionsStore.branches"
                   :key="branch.id"
                   :value="branch.id"
+                  :label="branch.branchName"
                 >
                   {{ branch.branchName }}
                 </a-select-option>
@@ -238,8 +244,8 @@
                   record.serverity === 1
                     ? 'error'
                     : record.serverity === 2
-                    ? 'warning'
-                    : 'default'
+                      ? 'warning'
+                      : 'default'
                 "
                 class="px-2 py-0.5 rounded-md text-xs font-medium"
               >
@@ -247,8 +253,8 @@
                   record.serverity === 1
                     ? "Urgent"
                     : record.serverity === 2
-                    ? "Normal"
-                    : "Unknown"
+                      ? "Normal"
+                      : "Unknown"
                 }}
               </a-tag>
             </template>
@@ -493,7 +499,8 @@ const getStatusColor = (status: string) => {
 .attachment-modal :deep(.ant-modal-content) {
   border-radius: 8px;
   overflow: hidden;
-  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1),
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
     0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 

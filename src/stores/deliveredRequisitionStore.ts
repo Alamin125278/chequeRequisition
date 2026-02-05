@@ -73,7 +73,9 @@ export const useDeliveredRequisitionStore = defineStore(
       try {
         if (bankId != null && bankId != undefined && bankId != 0) {
           const result = await getBranchForUserService(bankId);
-          branches.value = result;
+          branches.value = [...result].sort((a, b) =>
+            a.branchName.localeCompare(b.branchName),
+          );
         }
       } catch (e) {
         console.error("Error fetching branches", e);
@@ -189,5 +191,5 @@ export const useDeliveredRequisitionStore = defineStore(
       setBranch,
       resetFilters,
     };
-  }
+  },
 );
