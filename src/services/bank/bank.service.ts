@@ -16,10 +16,10 @@ export interface FetchBankResponse {
 }
 
 export const getBankService = async (
-  params: FetchBankParams
+  params: FetchBankParams,
 ): Promise<FetchBankResponse> => {
   const response = await baseHttp().get(
-    `${constant.APIs.banks}/?skip=${params.skip}&limit=${params.limit}&isActive=${params.status}&search=${params.search}`
+    `${constant.APIs.banks}/?skip=${params.skip}&limit=${params.limit}&isActive=${params.status}&search=${params.search}`,
   );
   console.log(response);
   return {
@@ -34,7 +34,7 @@ export const saveBankService = async (bank: any, isEdit: boolean) => {
     console.log(bank);
     const response = await baseHttp().patch(
       `${constant.APIs.updateBank}/${bank.id}`,
-      bank
+      bank,
     );
     return response.data;
   } else {
@@ -57,7 +57,6 @@ export const getBankCountService = async () => {
 export const getBankForBranchService = async (): Promise<any> => {
   try {
     const response = await baseHttp().get(constant.APIs.bankForBranch);
-    console.log(response.data.bankDtos);
     return response.data.bankDtos;
   } catch (error: any) {
     throw new Error(error?.message || "Bank fetch failed");

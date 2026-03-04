@@ -113,7 +113,7 @@ const pagination = computed(() => ({
 }));
 
 const hasAppliedFilters = computed(
-  () => !!filters.value.bank && filters.value.agentType !== undefined
+  () => !!filters.value.bank && filters.value.agentType !== undefined,
 );
 
 // Watch Effects
@@ -205,11 +205,16 @@ const handleExportPSI = async () => {
   await exportPSI(orderRequisitionStore.orderRequisitionForExport);
 };
 
-const handleExportCheckType = async (type: string, pages: number) => {
+const handleExportCheckType = async (
+  type: string,
+  pages: number,
+  accFlag?: string,
+) => {
   await exportByCheckTypeAndPages(
     type,
     pages,
-    orderRequisitionStore.orderRequisitionForExport
+    orderRequisitionStore.orderRequisitionForExport,
+    accFlag,
   );
 };
 
@@ -220,7 +225,7 @@ const handleExportChallan = async () => {
   }
 
   const success = await exportChallan(
-    orderRequisitionStore.orderRequisitionForExport
+    orderRequisitionStore.orderRequisitionForExport,
   );
 
   if (success) {
@@ -239,9 +244,14 @@ const handleSubmit = () => {
   orderRequisitionStore.fetchOrderRequisitions();
   orderRequisitionStore.fetchOrderRequisitionsForExport();
   orderRequisitionStore.resetFilters();
+  filters.value.bank = undefined;
+  filters.value.accountNumber = undefined;
+  filters.value.severity = 2 as number;
+  filters.value.requestDate = undefined;
+  filters.value.agentType = false;
 
   message.success(
-    `Updated status of ${orderRequisitionStore.orderRequisitionForExport.length} orders to "Downloaded"`
+    `Updated status of ${orderRequisitionStore.orderRequisitionForExport.length} orders to "Downloaded"`,
   );
   exportModalVisible.value = false;
 };

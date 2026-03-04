@@ -8,8 +8,15 @@
     <div class="flex flex-wrap gap-3">
       <a-button
         v-for="variation in checkTypeVariations"
-        :key="`${variation.type}-${variation.pages}`"
-        @click="$emit('export-check-type', variation.type, variation.pages)"
+        :key="`${variation.type}-${variation.pages}${variation.accFlag ? '-' + variation.accFlag : ''}`"
+        @click="
+          $emit(
+            'export-check-type',
+            variation.type,
+            variation.pages,
+            variation.accFlag,
+          )
+        "
         :loading="variation.loading"
         :disabled="variation.completed || variation.loading"
         size="middle"
@@ -25,10 +32,11 @@
             variation.loading
               ? "Exporting..."
               : variation.completed
-              ? "Exported"
-              : ""
+                ? "Exported"
+                : ""
           }}
-          {{ variation.type }} ({{ variation.pages }})
+          {{ variation.type }}-{{ variation.pages
+          }}{{ variation.accFlag ? "(" + variation.accFlag + ")" : "" }}
         </span>
         <a-badge :count="variation.count" class="ml-2" />
       </a-button>
@@ -49,7 +57,7 @@ interface Props {
 }
 
 interface Emits {
-  (e: "export-check-type", type: string, pages: number): void;
+  (e: "export-check-type", type: string, pages: number, accFlag?: string): void;
 }
 
 defineProps<Props>();

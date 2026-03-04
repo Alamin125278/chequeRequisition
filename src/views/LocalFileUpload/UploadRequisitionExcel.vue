@@ -458,6 +458,7 @@ interface ImportedItem {
   homeBranchCode?: string;
   deliveryBranchCode?: string;
   isAgent: string;
+  accFlag: string;
 }
 
 // Current date for display
@@ -873,6 +874,7 @@ const processFile = async () => {
               row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
             isAgent: selectedType.value === true ? "True" : "False",
             branchId: branchId,
+            accFlag: "General",
           });
         }
       } else if (selectedBank.value == 1) {
@@ -949,6 +951,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: (row["Receiving Branch"] || "").trim(),
             isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "General",
           });
         }
       } else if (selectedBank.value == 3) {
@@ -1036,6 +1039,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["Delivery Branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "General",
           });
           startNoNum = nextEnd + 1;
           startNo = startNoNum.toString().padStart(7, "0");
@@ -1142,6 +1146,7 @@ const processFile = async () => {
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            accFlag: "General",
             requestDate:
               row["request date"] && row["request date"].trim() !== ""
                 ? row["request date"]
@@ -1235,6 +1240,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "General",
           });
         }
       } else if (selectedBank.value == 6) {
@@ -1319,6 +1325,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["pickup branch name"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "General",
           });
         }
       } else if (selectedBank.value == 7) {
@@ -1389,6 +1396,129 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: deliveryBranchCode,
             isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "General",
+          });
+        }
+      } else if (selectedBank.value == 8) {
+        for (const [index, originalRow] of (jsonData as any[]).entries()) {
+          // Normalize keys to lowercase for case-insensitive access
+          const row: Record<string, any> = {};
+          for (const key of Object.keys(originalRow)) {
+            row[key.toLowerCase()] = originalRow[key];
+          }
+          let accNo = (row["account no"] || "").trim();
+          let homeBranchCode = "home branch code";
+          let deliveryBranchCode = "delivery branch code";
+          let micrNo = row["micr account"].trim();
+          micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
+
+          let homeBranchName = (row["mother branch"] || "")
+            .trim()
+            .toUpperCase();
+          let deliveryBranchName = (row["delivery branch"] || "")
+            .trim()
+            .toUpperCase();
+          const agentPhone = deliveryBranchName.startsWith("PBL AGENT BANKING,")
+            ? deliveryBranchName.trim().split(",").pop().trim().toString()
+            : "";
+          deliveryBranchName = deliveryBranchName.startsWith(
+            "PBL AGENT BANKING,",
+          )
+            ? "PBL AGENT BANKING, " +
+              deliveryBranchName
+                .replace("PBL AGENT BANKING,", "")
+                .trim()
+                .split(",")[0]
+                .trim()
+            : deliveryBranchName;
+
+          let courierCode = "E";
+
+          const branchList = [
+            "ADAMJEE EPZ BRANCH",
+            "BEANIBAZAR BRANCH",
+            "BISWANATH BRANCH",
+            "BRAHMANBARIA BRANCH",
+            "CHAUDDAGRAM BRANCH",
+            "DHAKA DAKSHIN BRANCH",
+            "HEYAKO SME BR/SC",
+            "IBB AMBERKHANA BRANCH",
+            "JHIKORGACHA SME BR/SC",
+            "KADAMTOLI BRANCH",
+            "KERANIHAT BRANCH",
+            "KULAURA BRANCH",
+            "MADHABPUR SME BR/SC",
+            "RAMGARH BRANCH",
+            "SAIDPUR BRANCH",
+            "SYEDPUR SME BR/SC",
+            "SONARGAON SME BR/SC",
+            "SYLHET BRANCH",
+            "TAKERHAT SME BR/SC",
+            "UPASHAHAR BRANCH",
+          ];
+
+          if (branchList.includes(deliveryBranchName.toUpperCase())) {
+            courierCode = "IX";
+          } else if (row["delivery by"] == "Rider") {
+            courierCode = "R";
+          }
+          let routingNo = (row["routing no"] || "").trim();
+          let accountType = (row["a/c type"] || "").trim();
+          let series = "";
+          let chequePrefix = "";
+          let chequeType = "";
+          if (accountType == "Savings Account") {
+            series = "A";
+            chequePrefix = "104";
+            chequeType = "Savings";
+          } else if (accountType == "Current Account") {
+            series = "A";
+            chequePrefix = "204";
+            chequeType = "Current";
+          } else if (accountType == "Payorder") {
+            series = "A";
+            chequePrefix = "910";
+            chequeType = "Payment Order";
+          }
+          let startNo = (row["start no"] || "").trim();
+          let endNo = (row["end no"] || "").trim();
+          let bookQty = 1;
+          let accFlag = (row["a/c flag"] || "").trim();
+          if (accFlag == "Monarch Account") {
+            accFlag = "Prority";
+          } else if (accFlag == "Islamic Banking") {
+            accFlag = "Islamic";
+          } else {
+            accFlag = "General";
+          }
+          processedData.push({
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 7,
+            branchName: homeBranchName.trim().toUpperCase(),
+            routingNo: routingNo,
+            accountNo: accNo.toString().trim(),
+            accountName: (row["name"] || "").trim().toUpperCase(),
+            chequeType: chequeType,
+            chequePrefix: chequePrefix,
+            micrNo: micrNo,
+            series: series,
+            transactionCode: row["transaction code"] || "",
+            leafCount: row["no of leaves"] || "",
+            startNo: startNo,
+            endNo: endNo,
+            bookQty: bookQty,
+            receivingBranch: deliveryBranchName.trim().toUpperCase(),
+            distributionPointName: deliveryBranchName,
+            courierCode: courierCode,
+            agentNum: agentPhone,
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            requestDate:
+              row["request date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: homeBranchCode,
+            deliveryBranchCode: deliveryBranchCode,
+            isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: accFlag,
           });
         }
       }
@@ -1446,6 +1576,7 @@ const handleSubmit = async () => {
       homeBranchCode: item.homeBranchCode,
       deliveryBranchCode: item.deliveryBranchCode,
       isAgent: selectedType.value,
+      accFlag: item.accFlag,
     }));
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {

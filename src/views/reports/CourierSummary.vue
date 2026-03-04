@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-6 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -130,6 +130,23 @@
                     :value="bank.id"
                   >
                     {{ bank.bankName }}
+                  </a-select-option>
+                </a-select>
+              </a-form-item>
+              <!-- Courier -->
+              <a-form-item label="Courier" name="courier">
+                <a-select
+                  v-model:value="formState.courier"
+                  placeholder="Select courier"
+                  class="w-full"
+                >
+                  <a-select-option value="">Select Courier</a-select-option>
+                  <a-select-option
+                    v-for="courier in couriers"
+                    :key="courier.courierCode"
+                    :value="courier.courierCode"
+                  >
+                    {{ courier.courierName }}
                   </a-select-option>
                 </a-select>
               </a-form-item>
@@ -347,6 +364,7 @@
 
 <script setup lang="ts">
 import signatureImage from "@/assets/signature.png";
+import { getCouriersForDropDownService } from "@/services/courier/courier.service";
 import { getCourierSummaryReportService } from "@/services/summary-report/summaryReportService";
 import {
   CalendarOutlined,
@@ -366,8 +384,14 @@ interface Bank {
   id: number;
   bankName: string;
 }
+interface Courier {
+  id: number;
+  courierName: string;
+  courierCode: string;
+}
 
 const banks = ref<Bank[]>([]);
+const couriers = ref<Courier[]>([]);
 //Get the banks from the database
 const featchBanks = async () => {
   try {
@@ -375,6 +399,15 @@ const featchBanks = async () => {
     banks.value = result;
   } catch (e) {
     console.error("Error fetching banks", e);
+  }
+};
+
+const featchCouriers = async () => {
+  try {
+    const result = await getCouriersForDropDownService();
+    couriers.value = result;
+  } catch (e) {
+    console.error("Error fetching couriers", e);
   }
 };
 
@@ -389,12 +422,16 @@ interface ReportItem {
   branchPhone: string;
   requestDate: string;
   isAgent: boolean;
+  sb5: number;
   sb10: number;
   sb20: number;
   sb25: number;
+  sb50: number;
   sba10: number;
   msd10: number;
+  cd5: number;
   cd10: number;
+  cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
@@ -416,12 +453,16 @@ interface ReportItem {
 }
 
 interface Totals {
+  sb5: number;
   sb10: number;
   sb20: number;
   sb25: number;
+  sb50: number;
   sba10: number;
   msd10: number;
+  cd5: number;
   cd10: number;
+  cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
@@ -458,6 +499,7 @@ const formState = reactive({
   bankId: null as number | null,
   severity: 2 as number | null,
   agentType: false as boolean | undefined,
+  courier: null as string | null,
 });
 
 // Modal and loading states
@@ -472,12 +514,16 @@ const reportData = ref<ReportItem[]>([]);
 const totals = computed((): Totals => {
   const data = reportData.value;
   return {
+    sb5: data.reduce((sum, item) => sum + item.sb5, 0),
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
+    sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     sba10: data.reduce((sum, item) => sum + item.sba10, 0),
     msd10: data.reduce((sum, item) => sum + item.msd10, 0),
+    cd5: data.reduce((sum, item) => sum + item.cd5, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
+    cd20: data.reduce((sum, item) => sum + item.cd20, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
     cd100: data.reduce((sum, item) => sum + item.cd100, 0),
@@ -500,12 +546,16 @@ const totals = computed((): Totals => {
 });
 
 type ReportColumnKey =
+  | "sb5"
   | "sb10"
   | "sb20"
   | "sb25"
+  | "sb50"
   | "sba10"
   | "msd10"
+  | "cd5"
   | "cd10"
+  | "cd20"
   | "cd25"
   | "cd50"
   | "cd100"
@@ -524,12 +574,16 @@ type ReportColumnKey =
   | "mtdr25"
   | "mtdr50";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
+  { key: "sb5", label: "SB(5)" },
   { key: "sb10", label: "SB(10)" },
   { key: "sb20", label: "SB(20)" },
   { key: "sb25", label: "SB(25)" },
+  { key: "sb50", label: "SB(50)" },
   { key: "sba10", label: "SBA(10)" },
   { key: "msd10", label: "MSD(10)" },
+  { key: "cd5", label: "CD(5)" },
   { key: "cd10", label: "CD(10)" },
+  { key: "cd20", label: "CD(20)" },
   { key: "cd25", label: "CD(25)" },
   { key: "cd50", label: "CD(50)" },
   { key: "cd100", label: "CD(100)" },
@@ -583,6 +637,7 @@ const handlePreview = async () => {
       endDate: enDate,
       severity: formState.severity,
       agentType: formState.agentType ?? false,
+      courierCode: formState.courier ?? "",
     };
     // Generate mock data
     const response = await getCourierSummaryReportService(params);
@@ -617,6 +672,7 @@ const handlePreview = async () => {
 
 onMounted(() => {
   featchBanks();
+  featchCouriers();
 });
 // Download Excel
 const downloadExcel = async () => {
@@ -629,6 +685,7 @@ const downloadExcel = async () => {
     );
     const bankName = selectedBank?.bankName || "Unknown Bank";
     const bankId = selectedBank?.id || 0;
+    const severityType = formState.severity === 2 ? "Normal" : "Urgent";
 
     const start = dayjs(formState.startDate);
     const end = dayjs(formState.endDate);
@@ -657,7 +714,7 @@ const downloadExcel = async () => {
     const sheet = workbook.addWorksheet("Courier Summary Report");
     sheet.pageSetup = {
       paperSize: 9, // 9 = A4 size in ExcelJS
-      orientation: "portrait", // or "landscape"
+      orientation: "landscape", // or "landscape"
       fitToPage: true,
       fitToWidth: 1,
       fitToHeight: 0, // Let it flow vertically
@@ -702,6 +759,12 @@ const downloadExcel = async () => {
     dateCell.value = dateRange;
     dateCell.font = { bold: true, size: 12 };
     dateCell.alignment = { horizontal: "center" };
+    // Heading: Report Type
+    sheet.mergeCells("A5:L5");
+    const reportTypeCell = sheet.getCell("B5");
+    reportTypeCell.value = ` Report Status: ${severityType}`;
+    reportTypeCell.font = { bold: true, size: 12 };
+    reportTypeCell.alignment = { horizontal: "center" };
 
     sheet.addRow([]);
     sheet.addRow([]);
@@ -805,12 +868,28 @@ const downloadExcel = async () => {
       col.width = columnWidths[index];
     });
 
+    const courierName = couriers.value.find(
+      (c) => c.courierCode === formState.courier,
+    )?.courierName;
+    const formattedBankName = bankName.trim().replace(/\s+/g, "_");
+    const formattedCourierName = courierName?.trim().replace(/\s+/g, "_");
     // Generate filename
-    const filename = `${dateRangeLabel}_Courier_Summary_Report_${bankName.replace(
-      /\s+/g,
-      "_",
-    )}_${formState.agentType ? "Agent" : ""}.xlsx`;
+    // const filename = `${dateRangeLabel}_Courier_Summary_Report_${bankName.replace(
+    //   /\s+/g,
+    //   "_",
+    // )}_${courierName}_${formState.severity===1?"Urgent_":""}${formState.agentType ? "Agent" : ""}.xlsx`;
 
+    const filename =
+      [
+        dateRangeLabel, // Date Range
+        "Courier_Summary_Report", // Report Type
+        formattedBankName, // Bank Name
+        formattedCourierName, // Courier Name
+        formState.severity === 1 ? "Urgent" : null, // Priority (if urgent)
+        formState.agentType ? "Agent" : null, // Agent Type (if applicable)
+      ]
+        .filter(Boolean) // Remove empty/null values
+        .join("_") + ".xlsx";
     // Create blob
     const buffer = await workbook.xlsx.writeBuffer();
     const blob = new Blob([buffer], {
@@ -900,6 +979,7 @@ const resetForm = () => {
   formState.startDate = dayjs();
   formState.endDate = dayjs();
   formState.bankId = null;
+  formState.courier = null;
   reportData.value = [];
   message.success("Form has been reset");
 };

@@ -19,9 +19,11 @@ export interface ChallanItem {
   leaves: number;
   serverity: number;
   branchName: string;
+  accFlag: string;
 }
 
 export interface FetchChallanParams {
+  bankId: number;
   bankName: string;
   receivingBranchName: string;
   challanDate: string;
@@ -60,7 +62,7 @@ export const createChallan = async (payload: CreateChallanPayload) => {
 };
 
 export const getChallanExportService = async (
-  challanIds: number[]
+  challanIds: number[],
 ): Promise<FetchChallanParams[]> => {
   const res = await baseHttp().post(constant.APIs.getChallansExport, {
     challanIds: challanIds,
@@ -77,7 +79,7 @@ export const getAllChallanService = async (params: FetchAllChallanParams) => {
 };
 
 export const fetchChallanItemsService = async (
-  params: FetchAllChallanItemParams
+  params: FetchAllChallanItemParams,
 ) => {
   const response = await baseHttp().get(constant.APIs.fetchChallanItem, {
     params,

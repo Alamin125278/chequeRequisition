@@ -7,6 +7,7 @@ export interface FetchSummaryParams {
   endDate: string;
   severity: number;
   agentType: boolean;
+  courierCode?: string;
 }
 export interface FetchConsumptionParams {
   bankId: number;
@@ -40,7 +41,7 @@ export const getSummaryReportService = async (params: FetchSummaryParams) => {
   return response.data;
 };
 export const getCourierSummaryReportService = async (
-  params: FetchSummaryParams
+  params: FetchSummaryParams,
 ) => {
   const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
     params,
@@ -48,7 +49,7 @@ export const getCourierSummaryReportService = async (
   return response.data;
 };
 export const getmonthlyConsumptionReportService = async (
-  params: FetchConsumptionParams
+  params: FetchConsumptionParams,
 ) => {
   const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
     params,
@@ -64,7 +65,7 @@ export const getDailyProductionReportService = async (params: {
   return response.data;
 };
 export const getConsumptionReportService = async (
-  params: FetchConsumptionParams
+  params: FetchConsumptionParams,
 ) => {
   const response = await baseHttp().get(constant.APIs.consumptionReport, {
     params,

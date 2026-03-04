@@ -6,6 +6,7 @@ import { defineStore } from "pinia";
 import { ref } from "vue";
 export interface OrderRequisition {
   id: number;
+  bankId: number;
   bankName: string;
   branchName: string;
   accountNo: string;
@@ -30,6 +31,7 @@ export interface OrderRequisition {
   isAgent: boolean;
   branchCode?: string;
   deliveryBranchCode?: string;
+  accFlag?: string;
 }
 export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const orderRequisition = ref<OrderRequisition[]>([]);

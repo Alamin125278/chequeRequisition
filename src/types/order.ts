@@ -1,6 +1,7 @@
 // types/order.ts - নিচের ইম্পোর্টগুলো যোগ করুন
 export interface OrderRequisition {
   id: number;
+  bankId: number;
   bankName: string;
   branchName: string;
   accountNo: string;
@@ -23,6 +24,7 @@ export interface OrderRequisition {
   vendorName?: string;
   branchCode?: string;
   deliveryBranchCode?: string;
+  accFlag?: string;
 }
 
 export interface Bank {
@@ -34,6 +36,7 @@ export interface CheckTypeVariation {
   type: string;
   pages: number;
   count: number;
+  accFlag?: string;
   loading: boolean;
   completed: boolean;
 }

@@ -23,6 +23,7 @@ export interface LocalFileUploadCommand {
   requestDate?: string;
   agentNum?: string;
   isAgent: boolean;
+  accFlag: string;
 }
 
 export interface LocalFileUploadResult {
@@ -46,12 +47,12 @@ export interface ResponseDto<T> {
 }
 
 export const saveBulkLocalFileUploadService = async (
-  items: BulkLocalFileUploadPayload["items"]
+  items: BulkLocalFileUploadPayload["items"],
 ): Promise<ResponseDto<LocalFileUploadResult>> => {
   const payload: BulkLocalFileUploadPayload = { items };
   const response = await baseHttp().post(
     `${constant.APIs.localFileUpload}`,
-    payload
+    payload,
   );
   return response.data;
 };
@@ -59,7 +60,7 @@ export const saveBulkLocalFileUploadService = async (
 export const getBranchId = async (
   bankId: number,
   branchCode: string,
-  branchName: string | null
+  branchName: string | null,
 ) => {
   const params: any = {
     bankId,
@@ -80,7 +81,7 @@ export const getBranchId = async (
 
 export const checkFileExistService = async (
   bankId: number,
-  fileName: string
+  fileName: string,
 ) => {
   try {
     // Query parameter হিসেবে bankId ও fileName পাঠানো
@@ -99,14 +100,14 @@ export const checkFileExistService = async (
 
 export const localFileImportLogService = async (
   bankId: number,
-  fileName: string
+  fileName: string,
 ) => {
   const response = await baseHttp().post(
     `${constant.APIs.importLocalFileLog}`,
     {
       bankId,
       fileName,
-    }
+    },
   );
   console.log(response.data);
   return response.data;

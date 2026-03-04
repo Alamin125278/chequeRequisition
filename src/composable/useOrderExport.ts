@@ -32,7 +32,7 @@ export const useOrderExport = () => {
   const completedExports = computed(() => {
     const psiCompleted = exportStates.psi.completed ? 1 : 0;
     const checkTypeCompleted = checkTypeVariations.value.filter(
-      (ct) => ct.completed
+      (ct) => ct.completed,
     ).length;
     return psiCompleted + checkTypeCompleted;
   });
@@ -44,7 +44,7 @@ export const useOrderExport = () => {
   const progressPercentage = computed(() => {
     if (totalRequiredExports.value === 0) return 0;
     return Math.round(
-      (completedExports.value / totalRequiredExports.value) * 100
+      (completedExports.value / totalRequiredExports.value) * 100,
     );
   });
 
@@ -56,35 +56,65 @@ export const useOrderExport = () => {
   const updateCheckTypeVariations = (orders: OrderRequisition[]) => {
     const variations: CheckTypeVariation[] = [];
 
-    orders.forEach((order) => {
-      const existing = variations.find(
-        (v) => v.type === order.chequeType && v.pages === order.leaves
-      );
-      if (existing) {
-        existing.count++;
-      } else {
-        variations.push({
-          type: order.chequeType,
-          pages: order.leaves,
-          count: 1,
-          loading: false,
-          completed: false,
-        });
-      }
-    });
+    if (orders[0]?.bankId !== 8) {
+      orders.forEach((order) => {
+        const existing = variations.find(
+          (v) => v.type === order.chequeType && v.pages === order.leaves,
+        );
+        if (existing) {
+          existing.count++;
+        } else {
+          variations.push({
+            type: order.chequeType,
+            pages: order.leaves,
+            count: 1,
+            loading: false,
+            completed: false,
+          });
+        }
+      });
 
-    variations.sort((a, b) => {
-      if (a.type === b.type) return a.pages - b.pages;
-      return a.type.localeCompare(b.type);
-    });
+      variations.sort((a, b) => {
+        if (a.type === b.type) return a.pages - b.pages;
+        return a.type.localeCompare(b.type);
+      });
 
-    checkTypeVariations.value = variations;
+      checkTypeVariations.value = variations;
+    } else {
+      orders.forEach((order) => {
+        const existing = variations.find(
+          (v) =>
+            v.type === order.chequeType &&
+            v.pages === order.leaves &&
+            v.accFlag === order.accFlag,
+        );
+        if (existing) {
+          existing.count++;
+        } else {
+          variations.push({
+            type: order.chequeType,
+            pages: order.leaves,
+            count: 1,
+            loading: false,
+            completed: false,
+            accFlag: order.accFlag,
+          });
+        }
+      });
+
+      variations.sort((a, b) => {
+        if (a.type === b.type) return a.pages - b.pages;
+        return a.type.localeCompare(b.type);
+      });
+
+      checkTypeVariations.value = variations;
+    }
   };
 
   // এক্সপোর্ট স্টেট ম্যানেজমেন্ট
   const setExportState = (
     variation: CheckTypeVariation | null,
-    options: { loading?: boolean; completed?: boolean }
+    options: { loading?: boolean; completed?: boolean },
   ) => {
     if (variation) {
       if (options.loading !== undefined) variation.loading = options.loading;
@@ -107,10 +137,15 @@ export const useOrderExport = () => {
   const exportByCheckTypeAndPages = async (
     checkType: string,
     pages: number,
-    orders: OrderRequisition[]
+    orders: OrderRequisition[],
+    accFlag?: string,
   ) => {
-    const variation = checkTypeVariations.value.find(
-      (ct) => ct.type === checkType && ct.pages === pages
+    const bankId = orders[0]?.bankId;
+    // 🔹 Find variation (if bankId === 8, include accFlag in condition)
+    const variation = checkTypeVariations.value.find((ct) =>
+      bankId === 8
+        ? ct.type === checkType && ct.pages === pages && ct.accFlag === accFlag
+        : ct.type === checkType && ct.pages === pages,
     );
 
     if (!variation || variation.completed) return;
@@ -118,21 +153,31 @@ export const useOrderExport = () => {
     setExportState(variation, { loading: true });
 
     try {
-      const matchingOrders = orders.filter(
-        (order) => order.chequeType === checkType && order.leaves === pages
+      // 🔹 Filter matching orders
+      const matchingOrders = orders.filter((order) =>
+        bankId === 8
+          ? order.chequeType === checkType &&
+            order.leaves === pages &&
+            order.accFlag === accFlag
+          : order.chequeType === checkType && order.leaves === pages,
       );
-
+      if (!matchingOrders.length) {
+        message.warning("No matching data found");
+        return;
+      }
+      // 🔹 Generate file name
       const todayDate = new Date()
         .toLocaleDateString("en-GB")
         .split("/")
         .join("-");
+
       const bankName = matchingOrders[0]?.bankName || "UnknownBank";
 
       let fileName = "";
       if (matchingOrders[0]?.isAgent) {
-        fileName = `${todayDate}_${bankName}_${checkType}_${pages}_Agent`;
+        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}_Agent`;
       } else {
-        fileName = `${todayDate}_${bankName}_${checkType}_${pages}`;
+        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}`;
       }
 
       // চেক টাইপের জন্য আলাদা ফরম্যাটিং
@@ -140,10 +185,17 @@ export const useOrderExport = () => {
       await exportToExcel(formattedData, fileName, checkType);
 
       setExportState(variation, { completed: true });
-      message.success(`Successfully exported ${checkType} (${pages} pages)`);
+      message.success(
+        `Successfully exported ${checkType} (${pages} pages) ${accFlag ? "(" + accFlag + ")" : ""}`,
+      );
     } catch (error) {
-      console.error(`Export error for ${checkType} (${pages}):`, error);
-      message.error(`Failed to export ${checkType} (${pages} pages)`);
+      console.error(
+        `Export error for ${checkType} (${pages}) ${accFlag ? "(" + accFlag + ")" : ""}:`,
+        error,
+      );
+      message.error(
+        `Failed to export ${checkType} (${pages} pages) ${accFlag ? "(" + accFlag + ")" : ""}`,
+      );
     } finally {
       setExportState(variation, { loading: false });
     }
@@ -220,7 +272,7 @@ export const useOrderExport = () => {
       challanIds.sort((a: number, b: number) => a - b);
       let challans = await getChallanExportService(challanIds);
       challans.sort((a, b) =>
-        a.receivingBranchName.localeCompare(b.receivingBranchName)
+        a.receivingBranchName.localeCompare(b.receivingBranchName),
       );
 
       // Generate PDF
@@ -232,14 +284,14 @@ export const useOrderExport = () => {
           toBase64(isFintera ? FinteralogoImage : FlexItlogoImage),
           toBase64(isFintera ? FinteraFooterImage : FlexItFooterImage),
           toBase64(AuthSignature),
-        ]
+        ],
       );
 
       generateChallanPdf(
         challans,
         logoBase64,
         footerBase64,
-        authSignatureBase64
+        authSignatureBase64,
       );
       return true;
     } catch (error) {
@@ -262,7 +314,7 @@ export const useOrderExport = () => {
             reader.onloadend = () => resolve(reader.result as string);
             reader.onerror = reject;
             reader.readAsDataURL(blob);
-          })
+          }),
       );
   };
 
@@ -305,7 +357,7 @@ export const useOrderExport = () => {
     });
 
     formattedData.sort((a, b) =>
-      a["Customer Address"].localeCompare(b["Customer Address"])
+      a["Customer Address"].localeCompare(b["Customer Address"]),
     );
 
     return formattedData;
@@ -347,7 +399,7 @@ export const useOrderExport = () => {
     });
 
     formattedData.sort((a, b) =>
-      a["Customer Address"].localeCompare(b["Customer Address"])
+      a["Customer Address"].localeCompare(b["Customer Address"]),
     );
 
     return formattedData;
@@ -362,6 +414,8 @@ export const useOrderExport = () => {
       return order.branchName.split(",")[0];
     } else if (order.bankName === "Shimanto Bank PLC") {
       return order.branchCode;
+    } else if (order.bankId === 8 && order.chequeType === "PO") {
+      return `${order.branchName} (${order.routingNo})`;
     } else {
       return order.branchName;
     }
@@ -375,7 +429,7 @@ export const useOrderExport = () => {
   };
   // চেক টাইপ এক্সপোর্টের জন্য ব্রাঞ্চ নাম ফরম্যাটিং
   const getCheckTypeFormattedBranchName = (order: OrderRequisition) => {
-    if (order.isAgent && order.bankName === "Midland Bank PLC") {
+    if (order.isAgent && order.bankId === 2) {
       return `B-${order.branchName} (${
         order.receivingBranchName?.slice(-7) || ""
       }) (${order.routingNo})`;
@@ -386,7 +440,7 @@ export const useOrderExport = () => {
         order.chequePrefix === "PO")
     ) {
       return `${order.branchName} (${order.routingNo})`;
-    } else if (order.bankName === "Pubali Bank PLC.") {
+    } else if (order.bankId === 1) {
       return order.branchName.split(",")[0];
     } else if (order.bankName === "Shimanto Bank PLC") {
       return order.branchCode;

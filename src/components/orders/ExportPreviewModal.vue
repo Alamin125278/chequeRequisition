@@ -41,7 +41,7 @@
         />
 
         <!-- Preview Table -->
-        <PreviewTable :data="orders" :loading="loading" />
+        <!-- <PreviewTable :data="orders" :loading="loading" /> -->
 
         <!-- Empty State -->
         <div
@@ -115,7 +115,7 @@ interface Props {
 interface Emits {
   (e: "update:visible", value: boolean): void;
   (e: "export-psi"): void;
-  (e: "export-check-type", type: string, pages: number): void;
+  (e: "export-check-type", type: string, pages: number, accFlag?: string): void;
   (e: "export-challan"): void;
   (e: "submit"): void;
   (e: "cancel"): void;
@@ -139,15 +139,19 @@ watch(
       // মোডাল খুললে এবং ডেটা না থাকলে প্যারেন্টকে জানান
       console.log("Modal opened with empty data, might need refresh");
     }
-  }
+  },
 );
 
 const handleExportPSI = () => {
   emit("export-psi");
 };
 
-const handleExportCheckType = (type: string, pages: number) => {
-  emit("export-check-type", type, pages);
+const handleExportCheckType = (
+  type: string,
+  pages: number,
+  accFlag?: string,
+) => {
+  emit("export-check-type", type, pages, accFlag);
 };
 
 const handleExportChallan = () => {

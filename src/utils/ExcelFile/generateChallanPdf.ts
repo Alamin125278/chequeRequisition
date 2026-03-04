@@ -10,9 +10,11 @@ interface ChallanItem {
   chequeType?: string;
   serverity: number;
   branchName?: string;
+  accFlag?: string;
 }
 
 interface Challan {
+  bankId: number;
   bankName: string;
   receivingBranchName: string;
   challanDate: string;
@@ -28,11 +30,18 @@ interface Challan {
   items?: ChallanItem[];
 }
 
+function cleanText(text: string) {
+  return text
+    .replace(/\u007f/g, "") // remove DEL char
+    .replace(/[\u0000-\u001F]/g, "") // remove control chars
+    .trim();
+}
+
 export const generateChallanPdf = async (
   challans: Challan[],
   headerImageBase64: string,
   footerImageBase64: string,
-  authSignatureBase64: string
+  authSignatureBase64: string,
 ) => {
   const pdfDoc = await PDFDocument.create();
   const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -40,19 +49,19 @@ export const generateChallanPdf = async (
 
   // Image Embed করার জন্য ArrayBuffer নিয়ে আসা
   const headerImageBytes = await fetch(headerImageBase64).then((r) =>
-    r.arrayBuffer()
+    r.arrayBuffer(),
   );
   const footerImageBytes = await fetch(footerImageBase64).then((r) =>
-    r.arrayBuffer()
+    r.arrayBuffer(),
   );
   const headerImage = await pdfDoc.embedPng(headerImageBytes);
   const footerImage = await pdfDoc.embedPng(footerImageBytes);
 
   const authorizedSignatureBytes = await fetch(authSignatureBase64).then((r) =>
-    r.arrayBuffer()
+    r.arrayBuffer(),
   );
   const authorizedSignatureImage = await pdfDoc.embedPng(
-    authorizedSignatureBytes
+    authorizedSignatureBytes,
   );
 
   function formatDate(dateInput: string | Date): string {
@@ -80,48 +89,6 @@ export const generateChallanPdf = async (
     return `${day} ${month} ${year}`;
   }
 
-  // function drawWrappedTextWithCharLimit(
-  //   page: any,
-  //   text: string,
-  //   x: number,
-  //   y: number,
-  //   maxWidth: number,
-  //   font: any,
-  //   fontSize: number,
-  //   lineHeight: number,
-  //   maxChars: number = 30
-  // ) {
-  //   // Step 1: Character limit check
-  //   let trimmedText = text;
-  //   if (text.length > maxChars) {
-  //     trimmedText = text.slice(0, maxChars).trim() + "...";
-  //   }
-
-  //   // Step 2: Word-wrapping the (possibly trimmed) text
-  //   const words = trimmedText.split(" ");
-  //   let line = "";
-  //   let curY = y;
-
-  //   for (let i = 0; i < words.length; i++) {
-  //     const testLine = line ? line + " " + words[i] : words[i];
-  //     const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-
-  //     if (testWidth > maxWidth && i > 0) {
-  //       // আগের লাইন ড্র করো
-  //       page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
-  //       line = words[i];
-  //       curY -= lineHeight;
-  //     } else {
-  //       line = testLine;
-  //     }
-  //   }
-
-  //   // বাকি লাইন ড্র করো
-  //   if (line) {
-  //     page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
-  //   }
-  // }
-
   function drawWrappedTextWithCharLimit(
     page: any,
     text: string,
@@ -131,7 +98,7 @@ export const generateChallanPdf = async (
     font: any,
     fontSize: number,
     lineHeight: number,
-    maxChars: number = 30
+    maxChars: number = 30,
   ) {
     // Tab character রিপ্লেস করা
     let trimmedText = text.replace(/\t/g, " ");
@@ -165,24 +132,40 @@ export const generateChallanPdf = async (
     }
   }
 
-  const pageWidth = 595.28;
+  const pageWidth = 595.44;
   const pageHeight = 841.89;
-  const marginX = 16;
+  const marginX = 10;
   const marginY = 30;
-  const colWidths = [30, 75, 115, 50, 55, 50, 55, 45, 90]; // কলামের প্রস্থ সামঞ্জস্য করা হয়েছে
-  const headers = [
-    "Sl.No",
-    "Account No",
-    "Account Name",
-    "Start No",
-    "Books X Lvs",
-    "End No",
-    "A/C Type",
-    "Status",
-    "Cus.Branch",
-  ];
+  const bankId = challans[0].bankId;
+  const colWidths =
+    bankId === 8
+      ? [75, 115, 50, 50, 50, 55, 45, 70, 70]
+      : [30, 75, 120, 50, 55, 50, 55, 45, 95]; // কলামের প্রস্থ সামঞ্জস্য করা হয়েছে
+  const headers =
+    bankId === 8
+      ? [
+          "Account No",
+          "Account Name",
+          "Start No",
+          "Bks X Lvs",
+          "End No",
+          "A/C Type",
+          "A/C Flag",
+          "Cus.Sign",
+          "Sign verified",
+        ]
+      : [
+          "SL.No",
+          "Account No",
+          "Account Name",
+          "Start No",
+          "Bks X Lvs",
+          "End No",
+          "A/C Type",
+          "Status",
+          "Cus.Branch",
+        ];
   const rowHeight = 22;
-  const headerHeight = 180; // হেডারের জন্য পর্যাপ্ত জায়গা
   const footerHeight = 80; // ফুটার এবং সিগনেচারের জন্য জায়গা
 
   for (const challan of challans) {
@@ -287,7 +270,7 @@ export const generateChallanPdf = async (
       }
 
       contentY -= 15;
-      if (challan.bankName === "Midland Bank PLC") {
+      if (bankId === 2 || bankId === 8) {
         page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
           x: marginX + 8,
           y: contentY,
@@ -367,18 +350,32 @@ export const generateChallanPdf = async (
         y -= rowHeight + 22;
       }
 
-      const row = [
-        sl.toString(),
-        item.accountNo,
-        item.accountName,
-        item.startNo,
-        `${item.bookQty}X${item.leaves}`,
-        item.endNo,
-        item.chequeType,
-        item.serverity === 1 ? "Urgent" : "Normal",
-        challan.isAgent ? `B-${item.branchName}` : item.branchName,
-      ];
-
+      const row =
+        bankId === 8
+          ? [
+              item.accountNo,
+              item.accountName,
+              item.startNo,
+              `${item.bookQty}X${item.leaves}`,
+              item.endNo,
+              item.chequeType,
+              item.accFlag,
+              "",
+              "",
+            ]
+          : [
+              sl.toString(),
+              item.accountNo,
+              item.accountName,
+              item.startNo,
+              `${item.bookQty}X${item.leaves}`,
+              item.endNo,
+              item.chequeType,
+              item.serverity === 1 ? "Urgent" : "Normal",
+              challan.isAgent && bankId == 2
+                ? `B-${item.branchName}`
+                : item.branchName,
+            ];
       let cx = marginX;
       colWidths.forEach((w, i) => {
         page.drawRectangle({
@@ -401,16 +398,17 @@ export const generateChallanPdf = async (
             font,
             7,
             9,
-            30
+            30,
           );
         } else {
           // অন্যান্য কলামের জন্য সেন্টার করা টেক্সট
           const text = String(row[i] ?? "");
-          const textWidth = font.widthOfTextAtSize(text, 7);
+          const safeText = cleanText(text);
+          const textWidth = font.widthOfTextAtSize(safeText, 7);
           const centerX = cx + (w - textWidth) / 2;
           const textY = y + (rowHeight - 7) / 2 + 3;
 
-          page.drawText(text, {
+          page.drawText(safeText, {
             x: Math.max(cx + 2, centerX),
             y: textY,
             size: 7,

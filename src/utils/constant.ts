@@ -68,5 +68,6 @@ export default {
     getOrderTracking: "/api/dashboard/ordertracking",
     getEndNoBybankAndtype: "/api/serial/end-number",
     updateEndNoBybankAndtype: "/api/serial/end-number",
+    getCouriersForDropDown: "/api/couriers/dropdown",
   },
 };
