@@ -429,15 +429,22 @@ interface ReportItem {
   sb50: number;
   sba10: number;
   msd10: number;
+  msd50: number;
   cd5: number;
   cd10: number;
   cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  acd25: number;
+  acd50: number;
+  acd100: number;
   cda25: number;
   awcd25: number;
   sna25: number;
+  snd25: number;
+  snd50: number;
+  snd100: number;
   msnd25: number;
   po50: number;
   po100: number;
@@ -460,15 +467,22 @@ interface Totals {
   sb50: number;
   sba10: number;
   msd10: number;
+  msd50: number;
   cd5: number;
   cd10: number;
   cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  acd25: number;
+  acd50: number;
+  acd100: number;
   cda25: number;
   awcd25: number;
   sna25: number;
+  snd25: number;
+  snd50: number;
+  snd100: number;
   msnd25: number;
   po50: number;
   po100: number;
@@ -521,15 +535,22 @@ const totals = computed((): Totals => {
     sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     sba10: data.reduce((sum, item) => sum + item.sba10, 0),
     msd10: data.reduce((sum, item) => sum + item.msd10, 0),
+    msd50: data.reduce((sum, item) => sum + item.msd50, 0),
     cd5: data.reduce((sum, item) => sum + item.cd5, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
     cd20: data.reduce((sum, item) => sum + item.cd20, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
     cd100: data.reduce((sum, item) => sum + item.cd100, 0),
+    acd25: data.reduce((sum, item) => sum + item.acd25, 0),
+    acd50: data.reduce((sum, item) => sum + item.acd50, 0),
+    acd100: data.reduce((sum, item) => sum + item.acd100, 0),
     cda25: data.reduce((sum, item) => sum + item.cda25, 0),
     awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
     sna25: data.reduce((sum, item) => sum + item.sna25, 0),
+    snd25: data.reduce((sum, item) => sum + item.snd25, 0),
+    snd50: data.reduce((sum, item) => sum + item.snd50, 0),
+    snd100: data.reduce((sum, item) => sum + item.snd100, 0),
     msnd25: data.reduce((sum, item) => sum + item.msnd25, 0),
     po50: data.reduce((sum, item) => sum + item.po50, 0),
     po100: data.reduce((sum, item) => sum + item.po100, 0),
@@ -553,15 +574,22 @@ type ReportColumnKey =
   | "sb50"
   | "sba10"
   | "msd10"
+  | "msd50"
   | "cd5"
   | "cd10"
   | "cd20"
   | "cd25"
   | "cd50"
   | "cd100"
+  | "acd25"
+  | "acd50"
+  | "acd100"
   | "cda25"
   | "awcd25"
   | "sna25"
+  | "snd25"
+  | "snd50"
+  | "snd100"
   | "msnd25"
   | "po50"
   | "po100"
@@ -581,6 +609,7 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "sb50", label: "SB(50)" },
   { key: "sba10", label: "SBA(10)" },
   { key: "msd10", label: "MSD(10)" },
+  { key: "msd50", label: "MSD(50)" },
   { key: "cd5", label: "CD(5)" },
   { key: "cd10", label: "CD(10)" },
   { key: "cd20", label: "CD(20)" },
@@ -588,8 +617,14 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "cd50", label: "CD(50)" },
   { key: "cd100", label: "CD(100)" },
   { key: "cda25", label: "CDA(25)" },
+  { key: "acd25", label: "ACD(25)" },
+  { key: "acd50", label: "ACD(50)" },
+  { key: "acd100", label: "ACD(100)" },
   { key: "awcd25", label: "AWCD(25)" },
   { key: "sna25", label: "SNA(25)" },
+  { key: "snd25", label: "SND(25)" },
+  { key: "snd50", label: "SND(50)" },
+  { key: "snd100", label: "SND(100)" },
   { key: "msnd25", label: "MSND(25)" },
   { key: "po50", label: "PO(50)" },
   { key: "po100", label: "PO(100)" },

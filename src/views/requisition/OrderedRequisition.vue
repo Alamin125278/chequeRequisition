@@ -96,9 +96,9 @@ const exportModalVisible = ref(false);
 const filters = ref<Filters>({
   bank: undefined,
   accountNumber: undefined,
-  severity: 2 as number,
+  severity: undefined,
   requestDate: undefined,
-  agentType: false,
+  agentType: undefined,
 });
 
 // Computed Properties

@@ -356,9 +356,9 @@ export const useOrderExport = () => {
       }
     });
 
-    formattedData.sort((a, b) =>
-      a["Customer Address"].localeCompare(b["Customer Address"]),
-    );
+    // formattedData.sort((a, b) =>
+    //   a["Customer Address"].localeCompare(b["Customer Address"]),
+    // );
 
     return formattedData;
   };
@@ -366,6 +366,9 @@ export const useOrderExport = () => {
   // চেক টাইপ এক্সপোর্টের জন্য আলাদা ফরম্যাটিং ফাংশন
   const formatCheckTypeData = (orders: OrderRequisition[]) => {
     const formattedData: any[] = [];
+    // const sortedOrders = [...orders].sort((a, b) =>
+    //   (a.receivingBranchName || "").localeCompare(b.receivingBranchName || ""),
+    // );
 
     orders.forEach((order) => {
       const { bookQty, leaves, startNo } = order;
@@ -398,21 +401,21 @@ export const useOrderExport = () => {
       }
     });
 
-    formattedData.sort((a, b) =>
-      a["Customer Address"].localeCompare(b["Customer Address"]),
-    );
+    // formattedData.sort((a, b) =>
+    //   a["Customer Address"].localeCompare(b["Customer Address"]),
+    // );
 
     return formattedData;
   };
   // PSI-এর জন্য ব্রাঞ্চ নাম ফরম্যাটিং
   const getPSIFormattedBranchName = (order: OrderRequisition) => {
-    if (order.isAgent && order.bankName === "Midland Bank PLC") {
+    if (order.isAgent && order.bankId === 2) {
       return `B-${order.branchName} (${
         order.receivingBranchName?.slice(-7) || ""
       })`;
-    } else if (order.bankName === "Pubali Bank PLC.") {
+    } else if (order.bankId === 1) {
       return order.branchName.split(",")[0];
-    } else if (order.bankName === "Shimanto Bank PLC") {
+    } else if (order.bankId === 7) {
       return order.branchCode;
     } else if (order.bankId === 8 && order.chequeType === "PO") {
       return `${order.branchName} (${order.routingNo})`;
@@ -421,8 +424,10 @@ export const useOrderExport = () => {
     }
   };
   const getPSIFormattedDeliveryBranchName = (order: OrderRequisition) => {
-    if (order.bankName === "Shimanto Bank PLC") {
+    if (order.bankId === 7) {
       return order.branchCode;
+    } else if (order.bankId === 5) {
+      return order.branchName;
     } else {
       return order.receivingBranchName;
     }
@@ -434,23 +439,23 @@ export const useOrderExport = () => {
         order.receivingBranchName?.slice(-7) || ""
       }) (${order.routingNo})`;
     } else if (
-      (order.bankName === "Modhumoti Bank PLC." &&
-        order.chequePrefix === "PO") ||
-      (order.bankName === "Shahjalal Islami Bank PLC" &&
-        order.chequePrefix === "PO")
+      (order.bankId === 3 && order.chequePrefix === "PO") ||
+      order.bankId === 5
     ) {
       return `${order.branchName} (${order.routingNo})`;
     } else if (order.bankId === 1) {
       return order.branchName.split(",")[0];
-    } else if (order.bankName === "Shimanto Bank PLC") {
+    } else if (order.bankId === 7) {
       return order.branchCode;
     } else {
       return order.branchName;
     }
   };
   const getCheckTypeFormattedDeliveryBranchName = (order: OrderRequisition) => {
-    if (order.bankName === "Shimanto Bank PLC") {
+    if (order.bankId === 7) {
       return order.branchCode;
+    } else if (order.bankId === 5) {
+      return order.branchName;
     } else {
       return order.receivingBranchName;
     }

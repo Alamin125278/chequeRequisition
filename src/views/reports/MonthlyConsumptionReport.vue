@@ -181,6 +181,30 @@ const featchBanks = async () => {
 
 interface ReportItem {
   requestDate: string;
+  csbcd5Books: number;
+  csbcd5Leaves: number;
+  csbcd10Books: number;
+  csbcd10Leaves: number;
+  csbcd20Books: number;
+  csbcd20Leaves: number;
+  csbcd50Books: number;
+  csbcd50Leaves: number;
+  isbcd5Books: number;
+  isbcd5Leaves: number;
+  isbcd10Books: number;
+  isbcd10Leaves: number;
+  isbcd20Books: number;
+  isbcd20Leaves: number;
+  isbcd50Books: number;
+  isbcd50Leaves: number;
+  psbcd5Books: number;
+  psbcd5Leaves: number;
+  psbcd10Books: number;
+  psbcd10Leaves: number;
+  psbcd20Books: number;
+  psbcd20Leaves: number;
+  psbcd50Books: number;
+  psbcd50Leaves: number;
   sb10Books: number;
   sb10Leaves: number;
   sb20Books: number;
@@ -191,6 +215,8 @@ interface ReportItem {
   sba10Leaves: number;
   msd10Books: number;
   msd10Leaves: number;
+  msd50Books: number;
+  msd50Leaves: number;
   cd10Books: number;
   cd10Leaves: number;
   cd25Books: number;
@@ -205,10 +231,22 @@ interface ReportItem {
   cc100Leaves: number;
   cda25Books: number;
   cda25Leaves: number;
+  acd25Books: number;
+  acd25Leaves: number;
+  acd50Books: number;
+  acd50Leaves: number;
+  acd100Books: number;
+  acd100Leaves: number;
   awcd25Books: number;
   awcd25Leaves: number;
   sna25Books: number;
   sna25Leaves: number;
+  snd25Books: number;
+  snd25Leaves: number;
+  snd50Books: number;
+  snd50Leaves: number;
+  snd100Books: number;
+  snd100Leaves: number;
   msnd25Books: number;
   msnd25Leaves: number;
   po50Books: number;
@@ -234,6 +272,30 @@ interface ReportItem {
 }
 
 interface Totals {
+  csbcd5Books: number;
+  csbcd5Leaves: number;
+  csbcd10Books: number;
+  csbcd10Leaves: number;
+  csbcd20Books: number;
+  csbcd20Leaves: number;
+  csbcd50Books: number;
+  csbcd50Leaves: number;
+  isbcd5Books: number;
+  isbcd5Leaves: number;
+  isbcd10Books: number;
+  isbcd10Leaves: number;
+  isbcd20Books: number;
+  isbcd20Leaves: number;
+  isbcd50Books: number;
+  isbcd50Leaves: number;
+  psbcd5Books: number;
+  psbcd5Leaves: number;
+  psbcd10Books: number;
+  psbcd10Leaves: number;
+  psbcd20Books: number;
+  psbcd20Leaves: number;
+  psbcd50Books: number;
+  psbcd50Leaves: number;
   sb10Books: number;
   sb10Leaves: number;
   sb20Books: number;
@@ -244,6 +306,8 @@ interface Totals {
   sba10Leaves: number;
   msd10Books: number;
   msd10Leaves: number;
+  msd50Books: number;
+  msd50Leaves: number;
   cd10Books: number;
   cd10Leaves: number;
   cd25Books: number;
@@ -258,10 +322,22 @@ interface Totals {
   cc100Leaves: number;
   cda25Books: number;
   cda25Leaves: number;
+  acd25Books: number;
+  acd25Leaves: number;
+  acd50Books: number;
+  acd50Leaves: number;
+  acd100Books: number;
+  acd100Leaves: number;
   awcd25Books: number;
   awcd25Leaves: number;
   sna25Books: number;
   sna25Leaves: number;
+  snd25Books: number;
+  snd25Leaves: number;
+  snd50Books: number;
+  snd50Leaves: number;
+  snd100Books: number;
+  snd100Leaves: number;
   msnd25Books: number;
   msnd25Leaves: number;
   po50Books: number;
@@ -314,6 +390,30 @@ const reportData = ref<ReportItem[]>([]);
 const totals = computed((): Totals => {
   const data = reportData.value;
   return {
+    csbcd5Books: data.reduce((sum, item) => sum + item.csbcd5Books, 0),
+    csbcd5Leaves: data.reduce((sum, item) => sum + item.csbcd5Leaves, 0),
+    csbcd10Books: data.reduce((sum, item) => sum + item.csbcd10Books, 0),
+    csbcd10Leaves: data.reduce((sum, item) => sum + item.csbcd10Leaves, 0),
+    csbcd20Books: data.reduce((sum, item) => sum + item.csbcd20Books, 0),
+    csbcd20Leaves: data.reduce((sum, item) => sum + item.csbcd20Leaves, 0),
+    csbcd50Books: data.reduce((sum, item) => sum + item.csbcd50Books, 0),
+    csbcd50Leaves: data.reduce((sum, item) => sum + item.csbcd50Leaves, 0),
+    isbcd5Books: data.reduce((sum, item) => sum + item.isbcd5Books, 0),
+    isbcd5Leaves: data.reduce((sum, item) => sum + item.isbcd5Leaves, 0),
+    isbcd10Books: data.reduce((sum, item) => sum + item.isbcd10Books, 0),
+    isbcd10Leaves: data.reduce((sum, item) => sum + item.isbcd10Leaves, 0),
+    isbcd20Books: data.reduce((sum, item) => sum + item.isbcd20Books, 0),
+    isbcd20Leaves: data.reduce((sum, item) => sum + item.isbcd20Leaves, 0),
+    isbcd50Books: data.reduce((sum, item) => sum + item.isbcd50Books, 0),
+    isbcd50Leaves: data.reduce((sum, item) => sum + item.isbcd50Leaves, 0),
+    psbcd5Books: data.reduce((sum, item) => sum + item.psbcd5Books, 0),
+    psbcd5Leaves: data.reduce((sum, item) => sum + item.psbcd5Leaves, 0),
+    psbcd10Books: data.reduce((sum, item) => sum + item.psbcd10Books, 0),
+    psbcd10Leaves: data.reduce((sum, item) => sum + item.psbcd10Leaves, 0),
+    psbcd20Books: data.reduce((sum, item) => sum + item.psbcd20Books, 0),
+    psbcd20Leaves: data.reduce((sum, item) => sum + item.psbcd20Leaves, 0),
+    psbcd50Books: data.reduce((sum, item) => sum + item.psbcd50Books, 0),
+    psbcd50Leaves: data.reduce((sum, item) => sum + item.psbcd50Leaves, 0),
     sb10Books: data.reduce((sum, item) => sum + item.sb10Books, 0),
     sb10Leaves: data.reduce((sum, item) => sum + item.sb10Leaves, 0),
     sb20Books: data.reduce((sum, item) => sum + item.sb20Books, 0),
@@ -324,6 +424,8 @@ const totals = computed((): Totals => {
     sba10Leaves: data.reduce((sum, item) => sum + item.sba10Leaves, 0),
     msd10Books: data.reduce((sum, item) => sum + item.msd10Books, 0),
     msd10Leaves: data.reduce((sum, item) => sum + item.msd10Leaves, 0),
+    msd50Books: data.reduce((sum, item) => sum + item.msd50Books, 0),
+    msd50Leaves: data.reduce((sum, item) => sum + item.msd50Leaves, 0),
     cd10Books: data.reduce((sum, item) => sum + item.cd10Books, 0),
     cd10Leaves: data.reduce((sum, item) => sum + item.cd10Leaves, 0),
     cd25Books: data.reduce((sum, item) => sum + item.cd25Books, 0),
@@ -338,10 +440,22 @@ const totals = computed((): Totals => {
     cc100Leaves: data.reduce((sum, item) => sum + item.cc100Leaves, 0),
     cda25Books: data.reduce((sum, item) => sum + item.cda25Books, 0),
     cda25Leaves: data.reduce((sum, item) => sum + item.cda25Leaves, 0),
+    acd25Books: data.reduce((sum, item) => sum + item.acd25Books, 0),
+    acd25Leaves: data.reduce((sum, item) => sum + item.acd25Leaves, 0),
+    acd50Books: data.reduce((sum, item) => sum + item.acd50Books, 0),
+    acd50Leaves: data.reduce((sum, item) => sum + item.acd50Leaves, 0),
+    acd100Books: data.reduce((sum, item) => sum + item.acd100Books, 0),
+    acd100Leaves: data.reduce((sum, item) => sum + item.acd100Leaves, 0),
     awcd25Books: data.reduce((sum, item) => sum + item.awcd25Books, 0),
     awcd25Leaves: data.reduce((sum, item) => sum + item.awcd25Leaves, 0),
     sna25Books: data.reduce((sum, item) => sum + item.sna25Books, 0),
     sna25Leaves: data.reduce((sum, item) => sum + item.sna25Leaves, 0),
+    snd25Books: data.reduce((sum, item) => sum + item.snd25Books, 0),
+    snd25Leaves: data.reduce((sum, item) => sum + item.snd25Leaves, 0),
+    snd50Books: data.reduce((sum, item) => sum + item.snd50Books, 0),
+    snd50Leaves: data.reduce((sum, item) => sum + item.snd50Leaves, 0),
+    snd100Books: data.reduce((sum, item) => sum + item.snd100Books, 0),
+    snd100Leaves: data.reduce((sum, item) => sum + item.snd100Leaves, 0),
     msnd25Books: data.reduce((sum, item) => sum + item.msnd25Books, 0),
     msnd25Leaves: data.reduce((sum, item) => sum + item.msnd25Leaves, 0),
     po50Books: data.reduce((sum, item) => sum + item.po50Books, 0),
@@ -402,13 +516,13 @@ const handleDownload = async () => {
         const bDate = new Date(b.requestDate).getTime();
         return aDate - bDate;
       });
-      if (response.data.consumptionReports.length === 0) {
-        message.warning("No data found for the selected date range");
-        return;
-      } else {
-        downloadExcel();
-        message.success("Report generated successfully");
-      }
+      // if (response.data.consumptionReports.length === 0) {
+      //   message.warning("No data found for the selected date range");
+      //   return;
+      // } else {
+      downloadExcel();
+      message.success("Report generated successfully");
+      // }
     } else {
       message.error("Failed to generate report");
     }
@@ -427,7 +541,7 @@ onMounted(() => {
 const downloadExcel = async () => {
   try {
     const selectedBank = banks.value.find(
-      (bank) => bank.id === formState.bankId
+      (bank) => bank.id === formState.bankId,
     );
     const bankName = selectedBank?.bankName || "Unknown Bank";
 
@@ -447,10 +561,10 @@ const downloadExcel = async () => {
       } else {
         // ভিন্ন মাস হলে, শুধু মাস-সাল রেঞ্জ দেখাবে
         dateRange = `${start.format("MMMM YYYY")} to ${end.format(
-          "MMMM YYYY"
+          "MMMM YYYY",
         )}`;
         dateRangeLabel = `${start.format("MMMM_YYYY")}_to_${end.format(
-          "MMMM_YYYY"
+          "MMMM_YYYY",
         )}`;
       }
     }
@@ -481,50 +595,6 @@ const downloadExcel = async () => {
       left: { style: "thin" },
       right: { style: "thin" },
     } as const;
-
-    // // Header Section
-    // sheet.mergeCells("A1:T1");
-    // sheet.getCell("A1").value = bankName;
-    // sheet.getCell("A1").font = { bold: true, size: 16 };
-    // sheet.getCell("A1").alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-
-    // sheet.mergeCells("A2:T2");
-    // sheet.getCell("A2").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
-    // sheet.getCell("A2").font = { bold: true, size: 12 };
-    // sheet.getCell("A2").alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-
-    // sheet.mergeCells("A3:T3");
-    // sheet.getCell("A3").value = `Date: ${dateRange}`;
-    // sheet.getCell("A3").font = { bold: true, size: 12 };
-    // sheet.getCell("A3").alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-
-    // // Main Title
-    // sheet.mergeCells("A4:T4");
-    // sheet.getCell("A4").value = "Item Of Books";
-    // sheet.getCell("A4").font = {
-    //   bold: true,
-    //   size: 14,
-    //   color: { argb: "FFFFFF" },
-    // };
-    // sheet.getCell("A4").fill = {
-    //   type: "pattern",
-    //   pattern: "solid",
-    //   fgColor: { argb: "70AD47" },
-    // };
-    // sheet.getCell("A4").alignment = {
-    //   horizontal: "center",
-    //   vertical: "middle",
-    // };
-    // sheet.getCell("A4").border = borderStyle;
 
     // Bank-specific header configuration
     const bankHeaderConfig = {
@@ -606,8 +676,32 @@ const downloadExcel = async () => {
         dataKeys: ["po100"],
       },
       "Shahjalal Islami Bank PLC": {
-        mainHeaders: ["SL", "Date", "PO-100", "Total Books", "Total Leaves"],
-        dataKeys: ["po100"],
+        mainHeaders: [
+          "SL",
+          "Date",
+          "MSD-10",
+          "MSD-50",
+          "ACD-25",
+          "ACD-50",
+          "ACD-100",
+          "SND-25",
+          "SND-50",
+          "SND-100",
+          "PO-100",
+          "Total Books",
+          "Total Leaves",
+        ],
+        dataKeys: [
+          "msd10",
+          "msd50",
+          "acd25",
+          "acd50",
+          "acd100",
+          "snd25",
+          "snd50",
+          "snd100",
+          "po100",
+        ],
       },
       "Jamuna Bank PLC": {
         mainHeaders: [
@@ -619,6 +713,42 @@ const downloadExcel = async () => {
           "Total Leaves",
         ],
         dataKeys: ["sb10", "cd50"],
+      },
+      "Prime Bank PLC.": {
+        mainHeaders: [
+          "SL",
+          "Date",
+          "SB/CD-05",
+          "SB/CD-10",
+          "SB/CD-20",
+          "SB/CD-50",
+          "SB/CD-05",
+          "SB/CD-10",
+          "SB/CD-20",
+          "SB/CD-50",
+          "SB/CD-05",
+          "SB/CD-10",
+          "SB/CD-20",
+          "SB/CD-50",
+          "PO-100",
+          "Total Books",
+          "Total Leaves",
+        ],
+        dataKeys: [
+          "csbcd5",
+          "csbcd10",
+          "csbcd20",
+          "csbcd50",
+          "isbcd5",
+          "isbcd10",
+          "isbcd20",
+          "isbcd50",
+          "psbcd5",
+          "psbcd10",
+          "psbcd20",
+          "psbcd50",
+          "po100",
+        ],
       },
       // Default configuration for other banks
       default: {
@@ -643,47 +773,74 @@ const downloadExcel = async () => {
     // Create header structure
     let currentCol = 1;
 
-    // SL No column (A5 - merged vertically)
-    sheet.mergeCells(`A5:A6`);
-    sheet.getCell("A5").value = "SL";
-    sheet.getCell("A5").font = { bold: true };
-    sheet.getCell("A5").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    sheet.getCell("A5").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    sheet.getCell("A5").border = borderStyle;
+    if (selectedBank?.bankName === "Prime Bank PLC.") {
+      // SL No column (A6 - merged vertically)
+      sheet.mergeCells(`A6:A8`);
+      sheet.getCell("A6").value = "SL";
+      sheet.getCell("A6").font = { bold: true };
+      sheet.getCell("A6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("A6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      sheet.getCell("A6").border = borderStyle;
 
-    // Date column (B5 - merged vertically)
-    sheet.mergeCells(`B5:B6`);
-    sheet.getCell("B5").value = "Date";
-    sheet.getCell("B5").font = { bold: true };
-    sheet.getCell("B5").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    sheet.getCell("B5").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    sheet.getCell("B5").border = borderStyle;
+      // Date column (B7 - merged vertically)
+      sheet.mergeCells(`B6:B8`);
+      sheet.getCell("B6").value = "Date";
+      sheet.getCell("B6").font = { bold: true };
+      sheet.getCell("B6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("B6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      sheet.getCell("B6").border = borderStyle;
+    } else {
+      // SL No column (A7 - merged vertically)
+      sheet.mergeCells(`A7:A8`);
+      sheet.getCell("A7").value = "SL";
+      sheet.getCell("A7").font = { bold: true };
+      sheet.getCell("A7").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("A7").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      sheet.getCell("A7").border = borderStyle;
+      // Date column (B7 - merged vertically)
+      sheet.mergeCells(`B7:B8`);
+      sheet.getCell("B7").value = "Date";
+      sheet.getCell("B7").font = { bold: true };
+      sheet.getCell("B7").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("B7").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "FFFF00" },
+      };
+      sheet.getCell("B7").border = borderStyle;
+    }
 
     currentCol = 3; // Start from column C
 
     // Dynamic book type columns
     dataKeys.forEach((key, index) => {
-      const colLetter = String.fromCharCode(64 + currentCol); // A=65, B=66, etc.
-
       // Merge main header for this book type
-      sheet.mergeCells(
-        `${colLetter}5:${String.fromCharCode(64 + currentCol + 1)}5`
-      );
-      const mainHeaderCell = sheet.getCell(`${colLetter}5`);
+      sheet.mergeCells(7, currentCol, 7, currentCol + 1);
+      const mainHeaderCell = sheet.getCell(7, currentCol);
       mainHeaderCell.value = mainHeaders[index + 2]; // +2 because SL and Date are first two
       mainHeaderCell.font = { bold: true };
       mainHeaderCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -695,7 +852,7 @@ const downloadExcel = async () => {
       mainHeaderCell.border = borderStyle;
 
       // Books sub-header
-      const booksCell = sheet.getCell(`${colLetter}6`);
+      const booksCell = sheet.getCell(8, currentCol);
       booksCell.value = "Books";
       booksCell.font = { bold: true };
       booksCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -707,9 +864,7 @@ const downloadExcel = async () => {
       booksCell.border = borderStyle;
 
       // Leaves sub-header
-      const leavesCell = sheet.getCell(
-        `${String.fromCharCode(64 + currentCol + 1)}6`
-      );
+      const leavesCell = sheet.getCell(8, currentCol + 1);
       leavesCell.value = "Leaves";
       leavesCell.font = { bold: true };
       leavesCell.alignment = { horizontal: "center", vertical: "middle" };
@@ -724,53 +879,53 @@ const downloadExcel = async () => {
     });
 
     // Total Books column
-    const totalBooksCol = String.fromCharCode(64 + currentCol);
-    sheet.mergeCells(`${totalBooksCol}5:${totalBooksCol}6`);
-    sheet.getCell(`${totalBooksCol}5`).value = "Total Books";
-    sheet.getCell(`${totalBooksCol}5`).font = { bold: true };
-    sheet.getCell(`${totalBooksCol}5`).alignment = {
+    const rowStart = selectedBank?.bankName === "Prime Bank PLC." ? 6 : 7;
+    sheet.mergeCells(rowStart, currentCol, 8, currentCol);
+    sheet.getCell(rowStart, currentCol).value = "Total Books";
+    sheet.getCell(rowStart, currentCol).font = { bold: true };
+    sheet.getCell(rowStart, currentCol).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(`${totalBooksCol}5`).fill = {
+    sheet.getCell(rowStart, currentCol).fill = {
       type: "pattern",
       pattern: "solid",
       fgColor: { argb: "FFFF00" },
     };
-    sheet.getCell(`${totalBooksCol}5`).border = borderStyle;
+    sheet.getCell(rowStart, currentCol).border = borderStyle;
 
     // Total Leaves column
     const totalLeavesCol = String.fromCharCode(64 + currentCol + 1);
-    sheet.mergeCells(`${totalLeavesCol}5:${totalLeavesCol}6`);
-    sheet.getCell(`${totalLeavesCol}5`).value = "Total Leaves";
-    sheet.getCell(`${totalLeavesCol}5`).font = { bold: true };
-    sheet.getCell(`${totalLeavesCol}5`).alignment = {
+    sheet.mergeCells(rowStart, currentCol + 1, 8, currentCol + 1);
+    sheet.getCell(rowStart, currentCol + 1).value = "Total Leaves";
+    sheet.getCell(rowStart, currentCol + 1).font = { bold: true };
+    sheet.getCell(rowStart, currentCol + 1).alignment = {
       horizontal: "center",
       vertical: "middle",
     };
-    sheet.getCell(`${totalLeavesCol}5`).fill = {
+    sheet.getCell(rowStart, currentCol + 1).fill = {
       type: "pattern",
       pattern: "solid",
       fgColor: { argb: "FFFF00" },
     };
-    sheet.getCell(`${totalLeavesCol}5`).border = borderStyle;
+    sheet.getCell(rowStart, currentCol + 1).border = borderStyle;
     let totalPositivePayCol = totalLeavesCol;
 
     if (selectedBank?.bankName === "Midland Bank PLC") {
       totalPositivePayCol = String.fromCharCode(64 + currentCol + 2);
-      sheet.mergeCells(`${totalPositivePayCol}5:${totalPositivePayCol}6`);
-      sheet.getCell(`${totalPositivePayCol}5`).value = "Total Positive Pay";
-      sheet.getCell(`${totalPositivePayCol}5`).font = { bold: true };
-      sheet.getCell(`${totalPositivePayCol}5`).alignment = {
+      sheet.mergeCells(`${totalPositivePayCol}7:${totalPositivePayCol}8`);
+      sheet.getCell(`${totalPositivePayCol}7`).value = "Total Positive Pay";
+      sheet.getCell(`${totalPositivePayCol}7`).font = { bold: true };
+      sheet.getCell(`${totalPositivePayCol}7`).alignment = {
         horizontal: "center",
         vertical: "middle",
       };
-      sheet.getCell(`${totalPositivePayCol}5`).fill = {
+      sheet.getCell(`${totalPositivePayCol}7`).fill = {
         type: "pattern",
         pattern: "solid",
         fgColor: { argb: "FFFF00" },
       };
-      sheet.getCell(`${totalPositivePayCol}5`).border = borderStyle;
+      sheet.getCell(`${totalPositivePayCol}7`).border = borderStyle;
     }
     // Data rows
     let rowIndex = 7;
@@ -808,10 +963,10 @@ const downloadExcel = async () => {
     // Add grand totals for each book type
     dataKeys.forEach((key) => {
       grandTotalData.push(
-        totals.value[`${key}Books` as keyof typeof totals.value] || 0
+        totals.value[`${key}Books` as keyof typeof totals.value] || 0,
       );
       grandTotalData.push(
-        totals.value[`${key}Leaves` as keyof typeof totals.value] || 0
+        totals.value[`${key}Leaves` as keyof typeof totals.value] || 0,
       );
     });
 
@@ -838,49 +993,169 @@ const downloadExcel = async () => {
 
     // Header Section
     const titleCol = totalPositivePayCol;
-    sheet.mergeCells(`A1:${titleCol}1`);
-    sheet.getCell("A1").value = bankName;
-    sheet.getCell("A1").font = { bold: true, size: 16 };
-    sheet.getCell("A1").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
+    if (selectedBank?.bankName === "Prime Bank PLC.") {
+      sheet.mergeCells(`A2:AE2`);
+      sheet.getCell("A2").value = bankName;
+      sheet.getCell("A2").font = { bold: true, size: 16 };
+      sheet.getCell("A2").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
 
-    sheet.mergeCells(`A2:${titleCol}2`);
-    sheet.getCell("A2").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
-    sheet.getCell("A2").font = { bold: true, size: 12 };
-    sheet.getCell("A2").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
+      sheet.mergeCells(`A3:AD3`);
+      sheet.getCell("A3").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
+      sheet.getCell("A3").font = { bold: true, size: 12 };
+      sheet.getCell("A3").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
 
-    sheet.mergeCells(`A3:${titleCol}3`);
-    sheet.getCell("A3").value = `Date: ${dateRange}`;
-    sheet.getCell("A3").font = { bold: true, size: 12 };
-    sheet.getCell("A3").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
+      sheet.mergeCells(`A4:AE4`);
+      sheet.getCell("A4").value = `Date: ${dateRange}`;
+      sheet.getCell("A4").font = { bold: true, size: 12 };
+      sheet.getCell("A4").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
 
-    // Main Title
+      // Main Title
 
-    sheet.mergeCells(`A4:${titleCol}4`);
-    sheet.getCell("A4").value = "Item Of Books";
-    sheet.getCell("A4").font = {
-      bold: true,
-      size: 14,
-      color: { argb: "FFFFFF" },
-    };
-    sheet.getCell("A4").fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "70AD47" },
-    };
-    sheet.getCell("A4").alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    sheet.getCell("A4").border = borderStyle;
+      sheet.mergeCells(`A5:AD5`);
+      sheet.getCell("A5").value = "Item Of Books";
+      sheet.getCell("A5").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("A5").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "E26B0A" },
+      };
+      sheet.getCell("A5").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("A5").border = borderStyle;
+      // Main Account Flag Title
+      // conventional books
+      sheet.mergeCells(`C6:J6`);
+      sheet.getCell("C6").value = "Conventional Books";
+      sheet.getCell("C6").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("C6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "16365C" },
+      };
+      sheet.getCell("C6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("C6").border = borderStyle;
+
+      // Islamic Banking
+      sheet.mergeCells(`K6:R6`);
+      sheet.getCell("K6").value = "Islamic Banking";
+      sheet.getCell("K6").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("K6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "4F6228" },
+      };
+      sheet.getCell("K6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("K6").border = borderStyle;
+      // Prority Banking
+      sheet.mergeCells(`S6:Z6`);
+      sheet.getCell("S6").value = "Prority Banking";
+      sheet.getCell("S6").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("S6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "A82323" },
+      };
+      sheet.getCell("S6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("S6").border = borderStyle;
+      // Pay Order
+      sheet.mergeCells(`AA6:AB6`);
+      sheet.getCell("AA6").value = "Pay Order";
+      sheet.getCell("AA6").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("AA6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "70AD47" },
+      };
+      sheet.getCell("AA6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("AA6").border = borderStyle;
+    } else {
+      sheet.mergeCells(`A3:${titleCol}3`);
+      sheet.getCell("A3").value = bankName;
+      sheet.getCell("A3").font = { bold: true, size: 16 };
+      sheet.getCell("A3").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+
+      sheet.mergeCells(`A4:${titleCol}4`);
+      sheet.getCell("A4").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
+      sheet.getCell("A4").font = { bold: true, size: 12 };
+      sheet.getCell("A4").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+
+      sheet.mergeCells(`A5:${titleCol}5`);
+      sheet.getCell("A5").value = `Date: ${dateRange}`;
+      sheet.getCell("A5").font = { bold: true, size: 12 };
+      sheet.getCell("A5").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+
+      // Main Title
+
+      sheet.mergeCells(`A6:${titleCol}6`);
+      sheet.getCell("A6").value = "Item Of Books";
+      sheet.getCell("A6").font = {
+        bold: true,
+        size: 14,
+        color: { argb: "FFFFFF" },
+      };
+      sheet.getCell("A6").fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: { argb: "70AD47" },
+      };
+      sheet.getCell("A6").alignment = {
+        horizontal: "center",
+        vertical: "middle",
+      };
+      sheet.getCell("A6").border = borderStyle;
+    }
 
     // Set column widths
     const columns = sheet.columns;
@@ -894,7 +1169,7 @@ const downloadExcel = async () => {
 
     const filename = `Consumption_Report_${dateRangeLabel}_${bankName.replace(
       /\s+/g,
-      "_"
+      "_",
     )}.xlsx`;
 
     const buffer = await workbook.xlsx.writeBuffer();

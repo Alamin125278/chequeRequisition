@@ -80,6 +80,9 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         isAgent: agentType.value ?? undefined,
       });
       orderRequisitionForExport.value = res;
+      orderRequisitionForExport.value.sort((a, b) =>
+        a.receivingBranchName.localeCompare(b.receivingBranchName),
+      );
     } catch (e) {
       console.error("Error fetching orderRequisitions", e);
     } finally {

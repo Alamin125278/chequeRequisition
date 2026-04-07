@@ -1172,39 +1172,44 @@ const processFile = async () => {
           let homeBranchCode = accNo.toString().substring(0, 4);
           let homeBranchName = row["branch name"] || "";
           let routingNo = (row["routing number"] || "").toString().trim();
-          let chequeType = "";
+          let chequeType = row["type"];
           let branchId = null;
-          try {
-            const response = await getBranchId(
-              selectedBank.value,
-              homeBranchCode,
-              homeBranchName,
-            );
-            branchId = response.data?.branch?.id ?? null;
+          if (chequeType != "PO") {
+            try {
+              const response = await getBranchId(
+                selectedBank.value,
+                homeBranchCode,
+                homeBranchName,
+              );
+              branchId = response.data?.branch?.id ?? null;
 
-            if (branchId == 0 || branchId == null) {
-              const payload = {
-                BankId: Number(selectedBank.value),
-                branchName: homeBranchName.trim().toUpperCase(),
-                branchCode: homeBranchCode,
-                routingNo: routingNo,
-                branchEmail: "branch@sjiblbd.com",
-                branchPhone: "544",
-                branchAddress: homeBranchName,
-                isActive: "Active",
-              };
-              await saveBranchService(payload, false);
+              if (branchId == 0 || branchId == null) {
+                const payload = {
+                  BankId: Number(selectedBank.value),
+                  branchName: homeBranchName.trim().toUpperCase(),
+                  branchCode: homeBranchCode,
+                  routingNo: routingNo,
+                  branchEmail: "branch@sjiblbd.com",
+                  branchPhone: "544",
+                  branchAddress: homeBranchName,
+                  isActive: "Active",
+                };
+                await saveBranchService(payload, false);
+              }
+            } catch (error) {
+              console.error("Failed to fetch branch ID:", error);
             }
-          } catch (error) {
-            console.error("Failed to fetch branch ID:", error);
           }
 
           switch (row["type"]) {
-            case "SB":
-              chequeType = "Savings";
+            case "MSD":
+              chequeType = "MSD";
               break;
-            case "CA":
-              chequeType = "Current";
+            case "ACD":
+              chequeType = "ACD";
+              break;
+            case "SND":
+              chequeType = "SND";
               break;
             case "PO":
               chequeType = "Payment Order";
@@ -1317,7 +1322,7 @@ const processFile = async () => {
               .trim()
               .toUpperCase(),
             distributionPointName: row["pickup branch name"] || "",
-            courierCode: "L",
+            courierCode: "B",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:

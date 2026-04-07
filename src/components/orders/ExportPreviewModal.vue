@@ -68,7 +68,7 @@
           <a-button @click="handleCancel" :disabled="challanExportLoading">
             Cancel
           </a-button>
-          <a-button
+          <!-- <a-button
             type="primary"
             @click="handleSubmit"
             :loading="challanExportLoading"
@@ -79,7 +79,7 @@
               <CheckOutlined v-if="!challanExportLoading" />
             </template>
             {{ challanExportLoading ? "Processing..." : "Submit & Close" }}
-          </a-button>
+          </a-button> -->
         </div>
       </div>
     </div>

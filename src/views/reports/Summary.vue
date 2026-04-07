@@ -385,18 +385,29 @@ interface ReportItem {
   courierName: string;
   requestDate: string;
   isAgent: boolean;
+  sb5: number;
   sb10: number;
   sb20: number;
   sb25: number;
+  sb50: number;
   sba10: number;
   msd10: number;
+  msd50: number;
+  cd5: number;
   cd10: number;
+  cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  acd25: number;
+  acd50: number;
+  acd100: number;
   cda25: number;
   awcd25: number;
   sna25: number;
+  snd25: number;
+  snd50: number;
+  snd100: number;
   msnd25: number;
   po50: number;
   po100: number;
@@ -412,18 +423,29 @@ interface ReportItem {
 }
 
 interface Totals {
+  sb5: number;
   sb10: number;
   sb20: number;
   sb25: number;
+  sb50: number;
   sba10: number;
   msd10: number;
+  msd50: number;
+  cd5: number;
   cd10: number;
+  cd20: number;
   cd25: number;
   cd50: number;
   cd100: number;
+  acd25: number;
+  acd50: number;
+  acd100: number;
   cda25: number;
   awcd25: number;
   sna25: number;
+  snd25: number;
+  snd50: number;
+  snd100: number;
   msnd25: number;
   po50: number;
   po100: number;
@@ -467,18 +489,29 @@ const reportData = ref<ReportItem[]>([]);
 const totals = computed((): Totals => {
   const data = reportData.value;
   return {
+    sb5: data.reduce((sum, item) => sum + item.sb5, 0),
     sb10: data.reduce((sum, item) => sum + item.sb10, 0),
     sb20: data.reduce((sum, item) => sum + item.sb20, 0),
     sb25: data.reduce((sum, item) => sum + item.sb25, 0),
+    sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     sba10: data.reduce((sum, item) => sum + item.sba10, 0),
     msd10: data.reduce((sum, item) => sum + item.msd10, 0),
+    msd50: data.reduce((sum, item) => sum + item.msd50, 0),
+    cd5: data.reduce((sum, item) => sum + item.cd5, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
+    cd20: data.reduce((sum, item) => sum + item.cd20, 0),
     cd25: data.reduce((sum, item) => sum + item.cd25, 0),
     cd50: data.reduce((sum, item) => sum + item.cd50, 0),
     cd100: data.reduce((sum, item) => sum + item.cd100, 0),
     cda25: data.reduce((sum, item) => sum + item.cda25, 0),
+    acd25: data.reduce((sum, item) => sum + item.acd25, 0),
+    acd50: data.reduce((sum, item) => sum + item.acd50, 0),
+    acd100: data.reduce((sum, item) => sum + item.acd100, 0),
     awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
     sna25: data.reduce((sum, item) => sum + item.sna25, 0),
+    snd25: data.reduce((sum, item) => sum + item.snd25, 0),
+    snd50: data.reduce((sum, item) => sum + item.snd50, 0),
+    snd100: data.reduce((sum, item) => sum + item.snd100, 0),
     msnd25: data.reduce((sum, item) => sum + item.msnd25, 0),
     po50: data.reduce((sum, item) => sum + item.po50, 0),
     po100: data.reduce((sum, item) => sum + item.po100, 0),
@@ -495,18 +528,29 @@ const totals = computed((): Totals => {
 });
 
 type ReportColumnKey =
+  | "sb5"
   | "sb10"
   | "sb20"
   | "sb25"
+  | "sb50"
   | "sba10"
   | "msd10"
+  | "msd50"
+  | "cd5"
   | "cd10"
+  | "cd20"
   | "cd25"
   | "cd50"
   | "cd100"
+  | "acd25"
+  | "acd50"
+  | "acd100"
   | "cda25"
   | "awcd25"
   | "sna25"
+  | "snd25"
+  | "snd50"
+  | "snd100"
   | "msnd25"
   | "po50"
   | "po100"
@@ -519,18 +563,29 @@ type ReportColumnKey =
   | "mtdr25"
   | "mtdr50";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
+  { key: "sb5", label: "SB(5)" },
   { key: "sb10", label: "SB(10)" },
   { key: "sb20", label: "SB(20)" },
   { key: "sb25", label: "SB(25)" },
+  { key: "sb50", label: "SB(50)" },
   { key: "sba10", label: "SBA(10)" },
   { key: "msd10", label: "MSD(10)" },
+  { key: "msd50", label: "MSD(50)" },
+  { key: "cd5", label: "CD(5)" },
   { key: "cd10", label: "CD(10)" },
+  { key: "cd20", label: "CD(20)" },
   { key: "cd25", label: "CD(25)" },
   { key: "cd50", label: "CD(50)" },
   { key: "cd100", label: "CD(100)" },
   { key: "cda25", label: "CDA(25)" },
+  { key: "acd25", label: "ACD(25)" },
+  { key: "acd50", label: "ACD(50)" },
+  { key: "acd100", label: "ACD(100)" },
   { key: "awcd25", label: "AWCD(25)" },
   { key: "sna25", label: "SNA(25)" },
+  { key: "snd25", label: "SND(25)" },
+  { key: "snd50", label: "SND(50)" },
+  { key: "snd100", label: "SND(100)" },
   { key: "msnd25", label: "MSND(25)" },
   { key: "po50", label: "PO(50)" },
   { key: "po100", label: "PO(100)" },
@@ -616,7 +671,7 @@ const downloadExcel = async () => {
     const signatureImageBase64 = await toBase64(signatureImage);
     // Get selected bank name
     const selectedBank = banks.value.find(
-      (bank) => bank.id === formState.bankId
+      (bank) => bank.id === formState.bankId,
     );
     const bankName = selectedBank?.bankName || "Unknown Bank";
 
@@ -634,10 +689,10 @@ const downloadExcel = async () => {
         dateRangeLabel = start.format("DD-MM-YYYY");
       } else {
         dateRange = `${start.format("D MMMM YYYY")} to ${end.format(
-          "D MMMM YYYY"
+          "D MMMM YYYY",
         )}`;
         dateRangeLabel = `${start.format("DD-MM-YYYY")}_to_${end.format(
-          "DD-MM-YYYY"
+          "DD-MM-YYYY",
         )}`;
       }
     }
@@ -802,7 +857,7 @@ const downloadExcel = async () => {
     // Generate filename
     const filename = `${dateRangeLabel}_Branch_Wise_Bill_Report_${bankName.replace(
       /\s+/g,
-      "_"
+      "_",
     )}_${formState.agentType ? "Agent" : ""}.xlsx`;
 
     // Create blob
@@ -859,7 +914,7 @@ const toBase64 = async (filePath: string) => {
           reader.onloadend = () => resolve(reader.result as string);
           reader.onerror = reject;
           reader.readAsDataURL(blob);
-        })
+        }),
     );
 };
 
