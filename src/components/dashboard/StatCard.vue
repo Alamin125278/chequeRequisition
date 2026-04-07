@@ -1,50 +1,65 @@
 <template>
-  <div class="stat-card bg-white rounded-lg shadow-md p-6 flex items-center">
-    <div class="icon-wrapper mr-4 rounded-full p-3" :class="iconBgColor">
-      <component :is="icon" class="text-white text-xl" />
-    </div>
-    <div class="stat-content">
-      <h3 class="text-gray-500 text-sm font-medium">{{ title }}</h3>
-      <div class="flex items-end">
-        <p class="text-2xl font-semibold">{{ value }}</p>
-        <span 
-          v-if="change !== undefined" 
-          class="ml-2 text-sm font-medium" 
-          :class="change >= 0 ? 'text-green-500' : 'text-red-500'"
+  <div
+    class="relative overflow-hidden border-0 shadow-lg hover:shadow-xl transition-all duration-300 group bg-white rounded-lg"
+  >
+    <div class="absolute inset-0 bg-gradient-to-br from-white to-gray-50/50" />
+    <div class="relative p-6">
+      <div class="flex items-center justify-between">
+        <div class="flex-1">
+          <p class="text-sm font-medium text-gray-600 mb-1">{{ title }}</p>
+          <div class="flex items-baseline gap-2">
+            <h3 class="text-3xl font-bold text-gray-900">{{ value }}</h3>
+            <span
+              v-if="change !== undefined"
+              :class="[
+                'text-sm font-semibold flex items-center gap-1',
+                getTrendColor(),
+              ]"
+            >
+              <span class="text-xs">{{ getTrendIcon() }}</span>
+              {{ Math.abs(change) }}%
+            </span>
+          </div>
+          <p v-if="subtitle" class="text-xs text-gray-500 mt-1">
+            {{ subtitle }}
+          </p>
+        </div>
+        <div
+          :class="[
+            'flex items-center justify-center w-12 h-12 rounded-xl shadow-lg group-hover:scale-110 transition-transform duration-300',
+            iconBgColor,
+          ]"
         >
-          {{ change >= 0 ? '+' : '' }}{{ change }}%
-        </span>
+          <component :is="icon" class="text-white" />
+        </div>
       </div>
-      <p v-if="subtitle" class="text-gray-500 text-xs mt-1">{{ subtitle }}</p>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-defineProps({
-  title: {
-    type: String,
-    required: true
-  },
-  value: {
-    type: [String, Number],
-    required: true
-  },
-  icon: {
-    type: Object,
-    required: true
-  },
-  iconBgColor: {
-    type: String,
-    default: 'bg-blue-500'
-  },
-  change: {
-    type: Number,
-    default: undefined
-  },
-  subtitle: {
-    type: String,
-    default: ''
-  }
-})
+interface Props {
+  title: string;
+  value: string | number;
+  icon: any;
+  iconBgColor?: string;
+  change?: number;
+  subtitle?: string;
+}
+
+const props = withDefaults(defineProps<Props>(), {
+  iconBgColor: "bg-gradient-to-br from-blue-500 to-blue-600",
+});
+
+const getTrendColor = () => {
+  if (props.change === undefined) return "";
+  if (props.change > 0) return "text-emerald-600";
+  if (props.change < 0) return "text-red-500";
+  return "text-gray-500";
+};
+
+const getTrendIcon = () => {
+  if (props.change === undefined) return "";
+  return props.change >= 0 ? "↗" : "↘";
+};
 </script>

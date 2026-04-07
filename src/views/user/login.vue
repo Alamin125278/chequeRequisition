@@ -116,16 +116,15 @@
 </template>
 
 <script setup lang="ts">
-import { reactive, ref } from "vue";
-import { useRouter } from "vue-router";
-import { message } from "ant-design-vue";
-import {
-  UserOutlined,
-  LockOutlined,
-  GoogleOutlined,
-} from "@ant-design/icons-vue";
 import { useUserStore } from "@/stores/userStore";
-import { onMounted } from "vue";
+import {
+  GoogleOutlined,
+  LockOutlined,
+  UserOutlined,
+} from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+import { onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const userStore = useUserStore();
@@ -154,7 +153,7 @@ const validateMessages = {
 };
 
 // Form submission
-const onFinish = async (values: any) => {
+const onFinish = async (values: { username: string; password: string }) => {
   loading.value = true;
   errorMessage.value = "";
   showAlert.value = false;
@@ -166,7 +165,7 @@ const onFinish = async (values: any) => {
     // Demo credentials check
     if (values.username === "admin" && values.password === "password") {
       // Login successful
-      userStore.login();
+      // userStore.login();
       message.success("Login successful!");
       router.push("/dashboard");
     } else {

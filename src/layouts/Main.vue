@@ -32,11 +32,11 @@
         mode="inline"
         theme="dark"
       >
-        <template v-for="item in menuStore.menuItems" :key="item.key">
+        <template v-for="item in menuStore.menus" :key="item.id">
           <!-- Menu item with children -->
           <a-sub-menu
             v-if="item.children && item.children.length > 0"
-            :key="item.key"
+            :key="item.id"
           >
             <template #icon>
               <component :is="item.icon" />
@@ -45,7 +45,7 @@
 
             <a-menu-item
               v-for="child in item.children"
-              :key="child.key"
+              :key="child.id"
               @click="navigateTo(child.path)"
             >
               {{ child.title }}
@@ -53,7 +53,7 @@
           </a-sub-menu>
 
           <!-- Menu item without children -->
-          <a-menu-item v-else :key="item.key" @click="navigateTo(item.path)">
+          <a-menu-item v-else :key="item.id" @click="navigateTo(item.path)">
             <template #icon>
               <component :is="item.icon" />
             </template>
@@ -128,10 +128,7 @@
           <!-- User dropdown -->
           <a-dropdown :trigger="['click']">
             <div class="user-dropdown flex items-center cursor-pointer">
-              <a-avatar :src="userStore.user?.avatar" />
-              <span v-if="!collapsed" class="ml-2">{{
-                userStore.user?.name
-              }}</span>
+              <a-avatar :src="userStore.currentUser?.imagePath" />
             </div>
             <template #overlay>
               <a-menu>
@@ -163,19 +160,19 @@
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, watch, onMounted } from "vue";
-import { useRouter, useRoute } from "vue-router";
-import {
-  MenuUnfoldOutlined,
-  MenuFoldOutlined,
-  UserOutlined,
-  SettingOutlined,
-  BellOutlined,
-  LogoutOutlined,
-} from "@ant-design/icons-vue";
 import { useMenuStore } from "@/stores/menuStore";
 import { useUserStore } from "@/stores/userStore";
+import {
+  BellOutlined,
+  LogoutOutlined,
+  MenuFoldOutlined,
+  MenuUnfoldOutlined,
+  SettingOutlined,
+  UserOutlined,
+} from "@ant-design/icons-vue";
 import { message } from "ant-design-vue";
+import { computed, onMounted, ref, watch } from "vue";
+import { useRoute, useRouter } from "vue-router";
 
 const router = useRouter();
 const route = useRoute();
@@ -227,7 +224,7 @@ const updateSelectedKeys = () => {
     return null;
   };
 
-  const key = findMenuItem(menuStore.menuItems);
+  const key = findMenuItem(menuStore.menus);
   if (key) {
     selectedKeys.value = [key];
   }

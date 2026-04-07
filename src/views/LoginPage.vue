@@ -2,7 +2,7 @@
   <div class="login-container">
     <div class="login-card">
       <div class="login-header">
-        <img src="/public/image/logo_text.png" alt="Logo" class="login-logo" />
+        <img :src="logoSrc" alt="Logo" class="login-logo" />
         <h1 class="login-title">Sign In</h1>
         <p class="login-subtitle">
           Enter your credentials to access your account
@@ -84,15 +84,23 @@
 </template>
 
 <script setup lang="ts">
-import { ref, reactive, onMounted } from "vue";
-import { useRouter } from "vue-router";
-import { UserOutlined, LockOutlined } from "@ant-design/icons-vue";
-import { message, notification } from "ant-design-vue";
 import { useUserStore } from "@/stores/userStore";
+import { LockOutlined, UserOutlined } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+import { computed, onMounted, reactive, ref } from "vue";
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 const loading = ref(false);
 const userStore = useUserStore();
+
+const logoSrc = computed(() => {
+  if (window.location.port === "4000") {
+    return "/image/logo_text.png";
+  } else {
+    return "/image/FLEXITLogo.jpg";
+  }
+});
 
 interface FormState {
   username: string;
@@ -118,23 +126,20 @@ const onFinish = async (values: any) => {
   loading.value = true;
   errorMessage.value = "";
   showAlert.value = false;
+
   try {
-    // Simulate API call with timeout
-    await new Promise((resolve) => setTimeout(resolve, 1500));
-    // Demo credentials check
-    if (values.username === "admin" && values.password === "password") {
-      // Login successful
-      userStore.login();
-      message.success("Login successful!");
-      router.push("/dashboard");
-    } else {
-      // Login failed
-      errorMessage.value =
-        'Invalid username or password. Try using "admin" and "password".';
-      showAlert.value = true;
-    }
+    // Try logging in with Pinia store
+    userStore.login(values.username, values.password).then(() => {
+      if (userStore.isLoggedIn) {
+        message.success("Login successful!");
+        router.push("/dashboard");
+      } else {
+        message.error(userStore.errorMessage);
+        errorMessage.value = userStore.errorMessage || "Invalid credentials";
+        showAlert.value = true;
+      }
+    });
   } catch (error) {
-    // Handle error
     console.error(error);
     errorMessage.value = "An error occurred. Please try again later.";
     showAlert.value = true;

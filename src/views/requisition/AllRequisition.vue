@@ -1,832 +1,589 @@
 <template>
-  <div class="p-6 bg-gray-50 min-h-screen">
-    <div class="bg-white rounded-lg shadow-lg p-6 border border-gray-100">
-      <div
-        class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8"
-      >
-        <h1 class="text-2xl font-bold text-gray-800 mb-4 md:mb-0">
-          <span class="text-emerald-600">Cheque</span> Requisition Management
-        </h1>
-      </div>
-
-      <!-- Search and Filter Section -->
-      <div class="mb-8 p-4 bg-gray-50 rounded-lg border border-gray-100">
-        <div class="flex flex-wrap gap-4">
-          <a-input-search
-            v-model:value="searchText"
-            placeholder="Search by requisition number"
-            enter-button
-            @search="handleSearch"
-            class="w-full md:w-64"
-            :allowClear="true"
-          />
-
-          <a-select
-            v-model:value="statusFilter"
-            placeholder="Filter by status"
-            class="w-full md:w-48"
-            @change="handleStatusFilterChange"
-          >
-            <a-select-option value="">All Statuses</a-select-option>
-            <a-select-option value="Pending">Pending</a-select-option>
-            <a-select-option value="Approved">Approved</a-select-option>
-            <a-select-option value="Ordered">Ordered</a-select-option>
-            <a-select-option value="Dispatch">Dispatch</a-select-option>
-            <a-select-option value="Delivered">Delivered</a-select-option>
-          </a-select>
-
-          <a-select
-            v-model:value="branchFilter"
-            placeholder="Filter by Branch Name"
-            class="w-full md:w-48"
-            @change="handleBranchFilterChange"
-          >
-            <a-select-option value="">All Branches</a-select-option>
-            <a-select-option value="Main">Main Branch</a-select-option>
-            <a-select-option value="North">North Branch</a-select-option>
-            <a-select-option value="South">South Branch</a-select-option>
-            <a-select-option value="East">East Branch</a-select-option>
-            <a-select-option value="West">West Branch</a-select-option>
-          </a-select>
-
-          <a-range-picker
-            v-model:value="dateRange"
-            @change="handleDateRangeChange"
-            class="w-full md:w-auto"
-            :placeholder="['Start Date', 'End Date']"
-          />
-        </div>
-      </div>
-
-      <!-- Requisition Table -->
-      <a-table
-        :dataSource="filteredRequisitions"
-        :columns="columns"
-        :loading="loading"
-        :pagination="{
-          pageSize: 10,
-          showSizeChanger: true,
-          pageSizeOptions: ['10', '20', '50'],
-          showTotal: (total:number) => `Total ${total} items`,
-        }"
-        rowKey="id"
-        class="mb-6 custom-table"
-        :rowClassName="
-          (record:any) =>
-            record.id === selectedRequisition?.id ? 'bg-emerald-50' : ''
-        "
-      >
-        <!-- Status Column -->
-        <template #bodyCell="{ column, record }">
-          <template v-if="column.key === 'status'">
-            <a-tag
-              :color="getStatusColor(record.status)"
-              class="px-3 py-1 rounded-full"
-            >
-              {{ record.status }}
-            </a-tag>
-          </template>
-
-          <!-- Actions Column -->
-          <template v-if="column.key === 'actions'">
-            <div class="flex gap-2">
-              <a-tooltip title="View Details">
-                <a-button
-                  type="primary"
-                  size="small"
-                  @click="viewRequisition(record)"
-                >
-                  View
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip v-if="record.status === 'Pending'" title="Approve">
-                <a-button
-                  type="primary"
-                  size="small"
-                  class="bg-green-600 hover:bg-green-700 border-0"
-                  style="background-color: #309898"
-                  @click="approveRequisition(record)"
-                >
-                  Approve
-                </a-button>
-              </a-tooltip>
-
-              <a-tooltip v-if="record.status === 'Approved'" title="Order">
-                <a-button
-                  type="primary"
-                  size="small"
-                  class="bg-blue-600 hover:bg-blue-700 border-0"
-                  style="background-color: #d98324"
-                  @click="OrderRequisition(record)"
-                >
-                  Order
-                </a-button>
-              </a-tooltip>
+  <div class="bg-background min-h-screen">
+    <!-- Professional Hero Header Section -->
+    <div class="bg-card border-b border-gray-200">
+      <div class="mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <div
+          class="flex flex-col md:flex-row md:items-center md:justify-between"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 bg-accent rounded-md p-2">
+                <FileTextOutlined class="h-6 w-6 text-white" />
+              </div>
+              <h1 class="ml-3 text-2xl font-semibold text-primary">
+                <span class="text-accent">All</span> Requisitions
+              </h1>
             </div>
-          </template>
-        </template>
-      </a-table>
-    </div>
-
-    <!-- Redesigned Requisition Detail Modal -->
-    <a-modal
-      v-model:visible="modalVisible"
-      :title="`Requisition Details: ${
-        selectedRequisition?.requisitionNo || ''
-      }`"
-      width="75%"
-      :footer="null"
-      :bodyStyle="{ padding: '0' }"
-      style="top: 20px"
-      class="custom-modal"
-    >
-      <div v-if="selectedRequisition" class="p-0">
-        <!-- Header with basic info -->
-        <div class="p-6 bg-gray-50 border-b border-gray-200">
-          <div class="flex flex-wrap justify-between items-center">
-            <div>
-              <p class="text-lg font-medium text-gray-800">
-                {{ selectedRequisition.requisitionNo }}
-                <a-tag
-                  :color="getStatusColor(selectedRequisition.status)"
-                  class="ml-2 px-3 py-1 rounded-full"
-                >
-                  {{ selectedRequisition.status }}
-                </a-tag>
-              </p>
-              <p class="text-sm text-gray-500">
-                Requested by {{ selectedRequisition.requestedBy }} on
-                {{ formatDate(selectedRequisition.requestDate) }}
-              </p>
-            </div>
-
-            <div class="flex gap-2 mt-4 md:mt-0">
-              <a-button
-                v-if="selectedRequisition.status === 'Pending'"
-                type="primary"
-                class="bg-green-600 hover:bg-green-700 border-0"
-                @click="approveRequisition(selectedRequisition)"
-              >
-                <template #icon><CheckOutlined /></template>
-                Approve
-              </a-button>
-
-              <a-button
-                v-if="selectedRequisition.status === 'Approved'"
-                type="primary"
-                @click="OrderRequisition(selectedRequisition)"
-              >
-                <template #icon><SendOutlined /></template>
-                Order
-              </a-button>
-
-              <a-button
-                v-if="selectedRequisition.status === 'Ordered'"
-                type="default"
-                disabled
-              >
-                <template #icon><CheckCircleOutlined /></template>
-                Sent
-              </a-button>
-            </div>
+            <p class="mt-2 text-sm text-secondary max-w-2xl">
+              View and manage all cheque requisitions in one centralized
+              dashboard.
+            </p>
           </div>
         </div>
+      </div>
+    </div>
 
-        <!-- Cheque Items Table -->
-        <div class="p-6 overflow-auto">
-          <h3 class="text-lg font-semibold mb-4">Requisition Items</h3>
-
-          <a-table
-            :dataSource="chequeItems"
-            :columns="chequeItemColumns"
-            :pagination="{ pageSize: 5 }"
-            rowKey="id"
-            class="mb-2 custom-table"
-            :scroll="{ x: 500 }"
-          >
-            <template #bodyCell="{ column, text }">
-              <template v-if="column.key === 'severity'">
-                <a-tag
-                  :color="getSeverityColor(text)"
-                  class="px-2 py-0.5 rounded-full"
-                >
-                  {{ text }}
-                </a-tag>
-              </template>
-            </template>
-          </a-table>
-        </div>
-
-        <div
-          class="flex justify-end gap-3 p-2 bg-gray-50 border-t border-gray-200"
+    <!-- Enhanced Filter Section -->
+    <div class="mx-auto py-6">
+      <div class="bg-card shadow-md rounded-md p-6 mb-6">
+        <h3
+          class="text-sm font-medium text-secondary uppercase tracking-wider mb-4"
         >
-          <a-button @click="modalVisible = false">Close</a-button>
+          Filter Options
+        </h3>
+        <div
+          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+        >
+          <!-- Account NO/Name Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Account No./Name</label
+            >
+            <a-input-search
+              v-model:value="formState.search"
+              placeholder="Search by account number or name"
+              @search="allRequisitionsStore.setSearch"
+              class="w-full"
+              :allowClear="true"
+              :loading="searchLoading"
+            >
+              <template #prefix>
+                <SearchOutlined class="text-secondary" />
+              </template>
+            </a-input-search>
+          </div>
+
+          <!-- Challan NO Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Challan No.</label
+            >
+            <a-input-search
+              v-model:value="formState.challanNo"
+              placeholder="Enter challan number"
+              class="w-full"
+              :allowClear="true"
+              @search="allRequisitionsStore.setChallanNo"
+            />
+          </div>
+
+          <!-- Bank Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Bank</label
+            >
+            <template v-if="allRequisitionsStore.banks.length === 1">
+              <a-input
+                :value="allRequisitionsStore.banks[0].bankName"
+                disabled
+                class="w-full"
+                style="background-color: #fff; color: #000; cursor: default"
+              />
+            </template>
+            <template v-else>
+              <a-select
+                v-model:value="formState.bankId"
+                placeholder="Select Bank"
+                class="w-full"
+                @change="allRequisitionsStore.setBank"
+                allowClear
+              >
+                <a-select-option value="">All Banks</a-select-option>
+                <a-select-option
+                  v-for="bank in allRequisitionsStore.banks"
+                  :key="bank.id"
+                  :value="bank.id"
+                >
+                  {{ bank.bankName }}
+                </a-select-option>
+              </a-select>
+            </template>
+          </div>
+
+          <!-- Branch Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Branch</label
+            >
+            <template v-if="allRequisitionsStore.branches.length === 1">
+              <a-input
+                :value="allRequisitionsStore.branches[0].branchName"
+                disabled
+                class="w-full"
+                style="background-color: #fff; color: #000; cursor: default"
+              />
+            </template>
+            <!-- If more than 1, show dropdown -->
+            <template v-else>
+              <a-select
+                v-model:value="formState.branchId"
+                placeholder="All branches"
+                class="rounded-md w-full"
+                show-search
+                option-filter-prop="label"
+                @change="allRequisitionsStore.setBranch"
+                allow-clear
+              >
+                <a-select-option value="" label="All Branches"
+                  >All branches</a-select-option
+                >
+                <a-select-option
+                  v-for="branch in allRequisitionsStore.branches"
+                  :key="branch.id"
+                  :value="branch.id"
+                  :label="branch.branchName"
+                >
+                  {{ branch.branchName }}
+                </a-select-option>
+              </a-select>
+            </template>
+          </div>
+
+          <!-- Request Date Range -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Request Date</label
+            >
+            <a-date-picker
+              v-model:value="formState.requestDate"
+              @change="allRequisitionsStore.setRequestDate"
+              class="w-full"
+              placeholder="Select Request Date"
+            />
+          </div>
+
+          <!-- Status Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Status</label
+            >
+            <a-select
+              v-model:value="formState.status"
+              placeholder="Select status"
+              class="w-full"
+              @change="allRequisitionsStore.setStatus"
+              allowClear
+            >
+              <a-select-option value="">All Statuses</a-select-option>
+              <a-select-option value="3">Ordered</a-select-option>
+              <a-select-option value="4">Download</a-select-option>
+              <a-select-option value="5">Dispatch</a-select-option>
+              <a-select-option value="6">Delivered</a-select-option>
+            </a-select>
+          </div>
+
+          <!-- Severity Filter -->
+          <div>
+            <label class="block text-sm font-medium text-secondary mb-2"
+              >Severity</label
+            >
+            <a-select
+              v-model:value="formState.severity"
+              placeholder="Select severity"
+              class="w-full"
+              @change="allRequisitionsStore.setSeverity"
+              allowClear
+            >
+              <a-select-option value="">All Severities</a-select-option>
+              <a-select-option value="1">Urgent</a-select-option>
+              <a-select-option value="2">Normal</a-select-option>
+            </a-select>
+          </div>
+
+          <!-- Clear All Filters Button -->
+          <div class="flex items-end">
+            <a-button
+              @click="clearAllFilters"
+              class="w-full"
+              :loading="loading"
+            >
+              <template #icon>
+                <ClearOutlined />
+              </template>
+              Clear Filters
+            </a-button>
+          </div>
         </div>
       </div>
-    </a-modal>
 
-    <!-- Confirmation Modal -->
-    <a-modal
-      v-model:visible="confirmModalVisible"
-      :title="confirmModalTitle"
-      @ok="handleConfirmAction"
-      :okText="confirmModalOkText"
-      :okButtonProps="{
-        type: 'primary',
-        danger: confirmModalAction === 'delete',
-        class:
-          confirmModalAction === 'approve'
-            ? 'bg-green-600 hover:bg-green-700 border-0'
-            : '',
-      }"
-    >
-      <p>{{ confirmModalMessage }}</p>
-    </a-modal>
+      <!-- Error Alert -->
+      <a-alert
+        v-if="error"
+        :message="error"
+        type="error"
+        show-icon
+        closable
+        @close="error = ''"
+        class="mb-4"
+      />
+
+      <!-- Requisitions Table -->
+      <div class="bg-card shadow-md rounded-md overflow-hidden">
+        <a-table
+          :dataSource="allRequisitionsStore.allRequisitions"
+          :columns="requisitionColumns"
+          :loading="loading"
+          :pagination="pagination"
+          @change="allRequisitionsPagination"
+          rowKey="id"
+          class="custom-table"
+          :scroll="{ x: 2000 }"
+          :rowClassName="() => 'hover:bg-background'"
+        >
+          <template #bodyCell="{ column, record, index }">
+            <!-- SL Column -->
+            <template v-if="column.key === 'sl'">
+              <span class="font-medium">{{ index + 1 }}</span>
+            </template>
+
+            <!-- Severity Column -->
+            <template v-if="column.key === 'serverity'">
+              <a-tag
+                :color="
+                  record.serverity === 1
+                    ? 'error'
+                    : record.serverity === 2
+                      ? 'warning'
+                      : 'default'
+                "
+                class="px-2 py-0.5 rounded-md text-xs font-medium"
+              >
+                {{
+                  record.serverity === 1
+                    ? "Urgent"
+                    : record.serverity === 2
+                      ? "Normal"
+                      : "Unknown"
+                }}
+              </a-tag>
+            </template>
+
+            <!-- Challan Number Column -->
+            <template v-if="column.key === 'challanNumber'">
+              <a-tag
+                :color="record.challanNumber ? 'success' : 'error'"
+                class="px-3 py-1 rounded-md text-xs font-medium"
+              >
+                {{ record.challanNumber ?? "Not Available" }}
+              </a-tag>
+            </template>
+            <!-- Status Column -->
+            <template v-if="column.key === 'status'">
+              <a-tag
+                :color="getStatusColor(record.statusName || 'Pending')"
+                class="px-3 py-1 rounded-md text-xs font-medium"
+              >
+                {{ record.statusName || "Pending" }}
+              </a-tag>
+            </template>
+            <!-- Date Formatted  Column -->
+            <template v-if="column.key === 'requestDate'">
+              {{ formatDate(record.requestDate) }}
+            </template>
+          </template>
+        </a-table>
+      </div>
+    </div>
   </div>
 </template>
 
-<script lang="ts">
-import { defineComponent, ref, computed, onMounted } from "vue";
-import { message } from "ant-design-vue";
-import type { Dayjs } from "dayjs";
+<script setup lang="ts">
+import { useAllRequisitionStore } from "@/stores/AllRequisitionStore";
 import {
-  PlusOutlined,
-  EyeOutlined,
-  CheckOutlined,
-  SendOutlined,
-  CheckCircleOutlined,
-  ReloadOutlined,
+  ClearOutlined,
+  FileTextOutlined,
+  SearchOutlined,
 } from "@ant-design/icons-vue";
+import { message } from "ant-design-vue";
+import { computed, onMounted, reactive, ref } from "vue";
 
-interface ChequeItem {
-  id: number;
-  requisitionNo: string;
-  accountNo: string;
-  routingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  severity: string;
-  branchName: string;
-  accountName: string;
-  customerAddress: string;
-  bookQuantity: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receivingBranch: string;
-}
+// State variables
+const loading = ref(false);
+const searchLoading = ref(false);
+const error = ref("");
 
-interface RequisitionDetail {
-  accountNo: string;
-  routetingNo: string;
-  startNo: number;
-  endNo: number;
-  prefix: string;
-  series: string;
-  serverity: string;
-  branchName: string;
-  accountName: string;
-  cusAddress: string;
-  bookQty: number;
-  transactionCode: number;
-  leafCount: number;
-  courierCode: string;
-  distributionPointName: string;
-  receiviningBranch: string;
-  requestDate: string;
-}
+const allRequisitionsStore = useAllRequisitionStore();
 
-interface Requisition {
-  id: number;
-  branchId: number;
-  branchName: string;
-  requestedBy: string;
-  requisitionNo: string;
-  requestDate: string;
-  status: "Pending" | "Approved" | "Ordered" | "Dispatch" | "Delivered";
-  details: RequisitionDetail;
-}
-
-export default defineComponent({
-  name: "RequisitionList",
-  components: {
-    PlusOutlined,
-    EyeOutlined,
-    CheckOutlined,
-    SendOutlined,
-    CheckCircleOutlined,
-    ReloadOutlined,
-  },
-  setup() {
-    const requisitions = ref<Requisition[]>([]);
-    const loading = ref(true);
-    const searchText = ref("");
-    const statusFilter = ref("");
-    const branchFilter = ref("");
-    const dateRange = ref<[Dayjs, Dayjs] | null>(null);
-    const modalVisible = ref(false);
-    const selectedRequisition = ref<Requisition | null>(null);
-    const confirmModalVisible = ref(false);
-    const confirmModalTitle = ref("");
-    const confirmModalMessage = ref("");
-    const confirmModalOkText = ref("");
-    const confirmModalAction = ref("");
-    const requisitionToAction = ref<Requisition | null>(null);
-    const chequeItems = ref<ChequeItem[]>([]);
-
-    // Table columns definition
-    const columns = [
-      {
-        title: "Requisition No",
-        dataIndex: "requisitionNo",
-        key: "requisitionNo",
-        sorter: (a: Requisition, b: Requisition) =>
-          a.requisitionNo.localeCompare(b.requisitionNo),
-      },
-      {
-        title: "Branch",
-        dataIndex: "branchName",
-        key: "branchName",
-      },
-      {
-        title: "Requested By",
-        dataIndex: "requestedBy",
-        key: "requestedBy",
-      },
-      {
-        title: "Request Date",
-        dataIndex: "requestDate",
-        key: "requestDate",
-        render: (text: string) => formatDate(text),
-        sorter: (a: Requisition, b: Requisition) =>
-          new Date(a.requestDate).getTime() - new Date(b.requestDate).getTime(),
-      },
-      {
-        title: "Status",
-        dataIndex: "status",
-        key: "status",
-        filters: [
-          { text: "Pending", value: "Pending" },
-          { text: "Approved", value: "Approved" },
-          { text: "Ordered", value: "Ordered" },
-          { text: "Dispatch", value: "Dispatch" },
-          { text: "Delivered", value: "Delivered" },
-        ],
-        onFilter: (value: string, record: Requisition) =>
-          record.status === value,
-      },
-      {
-        title: "Actions",
-        key: "actions",
-        width: 120,
-        align: "center",
-      },
-    ];
-
-    // Cheque item columns for the modal view
-    const chequeItemColumns = [
-      {
-        title: "Requisition No",
-        dataIndex: "requisitionNo",
-        key: "requisitionNo",
-        fixed: "left",
-        width: 150,
-      },
-      {
-        title: "Account No",
-        dataIndex: "accountNo",
-        key: "accountNo",
-        width: 150,
-      },
-      {
-        title: "Routing No",
-        dataIndex: "routingNo",
-        key: "routingNo",
-        width: 150,
-      },
-      {
-        title: "Start No",
-        dataIndex: "startNo",
-        key: "startNo",
-        width: 120,
-      },
-      {
-        title: "End No",
-        dataIndex: "endNo",
-        key: "endNo",
-        width: 120,
-      },
-      {
-        title: "Prefix",
-        dataIndex: "prefix",
-        key: "prefix",
-        width: 120,
-      },
-      {
-        title: "Series",
-        dataIndex: "series",
-        key: "series",
-        width: 120,
-      },
-      {
-        title: "Severity",
-        dataIndex: "severity",
-        key: "severity",
-        width: 120,
-      },
-      {
-        title: "Branch Name",
-        dataIndex: "branchName",
-        key: "branchName",
-        width: 150,
-      },
-      {
-        title: "Account Name",
-        dataIndex: "accountName",
-        key: "accountName",
-        width: 180,
-      },
-      {
-        title: "Customer Address",
-        dataIndex: "customerAddress",
-        key: "customerAddress",
-        width: 250,
-      },
-      {
-        title: "Book Quantity",
-        dataIndex: "bookQuantity",
-        key: "bookQuantity",
-        width: 140,
-      },
-      {
-        title: "Transaction Code",
-        dataIndex: "transactionCode",
-        key: "transactionCode",
-        width: 160,
-      },
-      {
-        title: "Leaf Count",
-        dataIndex: "leafCount",
-        key: "leafCount",
-        width: 130,
-      },
-      {
-        title: "Courier Code",
-        dataIndex: "courierCode",
-        key: "courierCode",
-        width: 140,
-      },
-      {
-        title: "Distribution Point",
-        dataIndex: "distributionPointName",
-        key: "distributionPointName",
-        width: 180,
-      },
-      {
-        title: "Receiving Branch",
-        dataIndex: "receivingBranch",
-        key: "receivingBranch",
-        width: 160,
-      },
-    ];
-
-    // Computed property for filtered requisitions
-    const filteredRequisitions = computed(() => {
-      let result = [...requisitions.value];
-
-      // Apply search filter
-      if (searchText.value) {
-        const searchLower = searchText.value.toLowerCase();
-        result = result.filter(
-          (req) =>
-            req.requisitionNo.toLowerCase().includes(searchLower) ||
-            req.branchName.toLowerCase().includes(searchLower) ||
-            req.requestedBy.toLowerCase().includes(searchLower)
-        );
-      }
-
-      // Apply status filter
-      if (statusFilter.value) {
-        result = result.filter((req) => req.status === statusFilter.value);
-      }
-      // Apply branch filter
-      if (branchFilter.value) {
-        result = result.filter((req) => req.branchName === branchFilter.value);
-      }
-
-      // Apply date range filter
-      if (dateRange.value && dateRange.value[0] && dateRange.value[1]) {
-        const startDate = dateRange.value[0].valueOf();
-        const endDate = dateRange.value[1].valueOf();
-
-        result = result.filter((req) => {
-          const reqDate = new Date(req.requestDate).getTime();
-          return reqDate >= startDate && reqDate <= endDate;
-        });
-      }
-
-      return result;
-    });
-
-    // Fetch requisition data
-    const fetchRequisitions = async () => {
-      loading.value = true;
-      try {
-        // In a real application, this would be an API call
-        // For demo purposes, we'll use mock data
-        setTimeout(() => {
-          requisitions.value = generateMockData();
-          loading.value = false;
-        }, 1000);
-      } catch (error) {
-        message.error("Failed to fetch requisitions");
-        loading.value = false;
-      }
-    };
-
-    // Generate mock data for demonstration
-    const generateMockData = (): Requisition[] => {
-      const statuses: Array<
-        "Pending" | "Approved" | "Ordered" | "Dispatch" | "Delivered"
-      > = ["Pending", "Approved", "Ordered", "Dispatch", "Delivered"];
-
-      return Array.from({ length: 20 }, (_, i) => ({
-        id: i + 1,
-        branchId: Math.floor(Math.random() * 10) + 1,
-        branchName: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-        requestedBy: `User ${Math.floor(Math.random() * 5) + 1}`,
-        requisitionNo: `REQ-${2023}-${1000 + i}`,
-        requestDate: new Date(
-          2023,
-          Math.floor(Math.random() * 12),
-          Math.floor(Math.random() * 28) + 1
-        ).toISOString(),
-        status: statuses[Math.floor(Math.random() * statuses.length)],
-        details: {
-          accountNo: `AC-${100000 + i}`,
-          routetingNo: `RT-${200000 + i}`,
-          startNo: 1000 + i * 100,
-          endNo: 1099 + i * 100,
-          prefix: `PFX-${i % 5}`,
-          series: `S-${i % 3}`,
-          serverity: ["High", "Medium", "Low"][i % 3],
-          branchName: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-          accountName: `Account Holder ${i + 1}`,
-          cusAddress: `123 Main St, City ${i + 1}, Country`,
-          bookQty: Math.floor(Math.random() * 5) + 1,
-          transactionCode: 1000 + i,
-          leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-          courierCode: `CR-${1000 + i}`,
-          distributionPointName: `Distribution Point ${(i % 5) + 1}`,
-          receiviningBranch: `Branch ${Math.floor(Math.random() * 10) + 1}`,
-          requestDate: new Date(
-            2023,
-            Math.floor(Math.random() * 12),
-            Math.floor(Math.random() * 28) + 1
-          ).toISOString(),
-        },
-      }));
-    };
-
-    // Generate mock cheque items for a requisition
-    const generateChequeItems = (requisition: Requisition): ChequeItem[] => {
-      // For demo purposes, generate 5-10 cheque items per requisition
-      const itemCount = Math.floor(Math.random() * 6) + 5;
-
-      return Array.from({ length: itemCount }, (_, i) => ({
-        id: i + 1,
-        requisitionNo: requisition.requisitionNo,
-        accountNo: `AC-${100000 + i}-${requisition.id}`,
-        routingNo: `RT-${200000 + i}-${requisition.id}`,
-        startNo: requisition.details.startNo + i * 100,
-        endNo: requisition.details.startNo + i * 100 + 99,
-        prefix: requisition.details.prefix,
-        series: requisition.details.series,
-        severity: ["High", "Medium", "Low"][i % 3],
-        branchName: requisition.branchName,
-        accountName: `Account ${i + 1} for ${requisition.requisitionNo}`,
-        customerAddress: `${123 + i} Main St, City ${requisition.id}, Country`,
-        bookQuantity: Math.floor(Math.random() * 5) + 1,
-        transactionCode: 1000 + i + requisition.id,
-        leafCount: (Math.floor(Math.random() * 5) + 1) * 10,
-        courierCode: requisition.details.courierCode,
-        distributionPointName: requisition.details.distributionPointName,
-        receivingBranch: requisition.details.receiviningBranch,
-      }));
-    };
-
-    // Format date for display
-    const formatDate = (dateString: string) => {
-      const date = new Date(dateString);
-      return date.toLocaleDateString("en-US", {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-      });
-    };
-
-    // Get color for status tag
-    const getStatusColor = (status: string) => {
-      const colorMap: Record<string, string> = {
-        Pending: "orange",
-        Approved: "green",
-        Ordered: "blue",
-        Dispatch: "purple",
-        Delivered: "cyan",
-      };
-
-      return colorMap[status] || "default";
-    };
-
-    // Get color for severity tag
-    const getSeverityColor = (severity: string) => {
-      const colorMap: Record<string, string> = {
-        High: "red",
-        Medium: "orange",
-        Low: "green",
-      };
-
-      return colorMap[severity] || "default";
-    };
-
-    // Handle search
-    const handleSearch = (value: string) => {
-      searchText.value = value;
-    };
-
-    // Handle status filter change
-    const handleStatusFilterChange = (value: string) => {
-      statusFilter.value = value;
-    };
-
-    // Handle branch filter change
-    const handleBranchFilterChange = (value: string) => {
-      branchFilter.value = value;
-    };
-
-    // Handle date range change
-    const handleDateRangeChange = (dates: [Dayjs, Dayjs] | null) => {
-      dateRange.value = dates;
-    };
-
-    // View requisition details
-    const viewRequisition = (record: Requisition) => {
-      selectedRequisition.value = record;
-      // Generate cheque items for this requisition
-      chequeItems.value = generateChequeItems(record);
-      modalVisible.value = true;
-    };
-
-    // Approve requisition
-    const approveRequisition = (record: Requisition) => {
-      confirmModalTitle.value = "Approve Requisition";
-      confirmModalMessage.value = `Are you sure you want to approve requisition ${record.requisitionNo}?`;
-      confirmModalOkText.value = "Approve";
-      confirmModalAction.value = "approve";
-      requisitionToAction.value = record;
-      confirmModalVisible.value = true;
-    };
-
-    // Order requisition
-    const OrderRequisition = (record: Requisition) => {
-      confirmModalTitle.value = "Order Requisition";
-      confirmModalMessage.value = `Are you sure you want to Order requisition ${record.requisitionNo}?`;
-      confirmModalOkText.value = "Order";
-      confirmModalAction.value = "Order";
-      requisitionToAction.value = record;
-      confirmModalVisible.value = true;
-    };
-
-    // Handle confirm action
-    const handleConfirmAction = () => {
-      if (!requisitionToAction.value) return;
-
-      const record = requisitionToAction.value;
-      const recordIndex = requisitions.value.findIndex(
-        (r) => r.id === record.id
-      );
-
-      if (recordIndex === -1) return;
-
-      if (confirmModalAction.value === "approve") {
-        // Update status to Approved
-        requisitions.value[recordIndex].status = "Approved";
-        message.success(
-          `Requisition ${record.requisitionNo} has been approved`
-        );
-      } else if (confirmModalAction.value === "Order") {
-        // Update status to Ordered
-        requisitions.value[recordIndex].status = "Ordered";
-        message.success(`Requisition ${record.requisitionNo} has been Ordered`);
-      }
-
-      // Update selected requisition if it's the same record
-      if (
-        selectedRequisition.value &&
-        selectedRequisition.value.id === record.id
-      ) {
-        selectedRequisition.value = { ...requisitions.value[recordIndex] };
-      }
-
-      confirmModalVisible.value = false;
-      requisitionToAction.value = null;
-    };
-
-    // Fetch data on component mount
-    onMounted(() => {
-      fetchRequisitions();
-    });
-
-    return {
-      requisitions,
-      loading,
-      searchText,
-      statusFilter,
-      branchFilter,
-      dateRange,
-      columns,
-      chequeItemColumns,
-      chequeItems,
-      filteredRequisitions,
-      modalVisible,
-      selectedRequisition,
-      confirmModalVisible,
-      confirmModalTitle,
-      confirmModalMessage,
-      confirmModalOkText,
-      confirmModalAction,
-      handleSearch,
-      handleStatusFilterChange,
-      handleBranchFilterChange,
-      handleDateRangeChange,
-      viewRequisition,
-      approveRequisition,
-      OrderRequisition,
-      handleConfirmAction,
-      formatDate,
-      getStatusColor,
-      getSeverityColor,
-    };
-  },
+onMounted(() => {
+  allRequisitionsStore.resetFilters();
+  allRequisitionsStore.featchBanks();
 });
+
+const formState = reactive({
+  search: "",
+  challanNo: "",
+  severity: null,
+  requestDate: "",
+  bankId: null,
+  branchId: null,
+  status: null,
+});
+const pagination = computed(() => ({
+  current:
+    Math.floor(allRequisitionsStore.skip / allRequisitionsStore.limit) + 1,
+  pageSize: allRequisitionsStore.limit,
+  total: allRequisitionsStore.total,
+  showSizeChanger: true,
+  pageSizeOptions: ["10", "25", "50", "100"],
+  showQuickJumper: true,
+  showTotal: (total: number, range: [number, number]) =>
+    `${range[0]}-${range[1]} of ${total} items`,
+}));
+
+const allRequisitionsPagination = (p: any) =>
+  allRequisitionsStore.setPagination(p.current, p.pageSize);
+
+// Table columns configuration
+const requisitionColumns = [
+  {
+    title: "SL",
+    key: "sl",
+    width: 60,
+  },
+  {
+    title: "Bank Name",
+    dataIndex: "bankName",
+    key: "bankName",
+    width: 150,
+  },
+  {
+    title: "Home Branch",
+    dataIndex: "branchName",
+    key: "branchName",
+    width: 150,
+  },
+  {
+    title: "Challan No",
+    dataIndex: "challanNumber",
+    key: "challanNumber",
+    width: 150,
+  },
+  {
+    title: "Account Number",
+    dataIndex: "accountNo",
+    key: "accountNo",
+    width: 150,
+  },
+  {
+    title: "Delivery Branch",
+    dataIndex: "receivingBranchName",
+    key: "receivingBranchName",
+    width: 150,
+  },
+  {
+    title: "Account Holder",
+    dataIndex: "accountName",
+    key: "accountName",
+    width: 150,
+  },
+  {
+    title: "Routing No",
+    dataIndex: "routingNo",
+    key: "routingNo",
+    width: 120,
+  },
+  {
+    title: "Start No",
+    dataIndex: "startNo",
+    key: "startNo",
+    width: 120,
+  },
+  {
+    title: "End No",
+    dataIndex: "endNo",
+    key: "endNo",
+    width: 120,
+  },
+  {
+    title: "Cheque Type",
+    dataIndex: "chequeType",
+    key: "chequeType",
+    width: 120,
+  },
+  {
+    title: "Leaves",
+    dataIndex: "leaves",
+    key: "leaves",
+    width: 100,
+  },
+  {
+    title: "Book Qty",
+    dataIndex: "bookQty",
+    key: "bookQty",
+    width: 100,
+  },
+  {
+    title: "Severity",
+    dataIndex: "serverity",
+    key: "serverity",
+    align: "center",
+    width: 120,
+  },
+  {
+    title: "Status",
+    dataIndex: "status",
+    key: "status",
+    width: 120,
+    align: "center",
+  },
+  {
+    title: "Request Date",
+    dataIndex: "requestDate",
+    key: "requestDate",
+    align: "center",
+    width: 150,
+  },
+];
+// Format date for display
+const formatDate = (dateString: string) => {
+  const parts = dateString.split("/");
+  const date = new Date(+parts[2], +parts[0] - 1, +parts[1]); // year, monthIndex, day
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(date);
+};
+
+const clearAllFilters = () => {
+  formState.challanNo = "";
+  formState.severity = null;
+  formState.requestDate = "";
+  formState.bankId = null;
+  formState.branchId = null;
+  formState.status = null;
+  formState.search = "";
+  allRequisitionsStore.resetFilters();
+  allRequisitionsStore.fetchAllRequisitions();
+  message.success("All filters cleared");
+};
+
+// Utility functions
+const getStatusColor = (status: string) => {
+  const colorMap: Record<string, string> = {
+    Pending: "orange",
+    Approved: "blue",
+    Ordered: "success",
+    Downloaded: "geekblue",
+    Dispatched: "purple",
+    Delivered: "lime",
+  };
+  return colorMap[status] || "default";
+};
 </script>
 
 <style scoped>
-/* Enhanced custom styles */
+/* Custom table styles */
 .custom-table :deep(.ant-table-thead > tr > th) {
-  background-color: #f8f9fa;
+  background-color: var(--background);
   font-weight: 600;
-  color: #374151;
+  color: var(--text-primary);
+  padding: 16px;
+}
+
+.custom-table :deep(.ant-table-tbody > tr > td) {
+  padding: 16px;
+  color: var(--text-primary);
 }
 
 .custom-table :deep(.ant-table-tbody > tr:hover > td) {
-  background-color: #f0fdf4;
+  background-color: var(--background);
 }
 
-.custom-table :deep(.ant-table-tbody > tr.bg-emerald-50 > td) {
-  background-color: #ecfdf5;
+.custom-table :deep(.ant-table-tbody > tr.ant-table-row-selected > td) {
+  background-color: rgba(147, 51, 234, 0.05);
 }
 
-.custom-modal :deep(.ant-modal-header) {
-  border-bottom: none;
-  padding: 16px 24px;
-  background-color: #f9fafb;
-}
-
-.custom-modal :deep(.ant-modal-content) {
-  overflow: hidden;
+/* Custom modal styles */
+.attachment-modal :deep(.ant-modal-content) {
   border-radius: 8px;
+  overflow: hidden;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
 }
 
-/* Ensure buttons have consistent width */
-.ant-btn {
-  min-width: 32px;
+.attachment-modal :deep(.ant-modal-header) {
+  background-color: #f8fafc;
+  border-bottom: 1px solid #e5e7eb;
+  padding: 16px 24px;
 }
 
-.ant-btn:not(.ant-btn-circle) {
-  min-width: 80px;
+.attachment-modal :deep(.ant-modal-title) {
+  font-weight: 600;
+  font-size: 18px;
+  color: #374151;
 }
 
-/* Transition effects */
-.ant-table-row {
-  transition: background-color 0.3s ease;
+/* Custom form styles */
+.ant-input,
+.ant-input-affix-wrapper,
+.ant-select-selector,
+.ant-picker {
+  border-color: #d1d5db !important;
+  border-radius: 6px !important;
 }
 
-.ant-tag {
-  transition: all 0.3s ease;
+.ant-input:hover,
+.ant-input-affix-wrapper:hover,
+.ant-select-selector:hover,
+.ant-picker:hover {
+  border-color: #6b7280 !important;
 }
 
-.ant-btn {
-  transition: all 0.3s ease;
+.ant-input:focus,
+.ant-input-affix-wrapper:focus,
+.ant-input-focused,
+.ant-input-affix-wrapper-focused,
+.ant-select-focused .ant-select-selector,
+.ant-select-selector:focus,
+.ant-picker-focused {
+  border-color: #3b82f6 !important;
+  box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2) !important;
 }
 
-/* Make the modal scrollable */
-.custom-modal :deep(.ant-modal-body) {
-  max-height: 80vh;
-  overflow-y: auto;
+/* Custom button styles */
+.ant-btn-primary {
+  background-color: #3b82f6 !important;
+  border-color: #3b82f6 !important;
+  border-radius: 6px !important;
+}
+
+.ant-btn-primary:hover,
+.ant-btn-primary:focus {
+  background-color: #2563eb !important;
+  border-color: #2563eb !important;
+}
+
+/* Custom tag styles */
+.ant-tag-success {
+  background-color: rgba(34, 197, 94, 0.1) !important;
+  border-color: #22c55e !important;
+  color: #16a34a !important;
+}
+
+.ant-tag-error {
+  background-color: rgba(239, 68, 68, 0.1) !important;
+  border-color: #ef4444 !important;
+  color: #dc2626 !important;
+}
+
+.ant-tag-warning {
+  background-color: rgba(245, 158, 11, 0.1) !important;
+  border-color: #f59e0b !important;
+  color: #d97706 !important;
+}
+
+/* Responsive adjustments */
+@media (max-width: 640px) {
+  .ant-table {
+    font-size: 0.875rem;
+  }
+
+  .custom-table :deep(.ant-table-thead > tr > th),
+  .custom-table :deep(.ant-table-tbody > tr > td) {
+    padding: 8px 6px;
+  }
 }
 </style>

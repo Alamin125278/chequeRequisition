@@ -1,16 +1,21 @@
-import { createRouter, createWebHistory } from "vue-router";
-import { useUserStore } from "@/stores/userStore";
-import MainLayout from "@/layouts/MainLayout.vue";
 import AuthLayout from "@/layouts/AuthLayout.vue";
+import MainLayout from "@/layouts/MainLayout.vue";
+import {
+  getAuthorizationToken,
+  validateTokenService,
+} from "@/services/auth/token.service";
+import { CheckRoutePermission } from "@/services/Route/checkRoute.service";
+import { useUserStore } from "@/stores/userStore";
+import AllBranches from "@/views/branch/AllBranches.vue";
 import DashboardPage from "@/views/DashboardPage.vue";
 import LoginPage from "@/views/LoginPage.vue";
 import RegisterPage from "@/views/RegisterPage.vue";
-import NewRequisitionPage from "@/views/NewRequisitionPage.vue";
-import AllBranches from "@/views/branch/AllBranches.vue";
 import AllRequisition from "@/views/requisition/AllRequisition.vue";
+import { message } from "ant-design-vue";
+import { createRouter, createWebHashHistory } from "vue-router";
 
 const router = createRouter({
-  history: createWebHistory(import.meta.env.BASE_URL),
+  history: createWebHashHistory(import.meta.env.BASE_URL),
   routes: [
     // Auth routes
     {
@@ -35,11 +40,22 @@ const router = createRouter({
         },
       ],
     },
+    {
+      path: "/unauthorized",
+      name: "UnAuthorized",
+      component: () => import("@/views/unauthorize/unauthorize.vue"),
+    },
+    {
+      path: "/user-profile",
+      name: "User Profile",
+      component: () => import("@/views/user/UserProfile.vue"),
+      meta: { requiresAuth: false, requiresPermission: false },
+    },
     // App routes
     {
       path: "/",
       component: MainLayout,
-      meta: { requiresAuth: true },
+      meta: { requiresAuth: true, requiresPermission: true },
       children: [
         {
           path: "/dashboard",
@@ -59,54 +75,128 @@ const router = createRouter({
         {
           path: "/users",
           name: "Users",
-          component: () => import("@/views/user/userPage.vue"), // Placeholder, would be a real page in production
+          component: () => import("@/views/user/UserList.vue"),
+        },
+        {
+          path: "/manage-serial-no",
+          name: "Manage Serial No",
+          component: () => import("@/views/serial/ManageSerial.vue"),
+        },
+        {
+          path: "/upload-requisition",
+          name: "Upload Requisition Excel File",
+          component: () =>
+            import("@/views/LocalFileUpload/UploadRequisitionExcel.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/excel-row-expander",
+          name: "Excel Row Expander",
+          component: () =>
+            import("@/views/LocalFileUpload/ExcelRowExpander.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/new",
-          name: "New Requisition",
+          name: " Requisition/ New Requisition",
           component: () => import("@/views/requisition/CreateRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/all",
-          name: "All Requisitions",
+          name: " Requisition/ All Requisitions",
           component: AllRequisition, // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/pending",
-          name: "Pending Requisitions",
+          name: " Requisition/ Pending Requisitions",
           component: () => import("@/views/requisition/PendingRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/approved",
-          name: "Approved Requisitions",
+          name: " Requisition/ Approved Requisitions",
           component: () =>
             import("@/views/requisition/ApprovedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/requisitions/ordered",
-          name: "Ordered Requisitions",
+          name: " Requisition/ Ordered Requisitions",
           component: () => import("@/views/requisition/OrderedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
-          path: "/requisitions/dispatch",
-          name: "Dispatch Requisitions",
+          path: "/requisitions/downloaded",
+          name: " Requisition/ Downloaded Requisitions",
+          component: () =>
+            import("@/views/requisition/DownloadedRequisition.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/requisitions/dispatched",
+          name: " Requisition/ Dispatched Requisitions",
           component: () =>
             import("@/views/requisition/DispatchedRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
-          path: "/requisitions/delivered",
-          name: "Delivered Requisitions",
-          component: () => import("@/views/requisition/AllRequisition.vue"), // Placeholder, would be a real page in production
+          path: "/requisitions/confirmed-delivery",
+          name: " Requisition/ Confirmed Delivery Requisitions",
+          component: () =>
+            import("@/views/requisition/ConfirmDeliveryRequisition.vue"), // Placeholder, would be a real page in production
         },
         {
-          path: "/reports/make-challan",
-          name: "Make A Challan",
-          component: () => import("@/views/reports/MakeChallan.vue"), // Placeholder, would be a real page in production
+          path: "/requisitions/delivered",
+          name: " Requisition/ Delivered Requisitions",
+          component: () =>
+            import("@/views/requisition/DeliveredRequisition.vue"), // Placeholder, would be a real page in production
         },
+
         {
           path: "/reports/challan-list",
           name: "Challan List",
           component: () => import("@/views/reports/AllChallans.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/summary-report",
+          name: "Make A Challan",
+          component: () => import("@/views/reports/Summary.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/courier-summary",
+          name: "Courier Summary",
+          component: () => import("@/views/reports/CourierSummary.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/production-report",
+          name: "Production Report",
+          component: () => import("@/views/reports/ProductionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/consumption-report",
+          name: "Consumption Report",
+          component: () =>
+            import("@/views/reports/MonthlyConsumptionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/role-management/menus",
+          name: "Manage Menus",
+          component: () => import("@/views/roleManagement/Menus.vue"),
+        },
+        {
+          path: "/role-management/roles",
+          name: "Manage Roles",
+          component: () => import("@/views/roleManagement/Roles.vue"),
+        },
+        {
+          path: "/role-management/role-permissions",
+          name: "Role Permissions",
+          component: () => import("@/views/roleManagement/RolePermissions.vue"),
+        },
+        {
+          path: "/role-management/user-permission-overrides",
+          name: "User Permission Overrides",
+          component: () =>
+            import("@/views/roleManagement/UserPermissionOverrides.vue"),
+        },
+        {
+          path: "/role-management/permission-matrix",
+          name: "Permission Matrix",
+          component: () =>
+            import("@/views/roleManagement/PermissionMatrix.vue"),
         },
         {
           path: "/settings",
@@ -119,23 +209,53 @@ const router = createRouter({
 });
 
 // Navigation guard
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   const userStore = useUserStore();
-  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const token = getAuthorizationToken();
+  const isValid = await validateTokenService();
 
-  // If route requires auth and user is not logged in, redirect to login
-  if (requiresAuth && !userStore.isLoggedIn) {
-    next("/login");
+  const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
+  const requirePermission = to.matched.some(
+    (record) => record.meta.requiresPermission
+  );
+
+  const isLoggedIn = userStore.isLoggedIn;
+  const hasCurrentUser = !!userStore.currentUser;
+  if (!to.matched.length) {
+    return next({ name: "UnAuthorized" });
   }
-  // If user is logged in and trying to access auth pages, redirect to dashboard
-  else if (
-    userStore.isLoggedIn &&
-    (to.path === "/login" || to.path === "/register")
-  ) {
-    next("/dashboard");
-  } else {
-    next();
+
+  if (!isValid) {
+    localStorage.clear();
   }
+  const localStorageCleared = !token || localStorage.length === 0;
+  if (requiresAuth && localStorageCleared) {
+    message.error("Session expired. Please log in again.");
+    userStore.isLoggedIn = false;
+    return next({ name: "Login" });
+  }
+  // Check permission only if route requires it
+  let hasPermission = true;
+  if (requirePermission) {
+    hasPermission = await CheckRoutePermission(to.path, requiresAuth);
+  }
+
+  // Case 1: Route requires auth but user not logged in
+  if (requiresAuth && !isLoggedIn) {
+    return next({ name: "Login" });
+  }
+  // Case 2: User already logged in and trying to access login/register
+  if (isLoggedIn && (to.path === "/login" || to.path === "/register")) {
+    return next({ name: "Dashboard" });
+  }
+
+  // Case 3: Route needs permission but user doesn't have it
+  if (requirePermission && !hasPermission) {
+    return next({ name: "UnAuthorized" });
+  }
+
+  // Default: allow access
+  next();
 });
 
 export default router;

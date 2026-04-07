@@ -2,12 +2,38 @@
 <html lang="">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" href="./public/image/favicon.png" />
+    <link id="dynamic-favicon" rel="icon" href="./public/image/favicon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Cheque Book Requisition System</title>
   </head>
   <body>
     <div id="app"></div>
     <script type="module" src="/src/main.ts"></script>
+    <script>
+      (function () {
+        const port = window.location.port;
+        const favicon = document.getElementById("dynamic-favicon");
+
+        // Define rules for which favicon to load
+        let newFavicon = "/image/favicon.png"; // Default
+
+        if (port === "4000") {
+          newFavicon = "/image/favicon.png";
+        } else {
+          newFavicon = "/image/flexITFavicon.jpg";
+        }
+
+        // Set the new favicon dynamically
+        if (favicon) {
+          favicon.setAttribute("href", newFavicon);
+        } else {
+          const link = document.createElement("link");
+          link.rel = "icon";
+          link.href = newFavicon;
+          link.id = "dynamic-favicon";
+          document.head.appendChild(link);
+        }
+      })();
+    </script>
   </body>
 </html>

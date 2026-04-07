@@ -1,156 +1,137 @@
-import { defineStore } from "pinia";
-import { ref } from "vue";
 import {
+  getAllMenusService,
+  getMenuService,
+} from "@/services/menu/menu.service";
+import {
+  BankOutlined,
+  BarChartOutlined,
+  BarcodeOutlined,
+  BranchesOutlined,
+  CloudDownloadOutlined,
   DashboardOutlined,
   FormOutlined,
-  UserOutlined,
   SettingOutlined,
-  BarChartOutlined,
-  BankOutlined,
-  BranchesOutlined,
+  TeamOutlined,
   UsergroupAddOutlined,
 } from "@ant-design/icons-vue";
-import Branch from "@/views/branch/branch.vue";
+import { defineStore } from "pinia";
+import { ref } from "vue";
 
 export interface MenuItem {
-  key: string;
+  id: number;
+  menuName: string;
   title: string;
-  icon: any;
   path: string;
+  icon: string;
+  parentId: number;
   children?: MenuItem[];
-  permissions?: string[];
 }
+const icon = {
+  BankOutlined,
+  BarChartOutlined,
+  BarcodeOutlined,
+  BranchesOutlined,
+  CloudDownloadOutlined,
+  DashboardOutlined,
+  FormOutlined,
+  SettingOutlined,
+  UsergroupAddOutlined,
+  TeamOutlined,
+};
 
 export const useMenuStore = defineStore("menu", () => {
-  const menuItems = ref<MenuItem[]>([
-    {
-      key: "dashboard",
-      title: "Dashboard",
-      icon: DashboardOutlined,
-      path: "/dashboard",
-    },
-    {
-      key: "banks",
-      title: "Banks",
-      icon: BankOutlined,
-      path: "/banks",
-    },
-    {
-      key: "branches",
-      title: "Branches",
-      icon: BranchesOutlined,
-      path: "/branches",
-    },
-    {
-      key: "users",
-      title: "Users",
-      icon: UsergroupAddOutlined,
-      path: "/users",
-    },
-    {
-      key: "requisitions",
-      title: "Requisitions",
-      icon: FormOutlined,
-      path: "/requisitions",
-      children: [
-        {
-          key: "new-requisition",
-          title: "New Requisition",
-          path: "/requisitions/new",
-          icon: undefined,
-        },
+  const menus = ref<MenuItem[]>([]);
+  const allMenus = ref<MenuItem[]>([]);
+  const loading = ref<boolean>(false);
+  const total = ref<number>(0);
+  const search = ref<string>("");
+  const status = ref<string>("");
+  const skip = ref<number>(0);
+  const limit = ref<number>(10);
+  const errorMessage = ref("");
+  const buildNestedMenus = (flatMenus: MenuItem[]): MenuItem[] => {
+    const menuMap = new Map<number, MenuItem>();
+    const rootMenus: MenuItem[] = [];
 
-        {
-          key: "all-requisitions-page",
-          title: "All Requisitions",
-          path: "/requisitions/all",
-          icon: undefined,
-        },
-        {
-          key: "pending-requisitions",
-          title: "Pending Requisitions",
-          path: "/requisitions/pending",
-          icon: undefined,
-        },
-        {
-          key: "approved-requisitions",
-          title: "Approved Requisitions",
-          path: "/requisitions/approved",
-          icon: undefined,
-        },
-        {
-          key: "ordered-requisitions",
-          title: "Ordered Requisitions",
-          path: "/requisitions/ordered",
-          icon: undefined,
-        },
-        {
-          key: "dispatch-requisitions",
-          title: "Dispatch Requisitions",
-          path: "/requisitions/dispatch",
-          icon: undefined,
-        },
-        {
-          key: "delivered-requisitions",
-          title: "Delivered Requisitions",
-          path: "/requisitions/delivered",
-          icon: undefined,
-        },
-      ],
-    },
-    {
-      key: "reports",
-      title: "Reports",
-      icon: BarChartOutlined,
-      path: "/reports",
-      children: [
-        {
-          key: "make-challan",
-          title: "Make A Challan",
-          path: "/reports/make-challan",
-          icon: undefined,
-        },
-        {
-          key: "challan-list",
-          title: "All Challans",
-          path: "/reports/challan-list",
-          icon: undefined,
-        },
-      ],
-    },
-    {
-      key: "settings",
-      title: "Settings",
-      icon: SettingOutlined,
-      path: "/settings",
-    },
-  ]);
+    flatMenus.forEach((menu) => {
+      menu.children = [];
+      menuMap.set(menu.id, menu);
+    });
 
-  // Function to add a new menu item
-  const addMenuItem = (item: MenuItem) => {
-    menuItems.value.push(item);
+    flatMenus.forEach((menu) => {
+      if (menu.parentId !== 0) {
+        const parent = menuMap.get(menu.parentId);
+        if (parent) {
+          parent.children?.push(menu);
+        }
+      } else {
+        rootMenus.push(menu);
+      }
+    });
+
+    return rootMenus;
   };
 
-  // Function to remove a menu item by key
-  const removeMenuItem = (key: string) => {
-    const index = menuItems.value.findIndex((item) => item.key === key);
-    if (index !== -1) {
-      menuItems.value.splice(index, 1);
+  // মেনু লোড করার ফাংশন
+  const fetchMenus = async () => {
+    try {
+      const flatMenus = await getMenuService();
+      menus.value = buildNestedMenus(flatMenus);
+    } catch (error: any) {
+      errorMessage.value = error?.message || "Menu loading failed";
     }
   };
 
-  // Function to update a menu item
-  const updateMenuItem = (key: string, updatedItem: Partial<MenuItem>) => {
-    const item = menuItems.value.find((item) => item.key === key);
-    if (item) {
-      Object.assign(item, updatedItem);
+  const fetchAllMenus = async () => {
+    loading.value = true;
+    try {
+      const result = await getAllMenusService({
+        search: search.value,
+        status: status.value,
+        skip: skip.value,
+        limit: limit.value,
+      });
+      allMenus.value = result.menus;
+      total.value = result.totalMenus;
+    } catch (e) {
+      console.error("Error fetching menus", e);
+    } finally {
+      loading.value = false;
     }
+  };
+
+  const setSearch = (text: string) => {
+    search.value = text;
+    skip.value = 0;
+    fetchAllMenus();
+  };
+
+  const setStatus = (value: string) => {
+    status.value = value;
+    skip.value = 0;
+    fetchAllMenus();
+  };
+
+  const setPagination = (currentPage: number, pageSize: number) => {
+    limit.value = pageSize;
+    skip.value = (currentPage - 1) * pageSize;
+    fetchAllMenus();
   };
 
   return {
-    menuItems,
-    addMenuItem,
-    removeMenuItem,
-    updateMenuItem,
+    menus,
+    fetchMenus,
+    errorMessage,
+    allMenus,
+    fetchAllMenus,
+    setPagination,
+    setSearch,
+    setStatus,
+    search,
+    status,
+    skip,
+    limit,
+    total,
+    loading,
   };
 });
