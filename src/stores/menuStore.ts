@@ -77,6 +77,7 @@ export const useMenuStore = defineStore("menu", () => {
     try {
       const flatMenus = await getMenuService();
       menus.value = buildNestedMenus(flatMenus);
+      menus.value.sort((a, b) => a.id - b.id);
     } catch (error: any) {
       errorMessage.value = error?.message || "Menu loading failed";
     }

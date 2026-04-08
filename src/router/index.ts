@@ -193,12 +193,6 @@ const router = createRouter({
             import("@/views/roleManagement/UserPermissionOverrides.vue"),
         },
         {
-          path: "/role-management/permission-matrix",
-          name: "Permission Matrix",
-          component: () =>
-            import("@/views/roleManagement/PermissionMatrix.vue"),
-        },
-        {
           path: "/settings",
           name: "Settings",
           component: () => import("@/views/DashboardPage.vue"), // Placeholder, would be a real page in production
