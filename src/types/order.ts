@@ -33,7 +33,7 @@ export interface Bank {
 }
 
 export interface CheckTypeVariation {
-  type: string;
+  type?: string;
   pages: number;
   count: number;
   accFlag?: string;

@@ -239,7 +239,7 @@ watch(
   () => route.path,
   () => {
     updateSelectedKeys();
-  }
+  },
 );
 </script>
 

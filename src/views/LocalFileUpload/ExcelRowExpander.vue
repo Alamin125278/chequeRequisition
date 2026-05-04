@@ -452,7 +452,7 @@ const handleFileChange = (info: UploadChangeParam) => {
         errorMessage.value = "";
 
         // Expand rows
-        expandRows(headers, leavesIndex, startingNumberIndex);
+        expandRows(headers, leavesIndex);
       } catch (err) {
         errorMessage.value =
           "Error reading Excel file: " + (err as Error).message;
@@ -481,57 +481,65 @@ const DEFAULT_ROW: RowData = {
   "Account No": "0000000000000",
 };
 
-const expandRows = (
-  headers: string[],
-  leavesIndex: number,
-  startingNumberIndex: number
-) => {
+const generateShimantoSerial = () => {
+  const num = Math.floor(10000000 + Math.random() * 90000000).toString();
+  return `${num.slice(0, 4)}. ${num.slice(4)}`;
+};
+
+const expandRows = (headers: string[], leavesIndex: number) => {
   const expanded: RowData[] = [];
   let totalLeavesCount = 0;
 
+  const data = originalData.value;
+
   /* -------------------------------
-     STEP 1: Expand rows by leaves
+     STEP 1: Expand rows
   --------------------------------*/
-  originalData.value.forEach((row: RowData) => {
+  for (const row of data) {
     const leaves = Number(row[headers[leavesIndex]]) || 0;
     const startSerial = Number(row["Cheque Serial"]) || 0;
 
     totalLeavesCount += leaves;
 
     for (let i = 0; i < leaves; i++) {
+      const isShimanto = row["Bank Name"] === "Shimanto Bank PLC";
+      const accountNo = isShimanto
+        ? generateShimantoSerial()
+        : row["Account No"];
       expanded.push({
         ...row,
         "Cheque Serial": String(startSerial + i).padStart(7, "0"),
         "Leaves Quantity": 1,
+        "Account No": accountNo,
       });
     }
-  });
+  }
 
   /* -------------------------------
-     STEP 2: Arrange data into 4 columns
+     STEP 2: Layout arrangement
   --------------------------------*/
-  let paperUps = 5;
-  if (expanded[0]["Bank Name"] === "Pubali Bank PLC.") {
-    paperUps = 4;
-  }
+  const firstBank = expanded[0]?.["Bank Name"];
+  const paperUps = firstBank === "Pubali Bank PLC." ? 4 : 5;
+
   const rowsPerColumn = Math.ceil(expanded.length / paperUps);
   const finalData: RowData[] = [];
 
   for (let rowIndex = 0; rowIndex < rowsPerColumn; rowIndex++) {
     for (let col = 0; col < paperUps; col++) {
       const index = rowIndex + col * rowsPerColumn;
+
       finalData.push(
         expanded[index] ?? {
           ...DEFAULT_ROW,
-          "Bank Name": `${expanded[0]["Bank Name"]}`,
-          "Transaction Code": expanded[0]["Transaction Code"],
-        }
+          "Bank Name": firstBank,
+          "Transaction Code": expanded[0]?.["Transaction Code"] ?? 0,
+        },
       );
     }
   }
 
   /* -------------------------------
-     STEP 3: Update reactive values
+     STEP 3: Update state
   --------------------------------*/
   expandedData.value = finalData;
   totalLeaves.value = totalLeavesCount;

@@ -1,4 +1,5 @@
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { generatePrimeBankPdf } from "./challanPdfForPrime";
 
 interface ChallanItem {
   accountNo?: string;
@@ -43,300 +44,423 @@ export const generateChallanPdf = async (
   footerImageBase64: string,
   authSignatureBase64: string,
 ) => {
-  const pdfDoc = await PDFDocument.create();
-  const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
-  const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
-
-  // Image Embed করার জন্য ArrayBuffer নিয়ে আসা
-  const headerImageBytes = await fetch(headerImageBase64).then((r) =>
-    r.arrayBuffer(),
-  );
-  const footerImageBytes = await fetch(footerImageBase64).then((r) =>
-    r.arrayBuffer(),
-  );
-  const headerImage = await pdfDoc.embedPng(headerImageBytes);
-  const footerImage = await pdfDoc.embedPng(footerImageBytes);
-
-  const authorizedSignatureBytes = await fetch(authSignatureBase64).then((r) =>
-    r.arrayBuffer(),
-  );
-  const authorizedSignatureImage = await pdfDoc.embedPng(
-    authorizedSignatureBytes,
-  );
-
-  function formatDate(dateInput: string | Date): string {
-    const date =
-      typeof dateInput === "string" ? new Date(dateInput) : dateInput;
-
-    const day = date.getDate();
-    const monthNames: string[] = [
-      "January",
-      "February",
-      "March",
-      "April",
-      "May",
-      "June",
-      "July",
-      "August",
-      "September",
-      "October",
-      "November",
-      "December",
-    ];
-    const month: string = monthNames[date.getMonth()];
-    const year: number = date.getFullYear();
-
-    return `${day} ${month} ${year}`;
-  }
-
-  function drawWrappedTextWithCharLimit(
-    page: any,
-    text: string,
-    x: number,
-    y: number,
-    maxWidth: number,
-    font: any,
-    fontSize: number,
-    lineHeight: number,
-    maxChars: number = 30,
-  ) {
-    // Tab character রিপ্লেস করা
-    let trimmedText = text.replace(/\t/g, " ");
-
-    // Character limit চেক করা
-    if (trimmedText.length > maxChars) {
-      trimmedText = trimmedText.slice(0, maxChars).trim() + "...";
-    }
-
-    // Word wrapping
-    const words = trimmedText.split(" ");
-    let line = "";
-    let curY = y;
-
-    for (let i = 0; i < words.length; i++) {
-      const testLine = line ? line + " " + words[i] : words[i];
-      const testWidth = font.widthOfTextAtSize(testLine, fontSize);
-
-      if (testWidth > maxWidth && i > 0) {
-        page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
-        line = words[i];
-        curY -= lineHeight;
-      } else {
-        line = testLine;
-      }
-    }
-
-    // বাকি লাইন ড্র করো
-    if (line) {
-      page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
-    }
-  }
-
-  const pageWidth = 595.44;
-  const pageHeight = 841.89;
-  const marginX = 10;
-  const marginY = 30;
   const bankId = challans[0].bankId;
-  const colWidths =
-    bankId === 8
-      ? [75, 115, 50, 50, 50, 55, 45, 70, 70]
-      : [30, 75, 120, 50, 55, 50, 55, 45, 95]; // কলামের প্রস্থ সামঞ্জস্য করা হয়েছে
-  const headers =
-    bankId === 8
-      ? [
-          "Account No",
-          "Account Name",
-          "Start No",
-          "Bks X Lvs",
-          "End No",
-          "A/C Type",
-          "A/C Flag",
-          "Cus.Sign",
-          "Sign verified",
-        ]
-      : [
-          "SL.No",
-          "Account No",
-          "Account Name",
-          "Start No",
-          "Bks X Lvs",
-          "End No",
-          "A/C Type",
-          "Status",
-          "Cus.Branch",
-        ];
-  const rowHeight = 22;
-  const footerHeight = 80; // ফুটার এবং সিগনেচারের জন্য জায়গা
 
-  for (const challan of challans) {
-    let TotalBooks = 0;
-    for (const item of challan.items || []) {
-      TotalBooks += item.bookQty;
+  if (bankId === 8) {
+    // If bankId is 8, use the specialized PDF generation function
+    await generatePrimeBankPdf(
+      challans,
+      headerImageBase64,
+      footerImageBase64,
+      authSignatureBase64,
+    );
+  } else {
+    const pdfDoc = await PDFDocument.create();
+    const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
+    const fontBold = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+
+    // Image Embed করার জন্য ArrayBuffer নিয়ে আসা
+    const headerImageBytes = await fetch(headerImageBase64).then((r) =>
+      r.arrayBuffer(),
+    );
+    const footerImageBytes = await fetch(footerImageBase64).then((r) =>
+      r.arrayBuffer(),
+    );
+    const headerImage = await pdfDoc.embedPng(headerImageBytes);
+    const footerImage = await pdfDoc.embedPng(footerImageBytes);
+
+    const authorizedSignatureBytes = await fetch(authSignatureBase64).then(
+      (r) => r.arrayBuffer(),
+    );
+    const authorizedSignatureImage = await pdfDoc.embedPng(
+      authorizedSignatureBytes,
+    );
+    let challanDate = "";
+
+    function formatDate(dateInput: string | Date): string {
+      const date =
+        typeof dateInput === "string" ? new Date(dateInput) : dateInput;
+
+      const day = date.getDate();
+      const monthNames: string[] = [
+        "January",
+        "February",
+        "March",
+        "April",
+        "May",
+        "June",
+        "July",
+        "August",
+        "September",
+        "October",
+        "November",
+        "December",
+      ];
+      const month: string = monthNames[date.getMonth()];
+      const year: number = date.getFullYear();
+
+      return `${day} ${month} ${year}`;
     }
 
-    let page = pdfDoc.addPage([pageWidth, pageHeight]);
-    let y = pageHeight - marginY - 60; // শুরুটা উপরে থেকে করুন
-    let sl = 1;
-    const summary: Record<string, number> = {};
+    function drawWrappedTextWithCharLimit(
+      page: any,
+      text: string,
+      x: number,
+      y: number,
+      maxWidth: number,
+      font: any,
+      fontSize: number,
+      lineHeight: number,
+      maxChars: number = 30,
+    ) {
+      // Tab character রিপ্লেস করা
+      let trimmedText = text.replace(/\t/g, " ");
 
-    const drawFooter = () => {
-      page.drawImage(footerImage, {
-        x: marginX,
-        y: marginY,
-        width: pageWidth - marginX * 2,
-        height: 30,
-      });
-    };
+      // Character limit চেক করা
+      if (trimmedText.length > maxChars) {
+        trimmedText = trimmedText.slice(0, maxChars).trim() + "...";
+      }
 
-    const drawHeader = () => {
-      page.drawImage(headerImage, {
-        x: pageWidth - marginX - 150,
-        y: y,
-        width: 140,
-        height: 70,
-      });
+      // Word wrapping
+      const words = trimmedText.split(" ");
+      let line = "";
+      let curY = y;
 
-      page.drawText(`Request Date: ${formatDate(challan.reDate)}`, {
-        x: pageWidth - marginX - 150,
-        y: y - 15,
-        font,
-        size: 9,
-      });
-      page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
-        x: pageWidth - marginX - 150,
-        y: y - 30,
-        font,
-        size: 9,
-      });
+      for (let i = 0; i < words.length; i++) {
+        const testLine = line ? line + " " + words[i] : words[i];
+        const testWidth = font.widthOfTextAtSize(testLine, fontSize);
 
-      page.drawText(`Courier Mob: ${challan.courierPhone}`, {
-        x: pageWidth - marginX - 150,
-        y: y - 45,
-        font,
-        size: 9,
-      });
+        if (testWidth > maxWidth && i > 0) {
+          page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+          line = words[i];
+          curY -= lineHeight;
+        } else {
+          line = testLine;
+        }
+      }
 
-      let contentY = pageHeight - marginY - 20;
-      page.drawText(challan.receivingBranchName, {
-        x: marginX + 8,
-        y: contentY,
-        font: fontBold,
-        size: 11,
-      });
-      contentY -= 18;
-      page.drawText(challan.bankName, {
-        x: marginX + 8,
-        y: contentY,
-        font: fontBold,
-        size: 11,
-      });
-      contentY -= 16;
-      page.drawText(`Challan No: ${challan.challanNumber}`, {
-        x: marginX + 8,
-        y: contentY,
-        font: fontBold,
-        size: 10,
-      });
-      contentY -= 16;
-      page.drawText(`Date: ${formatDate(challan.challanDate)}`, {
-        x: marginX + 8,
-        y: contentY,
-        font,
-        size: 9,
-      });
-      contentY -= 15;
-      page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
-        x: marginX + 8,
-        y: contentY,
-        font,
-        size: 9,
-      });
+      // বাকি লাইন ড্র করো
+      if (line) {
+        page.drawText(line.trim(), { x, y: curY, size: fontSize, font });
+      }
+    }
 
-      page.drawText(`Total Books: ${TotalBooks}`, {
-        x: pageWidth - marginX - 360,
-        y: contentY,
-        font: fontBold,
-        size: 11,
-      });
+    const pageWidth = 595.44;
+    const pageHeight = 841.89;
+    const marginX = 10;
+    const marginY = 30;
 
-      if (challan.isAgent) {
-        contentY -= 15;
-        page.drawText(`Agent Mob: ${challan.agentNum || "N/A"}`, {
-          x: marginX + 8,
-          y: contentY,
+    const colWidths = [30, 75, 120, 50, 55, 50, 55, 45, 95]; // কলামের প্রস্থ সামঞ্জস্য করা হয়েছে
+    const headers = [
+      "SL.No",
+      "Account No",
+      "Account Name",
+      "Start No",
+      "Bks X Lvs",
+      "End No",
+      "A/C Type",
+      "Status",
+      "Cus.Branch",
+    ];
+    const rowHeight = 22;
+    const footerHeight = 80; // ফুটার এবং সিগনেচারের জন্য জায়গা
+
+    for (const challan of challans) {
+      let TotalBooks = 0;
+      challan.items?.sort((a, b) => {
+        // 1st: chequeType
+        const flagCompare = (a.chequeType || "").localeCompare(
+          b.chequeType || "",
+        );
+        const leavesCompare = Number(a.leaves || 0) - Number(b.leaves || 0);
+        if (leavesCompare !== 0) return leavesCompare;
+        if (flagCompare !== 0) return flagCompare;
+
+        return Number(a.startNo || 0) - Number(b.startNo || 0);
+      });
+      for (const item of challan.items || []) {
+        TotalBooks += item.bookQty;
+      }
+      challanDate = challan.challanDate;
+
+      let page = pdfDoc.addPage([pageWidth, pageHeight]);
+      let y = pageHeight - marginY - 60; // শুরুটা উপরে থেকে করুন
+      let sl = 1;
+      const summary: Record<string, number> = {};
+
+      const drawFooter = () => {
+        page.drawImage(footerImage, {
+          x: marginX,
+          y: marginY,
+          width: pageWidth - marginX * 2,
+          height: 30,
+        });
+      };
+
+      const drawHeader = () => {
+        page.drawImage(headerImage, {
+          x: pageWidth - marginX - 150,
+          y: y,
+          width: 140,
+          height: 70,
+        });
+        if (bankId === 6) {
+          page.drawText(`Challan Date: ${formatDate(challan.challanDate)}`, {
+            x: pageWidth - marginX - 150,
+            y: y - 15,
+            font,
+            size: 9,
+          });
+        } else {
+          page.drawText(`Request Date: ${formatDate(challan.reDate)}`, {
+            x: pageWidth - marginX - 150,
+            y: y - 15,
+            font,
+            size: 9,
+          });
+        }
+        page.drawText(`Printed By: ${challan.vendorName || "N/A"}`, {
+          x: pageWidth - marginX - 150,
+          y: y - 30,
           font,
           size: 9,
         });
-      }
+        if (bankId !== 8) {
+          page.drawText(`Courier Mob: ${challan.courierPhone}`, {
+            x: pageWidth - marginX - 150,
+            y: y - 45,
+            font,
+            size: 9,
+          });
+        }
 
-      contentY -= 15;
-      if (bankId === 2 || bankId === 8) {
-        page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+        let contentY = pageHeight - marginY - 20;
+        page.drawText(challan.receivingBranchName, {
           x: marginX + 8,
           y: contentY,
-          font,
-          size: 9,
-        });
-      }
-
-      contentY -= 22;
-      page.drawText("To", {
-        x: marginX + 8,
-        y: contentY,
-        font: fontBold,
-        size: 12,
-      });
-      contentY -= 16;
-      page.drawText("Manager", {
-        x: marginX + 8,
-        y: contentY,
-        font: fontBold,
-        size: 12,
-      });
-
-      contentY -= 32;
-      const title = "Delivery Challan";
-      page.drawText(title, {
-        x: (pageWidth - fontBold.widthOfTextAtSize(title, 14)) / 2,
-        y: contentY,
-        font: fontBold,
-        size: 14,
-      });
-
-      // টেবিল হেডার আঁকার জন্য Y পজিশন সেট করুন
-      y = contentY - 32;
-
-      let x = marginX;
-      headers.forEach((h, i) => {
-        page.drawRectangle({
-          x,
-          y,
-          width: colWidths[i],
-          height: rowHeight,
-          borderWidth: 0.5,
-          borderColor: rgb(0.7, 0.7, 0.7),
-        });
-
-        // হেডার টেক্সট সেন্টার করুন
-        const textWidth = fontBold.widthOfTextAtSize(h, 8);
-        const centerX = x + (colWidths[i] - textWidth) / 2;
-
-        page.drawText(h, {
-          x: Math.max(x + 2, centerX),
-          y: y + 7,
           font: fontBold,
-          size: 8,
+          size: 11,
         });
-        x += colWidths[i];
-      });
-      y -= rowHeight;
-    };
+        contentY -= 18;
+        page.drawText(challan.bankName, {
+          x: marginX + 8,
+          y: contentY,
+          font: fontBold,
+          size: 11,
+        });
+        page.drawText(`Total Books: ${TotalBooks}`, {
+          x: pageWidth - marginX - 400,
+          y: contentY,
+          font: fontBold,
+          size: 11,
+        });
+        contentY -= 16;
+        page.drawText(`Challan No: ${challan.challanNumber}`, {
+          x: marginX + 8,
+          y: contentY,
+          font: fontBold,
+          size: 10,
+        });
+        contentY -= 16;
+        if (bankId === 6) {
+          page.drawText(`Request Date: ${formatDate(challan.reDate)}`, {
+            x: marginX + 8,
+            y: contentY,
+            font,
+            size: 9,
+          });
+        } else {
+          page.drawText(`Challan Date: ${formatDate(challan.challanDate)}`, {
+            x: marginX + 8,
+            y: contentY,
+            font,
+            size: 9,
+          });
+        }
+        if (bankId !== 8) {
+          contentY -= 15;
+          page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
+            x: marginX + 8,
+            y: contentY,
+            font,
+            size: 9,
+          });
+        }
 
-    drawHeader();
+        if (challan.isAgent) {
+          contentY -= 15;
+          page.drawText(`Agent Mob: ${challan.agentNum || "N/A"}`, {
+            x: marginX + 8,
+            y: contentY,
+            font,
+            size: 9,
+          });
+        }
 
-    for (const item of challan.items || []) {
-      // নতুন পেজ চেক করার লজিক উন্নত করুন
-      if (y < marginY + footerHeight + rowHeight * 3) {
+        contentY -= 15;
+        if (bankId === 2) {
+          page.drawText(`Add: ${challan.cusAddress || "N/A"}`, {
+            x: marginX + 8,
+            y: contentY,
+            font,
+            size: 9,
+          });
+        }
+
+        contentY -= 22;
+        page.drawText("To", {
+          x: marginX + 8,
+          y: contentY,
+          font: fontBold,
+          size: 12,
+        });
+        contentY -= 16;
+        page.drawText("Manager", {
+          x: marginX + 8,
+          y: contentY,
+          font: fontBold,
+          size: 12,
+        });
+
+        contentY -= 32;
+        const title = "Delivery Challan";
+        page.drawText(title, {
+          x: (pageWidth - fontBold.widthOfTextAtSize(title, 14)) / 2,
+          y: contentY,
+          font: fontBold,
+          size: 14,
+        });
+
+        // টেবিল হেডার আঁকার জন্য Y পজিশন সেট করুন
+        y = contentY - 32;
+
+        let x = marginX;
+        headers.forEach((h, i) => {
+          page.drawRectangle({
+            x,
+            y,
+            width: colWidths[i],
+            height: rowHeight,
+            borderWidth: 0.5,
+            borderColor: rgb(0.7, 0.7, 0.7),
+          });
+
+          // হেডার টেক্সট সেন্টার করুন
+          const textWidth = fontBold.widthOfTextAtSize(h, 8);
+          const centerX = x + (colWidths[i] - textWidth) / 2;
+
+          page.drawText(h, {
+            x: Math.max(x + 2, centerX),
+            y: y + 7,
+            font: fontBold,
+            size: 8,
+          });
+          x += colWidths[i];
+        });
+        y -= rowHeight;
+      };
+
+      drawHeader();
+
+      for (const item of challan.items || []) {
+        // নতুন পেজ চেক করার লজিক উন্নত করুন
+        if (y < marginY + footerHeight + rowHeight * 3) {
+          drawFooter();
+          page = pdfDoc.addPage([pageWidth, pageHeight]);
+          y = pageHeight - marginY - 60;
+          // drawHeader();
+          page.drawImage(headerImage, {
+            x: pageWidth - marginX - 150,
+            y: y,
+            width: 140,
+            height: 70,
+          });
+          y -= rowHeight + 22;
+        }
+
+        const row = [
+          sl.toString(),
+          item.accountNo,
+          item.accountName,
+          item.startNo,
+          `${item.bookQty}X${item.leaves}`,
+          item.endNo,
+          item.chequeType,
+          item.serverity === 1 ? "Urgent" : "Normal",
+          challan.isAgent && bankId == 2
+            ? `B-${item.branchName}`
+            : item.branchName,
+        ];
+        let cx = marginX;
+        colWidths.forEach((w, i) => {
+          page.drawRectangle({
+            x: cx,
+            y,
+            width: w,
+            height: rowHeight,
+            borderColor: rgb(0.8, 0.8, 0.8),
+            borderWidth: 0.5,
+          });
+
+          // অ্যাকাউন্ট নাম এবং শাখার নামের জন্য টেক্সট র‍্যাপিং ব্যবহার করুন
+          if (headers[i] === "Cus.Branch" || headers[i] === "Account Name") {
+            drawWrappedTextWithCharLimit(
+              page,
+              String(row[i] ?? ""),
+              cx + 3,
+              y + rowHeight - 7,
+              w - 6,
+              font,
+              7,
+              9,
+              30,
+            );
+          } else {
+            // অন্যান্য কলামের জন্য সেন্টার করা টেক্সট
+            const text = String(row[i] ?? "");
+            const safeText = cleanText(text);
+            const textWidth = font.widthOfTextAtSize(safeText, 7);
+            const centerX = cx + (w - textWidth) / 2;
+            const textY = y + (rowHeight - 7) / 2 + 3;
+
+            page.drawText(safeText, {
+              x: Math.max(cx + 2, centerX),
+              y: textY,
+              size: 7,
+              font,
+            });
+          }
+
+          cx += w;
+        });
+
+        let typeCode;
+        switch (item.chequeType?.toLowerCase()) {
+          case "savings":
+            typeCode = "SB";
+            break;
+          case "current":
+            typeCode = "CD";
+            break;
+          case "payment order":
+            typeCode = "PO";
+            break;
+          case "cash credit":
+            typeCode = "CC";
+            break;
+          default:
+            typeCode = item.chequeType;
+        }
+
+        const key = `${typeCode}(${item.leaves})`;
+        summary[key] = (summary[key] || 0) + item.bookQty;
+
+        y -= rowHeight;
+        sl++;
+      }
+
+      // সামারি এবং সিগনেচারের জন্য পর্যাপ্ত জায়গা আছে কিনা চেক করুন
+      if (y < marginY + footerHeight + 100) {
         drawFooter();
         page = pdfDoc.addPage([pageWidth, pageHeight]);
         y = pageHeight - marginY - 60;
@@ -350,252 +474,147 @@ export const generateChallanPdf = async (
         y -= rowHeight + 22;
       }
 
-      const row =
-        bankId === 8
-          ? [
-              item.accountNo,
-              item.accountName,
-              item.startNo,
-              `${item.bookQty}X${item.leaves}`,
-              item.endNo,
-              item.chequeType,
-              item.accFlag,
-              "",
-              "",
-            ]
-          : [
-              sl.toString(),
-              item.accountNo,
-              item.accountName,
-              item.startNo,
-              `${item.bookQty}X${item.leaves}`,
-              item.endNo,
-              item.chequeType,
-              item.serverity === 1 ? "Urgent" : "Normal",
-              challan.isAgent && bankId == 2
-                ? `B-${item.branchName}`
-                : item.branchName,
-            ];
-      let cx = marginX;
-      colWidths.forEach((w, i) => {
+      y -= 25;
+      const sumKeys = Object.keys(summary);
+      const summaryHeader = ["#", ...sumKeys, "Grand Total"];
+      const summaryValues = [
+        "Total",
+        ...sumKeys.map((k) => summary[k].toString()),
+        TotalBooks.toString(),
+      ];
+
+      let sx = marginX;
+      const summaryColWidth = 50;
+
+      summaryHeader.forEach((txt) => {
         page.drawRectangle({
-          x: cx,
+          x: sx,
           y,
-          width: w,
+          width: summaryColWidth,
           height: rowHeight,
           borderColor: rgb(0.8, 0.8, 0.8),
           borderWidth: 0.5,
         });
 
-        // অ্যাকাউন্ট নাম এবং শাখার নামের জন্য টেক্সট র‍্যাপিং ব্যবহার করুন
-        if (headers[i] === "Cus.Branch" || headers[i] === "Account Name") {
-          drawWrappedTextWithCharLimit(
-            page,
-            String(row[i] ?? ""),
-            cx + 3,
-            y + rowHeight - 7,
-            w - 6,
-            font,
-            7,
-            9,
-            30,
-          );
-        } else {
-          // অন্যান্য কলামের জন্য সেন্টার করা টেক্সট
-          const text = String(row[i] ?? "");
-          const safeText = cleanText(text);
-          const textWidth = font.widthOfTextAtSize(safeText, 7);
-          const centerX = cx + (w - textWidth) / 2;
-          const textY = y + (rowHeight - 7) / 2 + 3;
+        // সামারি হেডার টেক্সট সেন্টার করুন
+        const textWidth = fontBold.widthOfTextAtSize(txt, 8);
+        const centerX = sx + (summaryColWidth - textWidth) / 2;
 
-          page.drawText(safeText, {
-            x: Math.max(cx + 2, centerX),
-            y: textY,
-            size: 7,
-            font,
-          });
-        }
-
-        cx += w;
+        page.drawText(txt, {
+          x: Math.max(sx + 2, centerX),
+          y: y + 7,
+          size: 8,
+          font: fontBold,
+        });
+        sx += summaryColWidth;
       });
-
-      let typeCode;
-      switch (item.chequeType?.toLowerCase()) {
-        case "savings":
-          typeCode = "SB";
-          break;
-        case "current":
-          typeCode = "CD";
-          break;
-        case "payment order":
-          typeCode = "PO";
-          break;
-        case "cash credit":
-          typeCode = "CC";
-          break;
-        default:
-          typeCode = item.chequeType;
-      }
-
-      const key = `${typeCode}(${item.leaves})`;
-      summary[key] = (summary[key] || 0) + item.bookQty;
-
       y -= rowHeight;
-      sl++;
-    }
 
-    // সামারি এবং সিগনেচারের জন্য পর্যাপ্ত জায়গা আছে কিনা চেক করুন
-    if (y < marginY + footerHeight + 100) {
-      drawFooter();
-      page = pdfDoc.addPage([pageWidth, pageHeight]);
-      y = pageHeight - marginY - 60;
-      // drawHeader();
-      page.drawImage(headerImage, {
-        x: pageWidth - marginX - 150,
-        y: y,
-        width: 140,
-        height: 70,
+      sx = marginX;
+      summaryValues.forEach((val) => {
+        page.drawRectangle({
+          x: sx,
+          y,
+          width: summaryColWidth,
+          height: rowHeight,
+          borderColor: rgb(0.8, 0.8, 0.8),
+          borderWidth: 0.5,
+        });
+
+        // সামারি ভ্যালু টেক্সট সেন্টার করুন
+        const textWidth = font.widthOfTextAtSize(val, 8);
+        const centerX = sx + (summaryColWidth - textWidth) / 2;
+
+        page.drawText(val, {
+          x: Math.max(sx + 2, centerX),
+          y: y + 7,
+          size: 8,
+          font,
+        });
+        sx += summaryColWidth;
       });
-      y -= rowHeight + 22;
-    }
+      y -= 60;
 
-    y -= 25;
-    const sumKeys = Object.keys(summary);
-    const summaryHeader = ["#", ...sumKeys, "Grand Total"];
-    const summaryValues = [
-      "Total",
-      ...sumKeys.map((k) => summary[k].toString()),
-      TotalBooks.toString(),
-    ];
+      const sigY = y;
+      const authX = marginX + 30;
+      const recvX = pageWidth - marginX - 180;
 
-    let sx = marginX;
-    const summaryColWidth = 50;
-
-    summaryHeader.forEach((txt) => {
-      page.drawRectangle({
-        x: sx,
-        y,
-        width: summaryColWidth,
-        height: rowHeight,
-        borderColor: rgb(0.8, 0.8, 0.8),
-        borderWidth: 0.5,
+      page.drawLine({
+        start: { x: authX, y: sigY },
+        end: { x: authX + 150, y: sigY },
+        color: rgb(0, 0, 0),
       });
 
-      // সামারি হেডার টেক্সট সেন্টার করুন
-      const textWidth = fontBold.widthOfTextAtSize(txt, 8);
-      const centerX = sx + (summaryColWidth - textWidth) / 2;
-
-      page.drawText(txt, {
-        x: Math.max(sx + 2, centerX),
-        y: y + 7,
-        size: 8,
-        font: fontBold,
-      });
-      sx += summaryColWidth;
-    });
-    y -= rowHeight;
-
-    sx = marginX;
-    summaryValues.forEach((val) => {
-      page.drawRectangle({
-        x: sx,
-        y,
-        width: summaryColWidth,
-        height: rowHeight,
-        borderColor: rgb(0.8, 0.8, 0.8),
-        borderWidth: 0.5,
+      // Draw authorized signature image
+      page.drawImage(authorizedSignatureImage, {
+        x: authX + 30,
+        y: sigY + 5,
+        width: 90,
+        height: 30,
       });
 
-      // সামারি ভ্যালু টেক্সট সেন্টার করুন
-      const textWidth = font.widthOfTextAtSize(val, 8);
-      const centerX = sx + (summaryColWidth - textWidth) / 2;
-
-      page.drawText(val, {
-        x: Math.max(sx + 2, centerX),
-        y: y + 7,
-        size: 8,
+      page.drawText("Authorized Signature", {
+        x: authX + 45,
+        y: sigY - 15,
+        size: 9,
         font,
       });
-      sx += summaryColWidth;
-    });
-    y -= 60;
 
-    const sigY = y;
-    const authX = marginX + 30;
-    const recvX = pageWidth - marginX - 180;
+      // Receiving Signature line
+      page.drawLine({
+        start: { x: recvX, y: sigY },
+        end: { x: recvX + 150, y: sigY },
+        color: rgb(0, 0, 0),
+      });
 
-    page.drawLine({
-      start: { x: authX, y: sigY },
-      end: { x: authX + 150, y: sigY },
-      color: rgb(0, 0, 0),
-    });
+      page.drawText("Receiving Signature", {
+        x: recvX + 45,
+        y: sigY - 15,
+        size: 9,
+        font,
+      });
 
-    // Draw authorized signature image
-    page.drawImage(authorizedSignatureImage, {
-      x: authX + 30,
-      y: sigY + 5,
-      width: 90,
-      height: 30,
-    });
+      drawFooter();
+    }
 
-    page.drawText("Authorized Signature", {
-      x: authX + 45,
-      y: sigY - 15,
-      size: 9,
-      font,
-    });
+    // pdf save & download
+    const pdfBytes = await pdfDoc.save();
+    const safeBuffer = new Uint8Array(pdfBytes);
+    const blob = new Blob([safeBuffer], { type: "application/pdf" });
 
-    // Receiving Signature line
-    page.drawLine({
-      start: { x: recvX, y: sigY },
-      end: { x: recvX + 150, y: sigY },
-      color: rgb(0, 0, 0),
-    });
+    // if ("showSaveFilePicker" in window) {
+    //   const fileHandle = await (window as any).showSaveFilePicker({
+    //     suggestedName: `${challans[0].bankName}_challan_${
+    //       new Date().toISOString().split("T")[0]
+    //     }.pdf`,
+    //     types: [
+    //       {
+    //         description: "PDF Files",
+    //         accept: { "application/pdf": [".pdf"] },
+    //       },
+    //     ],
+    //   });
 
-    page.drawText("Receiving Signature", {
-      x: recvX + 45,
-      y: sigY - 15,
-      size: 9,
-      font,
-    });
+    //   const writable = await fileHandle.createWritable();
+    //   await writable.write(blob);
+    //   await writable.close();
+    // } else {
+    // fallback for unsupported browsers
+    const url = URL.createObjectURL(blob);
+    // window.open(url, "_blank");
+    const link = document.createElement("a");
+    link.href = url;
+    let dateObj = new Date(challanDate);
 
-    drawFooter();
+    // YYYY-MM-DD format
+    let cDate = dateObj.toLocaleDateString("en-GB").replace(/\//g, "-");
+    link.download = `${cDate}_${challans[0].bankName}_challan${
+      challans[0].isAgent ? "_agent" : ""
+    }.pdf`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    // }
   }
-
-  // pdf save & download
-  const pdfBytes = await pdfDoc.save();
-  const safeBuffer = new Uint8Array(pdfBytes);
-  const blob = new Blob([safeBuffer], { type: "application/pdf" });
-
-  // if ("showSaveFilePicker" in window) {
-  //   const fileHandle = await (window as any).showSaveFilePicker({
-  //     suggestedName: `${challans[0].bankName}_challan_${
-  //       new Date().toISOString().split("T")[0]
-  //     }.pdf`,
-  //     types: [
-  //       {
-  //         description: "PDF Files",
-  //         accept: { "application/pdf": [".pdf"] },
-  //       },
-  //     ],
-  //   });
-
-  //   const writable = await fileHandle.createWritable();
-  //   await writable.write(blob);
-  //   await writable.close();
-  // } else {
-  // fallback for unsupported browsers
-  const url = URL.createObjectURL(blob);
-  // window.open(url, "_blank");
-  const link = document.createElement("a");
-  link.href = url;
-  const todayDate = new Date().toLocaleDateString("en-GB").split("/").join("-");
-  link.download = `${todayDate}_${challans[0].bankName}_challan${
-    challans[0].isAgent ? "_agent" : ""
-  }.pdf`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
-  // }
 };

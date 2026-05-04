@@ -379,6 +379,7 @@ import dayjs from "dayjs";
 import ExcelJS from "exceljs";
 import { computed, onMounted, reactive, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
+import { courierSummaryForPrime } from "@/composable/reports/courierSummaryForPrime";
 
 interface Bank {
   id: number;
@@ -675,28 +676,30 @@ const handlePreview = async () => {
       courierCode: formState.courier ?? "",
     };
     // Generate mock data
-    const response = await getCourierSummaryReportService(params);
-    if (response.success == true) {
-      // alert(response.success);
-      // console.log(response.data);
-      reportData.value = response.data.summaryReports;
-      reportData.value.sort((a, b) => {
-        const aLast6 = a.challanNo.slice(-6);
-        const bLast6 = b.challanNo.slice(-6);
-        return aLast6.localeCompare(bLast6);
-      });
-      if (reportData.value.length === 0) {
-        message.warning("No data found for the selected options");
-        return;
-      } else {
-        downloadExcel();
-        message.success("Report generated successfully");
-      }
+    if (formState.bankId == 8) {
+      await courierSummaryForPrime(params);
     } else {
-      message.error("Failed to generate report");
+      const response = await getCourierSummaryReportService(params);
+      if (response.success == true) {
+        // alert(response.success);
+        // console.log(response.data);
+        reportData.value = response.data.summaryReports;
+        reportData.value.sort((a, b) => {
+          const aLast6 = a.challanNo.slice(-6);
+          const bLast6 = b.challanNo.slice(-6);
+          return aLast6.localeCompare(bLast6);
+        });
+        if (reportData.value.length === 0) {
+          message.warning("No data found for the selected options");
+          return;
+        } else {
+          downloadExcel();
+          message.success("Report generated successfully");
+        }
+      } else {
+        message.error("Failed to generate report");
+      }
     }
-    // reportData.value = generateMockData();
-
     previewModalVisible.value = false;
   } catch (error) {
     message.error("Failed to generate report");
@@ -803,7 +806,8 @@ const downloadExcel = async () => {
 
     sheet.addRow([]);
     sheet.addRow([]);
-    const hasBranchInfo = bankId === 2 || bankId === 4 || bankId === 6;
+    const hasBranchInfo =
+      bankId === 2 || bankId === 4 || bankId === 6 || bankId === 8;
 
     // Table Header
     const tableHeaders = [
@@ -811,7 +815,7 @@ const downloadExcel = async () => {
       "Courier Name",
       "Requestion Date",
       "Delivery Branch",
-      ...(hasBranchInfo ? ["Branch Address", "Branch Phone"] : []),
+      ...(hasBranchInfo ? ["Branch Address"] : []),
       "Challan No",
       "Challan Date",
       ...conditionalHeaders
@@ -837,7 +841,7 @@ const downloadExcel = async () => {
         item.courierName,
         item.requestDate,
         item.deliveryBranch,
-        ...(hasBranchInfo ? [item.branchAddress, item.branchPhone] : []),
+        ...(hasBranchInfo ? [item.branchAddress] : []),
         item.challanNo,
         item.challanDate,
         ...activeColumns.value.map((h) => item[h.key]),
@@ -854,7 +858,7 @@ const downloadExcel = async () => {
       "",
       "",
       "",
-      ...(hasBranchInfo ? ["", ""] : []),
+      ...(hasBranchInfo ? [""] : []),
       "",
       "",
       "Grand Total",

@@ -75,18 +75,18 @@ export const useOrderExport = () => {
       });
 
       variations.sort((a, b) => {
-        if (a.type === b.type) return a.pages - b.pages;
-        return a.type.localeCompare(b.type);
+        const typeA = a.type ?? "";
+        const typeB = b.type ?? "";
+
+        if (typeA === typeB) return a.pages - b.pages;
+        return typeA.localeCompare(typeB);
       });
 
       checkTypeVariations.value = variations;
     } else {
       orders.forEach((order) => {
         const existing = variations.find(
-          (v) =>
-            v.type === order.chequeType &&
-            v.pages === order.leaves &&
-            v.accFlag === order.accFlag,
+          (v) => v.pages === order.leaves && v.accFlag === order.accFlag,
         );
         if (existing) {
           existing.count++;
@@ -103,8 +103,11 @@ export const useOrderExport = () => {
       });
 
       variations.sort((a, b) => {
-        if (a.type === b.type) return a.pages - b.pages;
-        return a.type.localeCompare(b.type);
+        const typeA = a.type ?? "";
+        const typeB = b.type ?? "";
+
+        if (typeA === typeB) return a.pages - b.pages;
+        return typeA.localeCompare(typeB);
       });
 
       checkTypeVariations.value = variations;
@@ -144,7 +147,7 @@ export const useOrderExport = () => {
     // 🔹 Find variation (if bankId === 8, include accFlag in condition)
     const variation = checkTypeVariations.value.find((ct) =>
       bankId === 8
-        ? ct.type === checkType && ct.pages === pages && ct.accFlag === accFlag
+        ? ct.pages === pages && ct.accFlag === accFlag
         : ct.type === checkType && ct.pages === pages,
     );
 
@@ -156,9 +159,7 @@ export const useOrderExport = () => {
       // 🔹 Filter matching orders
       const matchingOrders = orders.filter((order) =>
         bankId === 8
-          ? order.chequeType === checkType &&
-            order.leaves === pages &&
-            order.accFlag === accFlag
+          ? order.leaves === pages && order.accFlag === accFlag
           : order.chequeType === checkType && order.leaves === pages,
       );
       if (!matchingOrders.length) {
@@ -174,7 +175,9 @@ export const useOrderExport = () => {
       const bankName = matchingOrders[0]?.bankName || "UnknownBank";
 
       let fileName = "";
-      if (matchingOrders[0]?.isAgent) {
+      if (bankId === 8) {
+        fileName = `${todayDate}_${bankName}_${accFlag}_${pages}`;
+      } else if (matchingOrders[0]?.isAgent) {
         fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}_Agent`;
       } else {
         fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}`;
@@ -182,12 +185,20 @@ export const useOrderExport = () => {
 
       // চেক টাইপের জন্য আলাদা ফরম্যাটিং
       const formattedData = formatCheckTypeData(matchingOrders);
-      await exportToExcel(formattedData, fileName, checkType);
+      if (bankId === 8) {
+        await exportToExcel(formattedData, fileName, accFlag);
+      } else {
+        await exportToExcel(formattedData, fileName, checkType);
+      }
 
       setExportState(variation, { completed: true });
-      message.success(
-        `Successfully exported ${checkType} (${pages} pages) ${accFlag ? "(" + accFlag + ")" : ""}`,
-      );
+      if (bankId === 8) {
+        message.success(`Successfully exported ${accFlag} (${pages} pages)`);
+      } else {
+        message.success(
+          `Successfully exported ${checkType} (${pages} pages) ${accFlag ? "(" + accFlag + ")" : ""}`,
+        );
+      }
     } catch (error) {
       console.error(
         `Export error for ${checkType} (${pages}) ${accFlag ? "(" + accFlag + ")" : ""}:`,
@@ -417,7 +428,11 @@ export const useOrderExport = () => {
       return order.branchName.split(",")[0];
     } else if (order.bankId === 7) {
       return order.branchCode;
-    } else if (order.bankId === 8 && order.chequeType === "PO") {
+    } else if (
+      (order.bankId === 3 && order.chequePrefix === "PO") ||
+      order.bankId === 5 ||
+      order.bankId === 8
+    ) {
       return `${order.branchName} (${order.routingNo})`;
     } else {
       return order.branchName;
@@ -440,7 +455,8 @@ export const useOrderExport = () => {
       }) (${order.routingNo})`;
     } else if (
       (order.bankId === 3 && order.chequePrefix === "PO") ||
-      order.bankId === 5
+      order.bankId === 5 ||
+      order.bankId === 8
     ) {
       return `${order.branchName} (${order.routingNo})`;
     } else if (order.bankId === 1) {

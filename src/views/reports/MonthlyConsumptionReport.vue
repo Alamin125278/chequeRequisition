@@ -1075,9 +1075,9 @@ const downloadExcel = async () => {
         vertical: "middle",
       };
       sheet.getCell("K6").border = borderStyle;
-      // Prority Banking
+      // Priority Banking
       sheet.mergeCells(`S6:Z6`);
-      sheet.getCell("S6").value = "Prority Banking";
+      sheet.getCell("S6").value = "Priority Banking";
       sheet.getCell("S6").font = {
         bold: true,
         size: 14,

@@ -601,12 +601,12 @@ const columns = [
     key: "distributionPointName",
     width: 150,
   },
-  // {
-  //   title: "Home Branch Code",
-  //   dataIndex: "homeBranchCode",
-  //   key: "homeBranchCode",
-  //   width: 150,
-  // },
+  {
+    title: "Request Date",
+    dataIndex: "requestDate",
+    key: "requestDate",
+    width: 150,
+  },
   // {
   //   title: "Delivery Branch Code",
   //   dataIndex: "deliveryBranchCode",
@@ -1261,6 +1261,13 @@ const processFile = async () => {
           // let homeBranchName = row["branch name"] || "";
           let routingNo = (row["routing number"] || "").toString().trim();
           let chequeType = "";
+          let journalDate = (row["journal book date"] || "").toString().trim();
+          let formattedJournalDate =
+            journalDate.slice(4) +
+            "-" +
+            journalDate.slice(2, 4) +
+            "-" +
+            journalDate.slice(0, 2);
           // let branchId = null;
           // try {
           //   const response = await getBranchId(
@@ -1325,8 +1332,7 @@ const processFile = async () => {
             courierCode: "B",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: formattedJournalDate,
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["pickup branch name"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1426,19 +1432,21 @@ const processFile = async () => {
           const agentPhone = deliveryBranchName.startsWith("PBL AGENT BANKING,")
             ? deliveryBranchName.trim().split(",").pop().trim().toString()
             : "";
-          deliveryBranchName = deliveryBranchName.startsWith(
-            "PBL AGENT BANKING,",
-          )
-            ? "PBL AGENT BANKING, " +
-              deliveryBranchName
-                .replace("PBL AGENT BANKING,", "")
-                .trim()
-                .split(",")[0]
-                .trim()
-            : deliveryBranchName;
+          if (deliveryBranchName?.startsWith("PBL AGENT BANKING,")) {
+            let parts = deliveryBranchName.split(",");
 
-          let courierCode = "E";
+            // remove phone (last element)
+            parts.pop();
 
+            // keep only first 3 meaningful segments
+            deliveryBranchName = parts
+              .slice(0, 3)
+              .join(",")
+              .trim()
+              .toUpperCase();
+          }
+          let courierCode = "";
+          let deliveryBy = (row["delivery by"] || "").trim();
           const branchList = [
             "ADAMJEE EPZ BRANCH",
             "BEANIBAZAR BRANCH",
@@ -1464,8 +1472,10 @@ const processFile = async () => {
 
           if (branchList.includes(deliveryBranchName.toUpperCase())) {
             courierCode = "IX";
-          } else if (row["delivery by"] == "Rider") {
+          } else if (deliveryBy === "Rider") {
             courierCode = "R";
+          } else {
+            courierCode = "E";
           }
           let routingNo = (row["routing no"] || "").trim();
           let accountType = (row["a/c type"] || "").trim();
@@ -1474,15 +1484,15 @@ const processFile = async () => {
           let chequeType = "";
           if (accountType == "Savings Account") {
             series = "A";
-            chequePrefix = "104";
+            chequePrefix = "104 No.";
             chequeType = "Savings";
           } else if (accountType == "Current Account") {
             series = "A";
-            chequePrefix = "204";
+            chequePrefix = "204 No.";
             chequeType = "Current";
           } else if (accountType == "Payorder") {
             series = "A";
-            chequePrefix = "910";
+            chequePrefix = "910 No.";
             chequeType = "Payment Order";
           }
           let startNo = (row["start no"] || "").trim();
@@ -1490,12 +1500,13 @@ const processFile = async () => {
           let bookQty = 1;
           let accFlag = (row["a/c flag"] || "").trim();
           if (accFlag == "Monarch Account") {
-            accFlag = "Prority";
+            accFlag = "Priority";
           } else if (accFlag == "Islamic Banking") {
             accFlag = "Islamic";
           } else {
-            accFlag = "General";
+            accFlag = "CONV";
           }
+          console.log("Delivery Branch Name: ", deliveryBranchName);
           processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
