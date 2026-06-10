@@ -5,11 +5,11 @@
     >
       Filter Orders Requisitions
     </h3>
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
       <!-- Bank Filter -->
       <div>
         <label class="block text-sm font-medium mb-1 text-secondary"
-          >Bank</label
+          >Bank Name</label
         >
         <a-select
           v-model:value="filters.bank"
@@ -31,7 +31,7 @@
       <!-- Agent Type Filter -->
       <div>
         <label class="block text-sm font-medium mb-1 text-secondary"
-          >Select Type</label
+          >Agent Type</label
         >
         <a-select
           v-model:value="filters.agentType"
@@ -49,7 +49,7 @@
       <!-- Severity Filter -->
       <div>
         <label class="block text-sm font-medium mb-1 text-secondary"
-          >Severity</label
+          >Severity (Urgent/Normal)</label
         >
         <a-select
           v-model:value="filters.severity"
@@ -60,6 +60,27 @@
         >
           <a-select-option :value="1">Urgent</a-select-option>
           <a-select-option :value="2">Normal</a-select-option>
+        </a-select>
+      </div>
+      <!-- Severity Filter -->
+      <div>
+        <label class="block text-sm font-medium mb-1 text-secondary"
+          >Courier Name</label
+        >
+        <a-select
+          v-model:value="filters.courier"
+          placeholder="Select Courier"
+          class="w-full"
+          @change="handleFilterChange('courier')"
+          allowClear
+        >
+          <a-select-option
+            v-for="option in couriers"
+            :key="option.courierCode"
+            :value="option.courierCode"
+          >
+            {{ option.courierName }}
+          </a-select-option>
         </a-select>
       </div>
 
@@ -98,12 +119,13 @@
 </template>
 
 <script setup lang="ts">
-import type { Bank, Filters } from "@/types/order";
+import type { Bank, Courier, Filters } from "@/types/order";
 import { SearchOutlined } from "@ant-design/icons-vue";
 
 interface Props {
   filters: Filters;
   banks: Bank[];
+  couriers: Courier[];
 }
 
 interface Emits {

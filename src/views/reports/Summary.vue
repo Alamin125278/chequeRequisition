@@ -106,6 +106,7 @@
                 <a-select
                   v-model:value="formState.bankId"
                   placeholder="Select bank"
+                  @change="handleBankChange"
                   class="w-full"
                 >
                   <a-select-option value="">Select Bank</a-select-option>
@@ -419,7 +420,19 @@ interface ReportItem {
   fdr100: number;
   mtdr25: number;
   mtdr50: number;
+  conv5: number;
+  conv10: number;
+  conv20: number;
+  conv50: number;
+  islm5: number;
+  islm10: number;
+  islm20: number;
+  islm50: number;
+  prio10: number;
+  prio20: number;
+  prio50: number;
   total: number;
+  totalLeaves: number;
 }
 
 interface Totals {
@@ -457,7 +470,19 @@ interface Totals {
   fdr100: number;
   mtdr25: number;
   mtdr50: number;
+  conv5: number;
+  conv10: number;
+  conv20: number;
+  conv50: number;
+  islm5: number;
+  islm10: number;
+  islm20: number;
+  islm50: number;
+  prio10: number;
+  prio20: number;
+  prio50: number;
   grandTotal: number;
+  grandTotalLeaves: number;
 }
 
 // Current date for display
@@ -523,7 +548,19 @@ const totals = computed((): Totals => {
     fdr100: data.reduce((sum, item) => sum + item.fdr100, 0),
     mtdr25: data.reduce((sum, item) => sum + item.mtdr25, 0),
     mtdr50: data.reduce((sum, item) => sum + item.mtdr50, 0),
+    conv5: data.reduce((sum, item) => sum + item.conv5, 0),
+    conv10: data.reduce((sum, item) => sum + item.conv10, 0),
+    conv20: data.reduce((sum, item) => sum + item.conv20, 0),
+    conv50: data.reduce((sum, item) => sum + item.conv50, 0),
+    islm5: data.reduce((sum, item) => sum + item.islm5, 0),
+    islm10: data.reduce((sum, item) => sum + item.islm10, 0),
+    islm20: data.reduce((sum, item) => sum + item.islm20, 0),
+    islm50: data.reduce((sum, item) => sum + item.islm50, 0),
+    prio10: data.reduce((sum, item) => sum + item.prio10, 0),
+    prio20: data.reduce((sum, item) => sum + item.prio20, 0),
+    prio50: data.reduce((sum, item) => sum + item.prio50, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
+    grandTotalLeaves: data.reduce((sum, item) => sum + item.totalLeaves, 0),
   };
 });
 
@@ -561,43 +598,74 @@ type ReportColumnKey =
   | "fdr50"
   | "fdr100"
   | "mtdr25"
-  | "mtdr50";
-const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
-  { key: "sb5", label: "SB(5)" },
-  { key: "sb10", label: "SB(10)" },
-  { key: "sb20", label: "SB(20)" },
-  { key: "sb25", label: "SB(25)" },
-  { key: "sb50", label: "SB(50)" },
-  { key: "sba10", label: "SBA(10)" },
-  { key: "msd10", label: "MSD(10)" },
-  { key: "msd50", label: "MSD(50)" },
-  { key: "cd5", label: "CD(5)" },
-  { key: "cd10", label: "CD(10)" },
-  { key: "cd20", label: "CD(20)" },
-  { key: "cd25", label: "CD(25)" },
-  { key: "cd50", label: "CD(50)" },
-  { key: "cd100", label: "CD(100)" },
-  { key: "cda25", label: "CDA(25)" },
-  { key: "acd25", label: "ACD(25)" },
-  { key: "acd50", label: "ACD(50)" },
-  { key: "acd100", label: "ACD(100)" },
-  { key: "awcd25", label: "AWCD(25)" },
-  { key: "sna25", label: "SNA(25)" },
-  { key: "snd25", label: "SND(25)" },
-  { key: "snd50", label: "SND(50)" },
-  { key: "snd100", label: "SND(100)" },
-  { key: "msnd25", label: "MSND(25)" },
-  { key: "po50", label: "PO(50)" },
-  { key: "po100", label: "PO(100)" },
-  { key: "poa50", label: "POA(50)" },
-  { key: "poi50", label: "POI(50)" },
-  { key: "ca50", label: "CA(50)" },
-  { key: "ca100", label: "CA(100)" },
-  { key: "fdr50", label: "FDR(50)" },
-  { key: "fdr100", label: "FDR(100)" },
-  { key: "mtdr25", label: "MTDR(25)" },
-  { key: "mtdr50", label: "MTDR(50)" },
-];
+  | "mtdr50"
+  | "conv5"
+  | "conv10"
+  | "conv20"
+  | "conv50"
+  | "islm5"
+  | "islm10"
+  | "islm20"
+  | "islm50"
+  | "prio10"
+  | "prio20"
+  | "prio50";
+let conditionalHeaders: { key: ReportColumnKey; label: string }[];
+const handleBankChange = () => {
+  if (formState.bankId === 8) {
+    conditionalHeaders = [
+      { key: "conv5", label: "Conv(5)" },
+      { key: "conv10", label: "Conv(10)" },
+      { key: "conv20", label: "Conv(20)" },
+      { key: "conv50", label: "Conv(50)" },
+      { key: "islm5", label: "ISLM(5)" },
+      { key: "islm10", label: "ISLM(10)" },
+      { key: "islm20", label: "ISLM(20)" },
+      { key: "islm50", label: "ISLM(50)" },
+      { key: "prio10", label: "Prio(10)" },
+      { key: "prio20", label: "Prio(20)" },
+      { key: "prio50", label: "Prio(50)" },
+      { key: "po100", label: "PO(100)" },
+    ];
+  } else {
+    conditionalHeaders = [
+      { key: "sb5", label: "SB(5)" },
+      { key: "sb10", label: "SB(10)" },
+      { key: "sb20", label: "SB(20)" },
+      { key: "sb25", label: "SB(25)" },
+      { key: "sb50", label: "SB(50)" },
+      { key: "sba10", label: "SBA(10)" },
+      { key: "msd10", label: "MSD(10)" },
+      { key: "msd50", label: "MSD(50)" },
+      { key: "cd5", label: "CD(5)" },
+      { key: "cd10", label: "CD(10)" },
+      { key: "cd20", label: "CD(20)" },
+      { key: "cd25", label: "CD(25)" },
+      { key: "cd50", label: "CD(50)" },
+      { key: "cd100", label: "CD(100)" },
+      { key: "cda25", label: "CDA(25)" },
+      { key: "acd25", label: "ACD(25)" },
+      { key: "acd50", label: "ACD(50)" },
+      { key: "acd100", label: "ACD(100)" },
+      { key: "awcd25", label: "AWCD(25)" },
+      { key: "sna25", label: "SNA(25)" },
+      { key: "snd25", label: "SND(25)" },
+      { key: "snd50", label: "SND(50)" },
+      { key: "snd100", label: "SND(100)" },
+      { key: "msnd25", label: "MSND(25)" },
+      { key: "po50", label: "PO(50)" },
+      { key: "po100", label: "PO(100)" },
+      { key: "poa50", label: "POA(50)" },
+      { key: "poi50", label: "POI(50)" },
+      { key: "ca50", label: "CA(50)" },
+      { key: "ca100", label: "CA(100)" },
+      { key: "fdr50", label: "FDR(50)" },
+      { key: "fdr100", label: "FDR(100)" },
+      { key: "mtdr25", label: "MTDR(25)" },
+      { key: "mtdr50", label: "MTDR(50)" },
+    ];
+  }
+};
 
 const activeColumns = computed(() => {
   return conditionalHeaders.filter((h) => totals.value[h.key] > 0);
@@ -636,9 +704,7 @@ const handlePreview = async () => {
       // console.log(response.data);
       reportData.value = response.data.summaryReports;
       reportData.value.sort((a, b) => {
-        const aLast6 = a.challanNo.slice(-6);
-        const bLast6 = b.challanNo.slice(-6);
-        return aLast6.localeCompare(bLast6);
+        return a.deliveryBranch.localeCompare(b.deliveryBranch);
       });
 
       if (reportData.value.length === 0) {
@@ -702,7 +768,7 @@ const downloadExcel = async () => {
     const sheet = workbook.addWorksheet("Branch Wise Bill Report");
     sheet.pageSetup = {
       paperSize: 9, // 9 = A4 size in ExcelJS
-      orientation: "portrait", // or "landscape"
+      orientation: "landscape", // or "landscape"
       fitToPage: true,
       fitToWidth: 1,
       fitToHeight: 0, // Let it flow vertically
@@ -737,13 +803,19 @@ const downloadExcel = async () => {
     // Heading: Bank Name
     sheet.mergeCells("A3:I3");
     const bankCell = sheet.getCell("B3");
-    bankCell.value = `${bankName} Branch Wise Bill Report`;
+    bankCell.value = `${bankName}`;
     bankCell.font = { bold: true, size: 16 };
     bankCell.alignment = { horizontal: "center" };
+    // Heading: Bank Name
+    sheet.mergeCells("A4:I4");
+    const reportTypeCell = sheet.getCell("B4");
+    reportTypeCell.value = `Report: Branch Wise Bill`;
+    reportTypeCell.font = { bold: true, size: 16 };
+    reportTypeCell.alignment = { horizontal: "center" };
 
     // Heading: Date Range
-    sheet.mergeCells("A4:I4");
-    const dateCell = sheet.getCell("B4");
+    sheet.mergeCells("A5:I5");
+    const dateCell = sheet.getCell("B5");
     dateCell.value = dateRange;
     dateCell.font = { bold: true, size: 12 };
     dateCell.alignment = { horizontal: "center" };
@@ -754,16 +826,12 @@ const downloadExcel = async () => {
     // Table Header
     const tableHeaders = [
       "Sl No",
-      "Home Branch",
-      "Courier Name",
-      "Requestion Date",
       "Delivery Branch",
-      "Challan No",
-      "Challan Date",
       ...conditionalHeaders
         .filter((h) => totals.value[h.key] > 0)
         .map((h) => h.label),
-      "Total",
+      "Total Books",
+      "Total Leaves",
     ];
     // const activeColumns = conditionalHeaders.filter(
     //   (h) => totals.value[h.key] > 0
@@ -780,16 +848,10 @@ const downloadExcel = async () => {
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([
         index + 1,
-        item.isAgent && formState.bankId === 2
-          ? `B-${item.homeBranch} (${item.deliveryBranch?.slice(-7) || ""})`
-          : item.homeBranch,
-        item.courierName,
-        item.requestDate,
         item.deliveryBranch,
-        item.challanNo,
-        item.challanDate,
         ...activeColumns.value.map((h) => item[h.key]),
         item.total,
+        item.totalLeaves,
       ]);
 
       row.eachCell((cell) => {
@@ -801,14 +863,10 @@ const downloadExcel = async () => {
     // Totals row
     const totalsRow = sheet.addRow([
       "",
-      "",
-      "",
-      "",
-      "",
-      "",
       "Grand Total",
       ...activeColumns.value.map((h) => totals.value[h.key]), // ✅ dynamically get totals
       totals.value.grandTotal,
+      totals.value.grandTotalLeaves,
     ]);
 
     totalsRow.eachCell((cell) => {
@@ -848,7 +906,7 @@ const downloadExcel = async () => {
 
     // Set column widths
     const columnWidths = [
-      8, 20, 20, 15, 15, 10, 10, 10, 10, 10, 10, 10, 10, 12,
+      8, 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 20, 20, 20, 20,
     ];
     sheet.columns.forEach((col, index) => {
       col.width = columnWidths[index];

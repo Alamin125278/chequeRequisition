@@ -11,6 +11,7 @@ export interface FetchOrderRequisitionParams {
   limit: number;
   status: number;
   isAgent?: boolean;
+  courierCode?: string;
 }
 export interface FetchOrderRequisitionForExportParams {
   BankId?: number;
@@ -18,6 +19,7 @@ export interface FetchOrderRequisitionForExportParams {
   severity?: number;
   requestDate?: string;
   isAgent?: boolean;
+  courierCode?: string;
 }
 
 export interface FetchOrderRequisitionResponse {
@@ -25,7 +27,7 @@ export interface FetchOrderRequisitionResponse {
   total: number;
 }
 export const getOrderRequisitionsService = async (
-  params: FetchOrderRequisitionParams
+  params: FetchOrderRequisitionParams,
 ): Promise<FetchOrderRequisitionResponse> => {
   const response = await baseHttp().get(constant.APIs.getOrderRequisitions, {
     params,
@@ -37,13 +39,13 @@ export const getOrderRequisitionsService = async (
   };
 };
 export const getOrderRequisitionsForExportService = async (
-  params: FetchOrderRequisitionForExportParams
+  params: FetchOrderRequisitionForExportParams,
 ) => {
   const response = await baseHttp().get(
     constant.APIs.getOrderRequisitionsForExport,
     {
       params,
-    }
+    },
   );
   return response.data.requisitions;
 };

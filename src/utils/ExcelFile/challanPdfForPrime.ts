@@ -42,6 +42,7 @@ export const generatePrimeBankPdf = async (
   headerImageBase64: string,
   footerImageBase64: string,
   authSignatureBase64: string,
+  courier?: string,
 ) => {
   const pdfDoc = await PDFDocument.create();
 
@@ -71,7 +72,7 @@ export const generatePrimeBankPdf = async (
 
   const MAX_ITEMS_PER_PAGE = 10;
 
-  const colWidths = [85, 115, 40, 45, 40, 45, 45, 80, 80];
+  const colWidths = [90, 110, 40, 45, 40, 45, 45, 80, 80];
 
   const headers = [
     "Account No",
@@ -294,7 +295,7 @@ export const generatePrimeBankPdf = async (
       item.leaves,
       item.startNo,
       item.endNo,
-      item.chequeType,
+      item.chequeType === "Payment Order" ? "PO" : item.chequeType,
       item.accFlag,
       "",
       "",
@@ -626,7 +627,7 @@ export const generatePrimeBankPdf = async (
   let cDate = dateObj.toLocaleDateString("en-GB").replace(/\//g, "-");
   link.download = `${cDate}_${challans[0].bankName}_challan${
     challans[0].isAgent ? "_agent" : ""
-  }.pdf`;
+  }${courier ? `_${courier}` : ""}.pdf`;
   link.click();
 
   URL.revokeObjectURL(url);

@@ -14,6 +14,7 @@
       <OrderFilters
         :filters="filters"
         :banks="banks"
+        :couriers="couriers"
         @filter-change="handleFilterChange"
       />
 
@@ -70,10 +71,13 @@ import { mainTableColumns } from "@/config/tableColumns";
 
 // Types
 import type { Filters } from "@/types/order";
+import { useCouriers } from "@/composable/reports/useCouriers";
 
 // Store and Composables
 const orderRequisitionStore = useOrderRequisitionStore();
 const { banks, fetchBanks } = useBanks();
+const { couriers, featchCouriers } = useCouriers();
+
 const {
   exportStates,
   checkTypeVariations,
@@ -99,6 +103,7 @@ const filters = ref<Filters>({
   severity: undefined,
   requestDate: undefined,
   agentType: undefined,
+  courier: undefined,
 });
 
 // Computed Properties
@@ -134,6 +139,7 @@ const initializeData = async () => {
     await Promise.all([
       orderRequisitionStore.fetchOrderRequisitions(),
       fetchBanks(),
+      featchCouriers(),
     ]);
   } catch (error) {
     console.error("Error initializing data:", error);
@@ -164,6 +170,10 @@ const handleFilterChange = (filterType: keyof Filters) => {
     agentType: () => {
       filters.value.agentType != null &&
         orderRequisitionStore.setAgentType(filters.value.agentType);
+    },
+    courier: () => {
+      filters.value.courier != null &&
+        orderRequisitionStore.setCourier(filters.value.courier);
     },
   };
 
@@ -202,7 +212,10 @@ const showExportPreview = async () => {
 };
 
 const handleExportPSI = async () => {
-  await exportPSI(orderRequisitionStore.orderRequisitionForExport);
+  await exportPSI(
+    orderRequisitionStore.orderRequisitionForExport,
+    filters.value.courier,
+  );
 };
 
 const handleExportCheckType = async (
@@ -215,6 +228,7 @@ const handleExportCheckType = async (
     pages,
     orderRequisitionStore.orderRequisitionForExport,
     accFlag,
+    filters.value.courier,
   );
 };
 
@@ -226,6 +240,7 @@ const handleExportChallan = async () => {
 
   const success = await exportChallan(
     orderRequisitionStore.orderRequisitionForExport,
+    filters.value.courier,
   );
 
   if (success) {

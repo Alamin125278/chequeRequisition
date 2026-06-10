@@ -991,7 +991,7 @@ const processFile = async () => {
           message.error("Failed to fetch or calculate serial numbers.");
         }
         for (const [index, row] of (jsonData as any[]).entries()) {
-          let micrNo = row["Account no"] || "";
+          let micrNo = (row["Account no"] || "").trim();
           let homeBranchCode = micrNo.substring(0, 4);
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
 
@@ -1017,20 +1017,22 @@ const processFile = async () => {
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
             branchName: row["Home Branch"] || "".trim().toUpperCase(),
-            routingNo: row["Routing No."] || "",
-            accountNo: row["Account no"] || "",
-            accountName: row["Account Name"] || "",
+            routingNo: (row["Routing No."] || "").trim(),
+            accountNo: (row["Account no"] || "").trim(),
+            accountName: (row["Account Name"] || "").trim(),
             chequeType: chequeType,
-            chequePrefix: row["Prefix"] || "",
+            chequePrefix: (row["Prefix"] || "").trim(),
             micrNo: micrNo,
-            series: row["Prefix"] || "",
-            transactionCode: row["Tr. Code"] || "",
-            leafCount: row["Lvs"] || "",
-            startNo: startNo,
-            endNo: endNo,
-            bookQty: row["Bks"] || "",
-            receivingBranch: row["Delivery Branch"] || "".trim().toUpperCase(),
-            distributionPointName: row["Delivery Branch"] || "",
+            series: (row["Prefix"] || "").trim(),
+            transactionCode: (row["Tr. Code"] || "").trim(),
+            leafCount: (row["Lvs"] || "").trim(),
+            startNo: startNo.trim(),
+            endNo: endNo.trim(),
+            bookQty: (row["Bks"] || "").trim(),
+            receivingBranch: (row["Delivery Branch"] || "")
+              .trim()
+              .toUpperCase(),
+            distributionPointName: (row["Delivery Branch"] || "").trim(),
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
@@ -1076,7 +1078,7 @@ const processFile = async () => {
             trCode = 12;
             routingNo = "1234567";
           } else {
-            accNo = row["account_no"] || "";
+            accNo = (row["account_no"] || "").trim();
             trCode = row["tr_code"] || 0;
             routingNo = row["routing_no"] || "";
           }
@@ -1089,8 +1091,8 @@ const processFile = async () => {
           let totalLvs = endNo - startNo + 1;
           let bookQty = totalLvs / row["lvs"];
 
-          let homeBranchName = row["home_branch"] || "";
-          let branchId = null;
+          // let homeBranchName = row["home_branch"] || "";
+          // let branchId = null;
 
           // if (
           //   chequeType != "MTDR" &&
@@ -1129,8 +1131,8 @@ const processFile = async () => {
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
             branchName: row["home_branch"] || "".trim().toUpperCase(),
-            routingNo: routingNo,
-            accountNo: accNo,
+            routingNo: routingNo.trim(),
+            accountNo: accNo.trim(),
             accountName: row["account_name"] || "",
             chequeType: chequeType,
             chequePrefix: chequeType,
@@ -1472,7 +1474,10 @@ const processFile = async () => {
 
           if (branchList.includes(deliveryBranchName.toUpperCase())) {
             courierCode = "IX";
-          } else if (deliveryBy === "Rider") {
+          } else if (
+            deliveryBy === "Rider" ||
+            deliveryBranchName === "KONAPARA SUB BRANCH"
+          ) {
             courierCode = "R";
           } else {
             courierCode = "E";

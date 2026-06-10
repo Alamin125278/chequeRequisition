@@ -54,6 +54,10 @@ export const useOrderTable = () => {
         localFilters.value.agentType != null &&
           orderRequisitionStore.setAgentType(localFilters.value.agentType);
       },
+      courier: () => {
+        localFilters.value.courier != null &&
+          orderRequisitionStore.setCourier(localFilters.value.courier);
+      },
     };
 
     filterActions[filterType]?.();

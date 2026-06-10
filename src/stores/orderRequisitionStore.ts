@@ -45,6 +45,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const limit = ref<number>(10);
   const status = ref<number>(3);
   const bank = ref<number | null>(null);
+  const courierCode = ref<string | null>(null);
   const severity = ref<number | null>(null);
   const agentType = ref<boolean | null>(null);
 
@@ -60,6 +61,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         requestDate: reDate.value ?? undefined,
         status: status.value ?? undefined,
         isAgent: agentType.value ?? undefined,
+        courierCode: courierCode.value ?? undefined,
       });
       orderRequisition.value = result.data;
       total.value = result.total;
@@ -78,6 +80,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         severity: severity.value ?? undefined,
         requestDate: reDate.value ?? undefined,
         isAgent: agentType.value ?? undefined,
+        courierCode: courierCode.value ?? undefined,
       });
       orderRequisitionForExport.value = res;
       orderRequisitionForExport.value.sort((a, b) =>
@@ -108,6 +111,10 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   };
   const setBank = (bankId: number) => {
     bank.value = bankId;
+    fetchOrderRequisitions();
+  };
+  const setCourier = (courierId: string) => {
+    courierCode.value = courierId;
     fetchOrderRequisitions();
   };
 
@@ -143,6 +150,7 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
     setSearch,
     setPagination,
     setBank,
+    setCourier,
     setSeverity,
     setRequestDate,
     resetFilters,

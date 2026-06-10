@@ -142,6 +142,7 @@ export const useOrderExport = () => {
     pages: number,
     orders: OrderRequisition[],
     accFlag?: string,
+    courier?: string,
   ) => {
     const bankId = orders[0]?.bankId;
     // 🔹 Find variation (if bankId === 8, include accFlag in condition)
@@ -175,12 +176,21 @@ export const useOrderExport = () => {
       const bankName = matchingOrders[0]?.bankName || "UnknownBank";
 
       let fileName = "";
+
       if (bankId === 8) {
-        fileName = `${todayDate}_${bankName}_${accFlag}_${pages}`;
-      } else if (matchingOrders[0]?.isAgent) {
-        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}_Agent`;
+        fileName = `${todayDate}_${bankName}_${accFlag}_${pages}${
+          courier ? `_${courier}` : ""
+        }`;
       } else {
-        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${accFlag ? "_" + accFlag : ""}`;
+        const suffix = courier
+          ? `_${courier}`
+          : matchingOrders[0]?.isAgent
+            ? "_Agent"
+            : "";
+
+        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${
+          accFlag ? `_${accFlag}` : ""
+        }${suffix}`;
       }
 
       // চেক টাইপের জন্য আলাদা ফরম্যাটিং
@@ -213,7 +223,7 @@ export const useOrderExport = () => {
   };
 
   // PSI এক্সপোর্ট
-  const exportPSI = async (orders: OrderRequisition[]) => {
+  const exportPSI = async (orders: OrderRequisition[], courier?: string) => {
     if (exportStates.psi.completed) return;
 
     setPsiExportState({ loading: true });
@@ -229,6 +239,8 @@ export const useOrderExport = () => {
       let fileName = "";
       if (orders[0]?.isAgent) {
         fileName = `${todayDate}_${bankName}PSI__Agent`;
+      } else if (courier != null) {
+        fileName = `${todayDate}_${bankName}_PSI_${courier}`;
       } else {
         fileName = `${todayDate}_${bankName}_PSI`;
       }
@@ -245,7 +257,10 @@ export const useOrderExport = () => {
   };
 
   // চালান এক্সপোর্ট
-  const exportChallan = async (orders: OrderRequisition[]) => {
+  const exportChallan = async (
+    orders: OrderRequisition[],
+    courier?: string,
+  ) => {
     challanExportLoading.value = true;
 
     try {
@@ -303,6 +318,7 @@ export const useOrderExport = () => {
         logoBase64,
         footerBase64,
         authSignatureBase64,
+        courier,
       );
       return true;
     } catch (error) {

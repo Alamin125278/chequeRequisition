@@ -31,6 +31,11 @@ export interface Bank {
   id: number;
   bankName: string;
 }
+export interface Courier {
+  id: number;
+  courierName: string;
+  courierCode: string;
+}
 
 export interface CheckTypeVariation {
   type?: string;
@@ -54,6 +59,7 @@ export interface Filters {
   severity?: number;
   requestDate?: string;
   agentType?: boolean;
+  courier?: string;
 }
 
 export interface Pagination {

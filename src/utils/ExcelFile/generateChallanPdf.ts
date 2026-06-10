@@ -43,6 +43,7 @@ export const generateChallanPdf = async (
   headerImageBase64: string,
   footerImageBase64: string,
   authSignatureBase64: string,
+  courier?: string,
 ) => {
   const bankId = challans[0].bankId;
 
@@ -53,6 +54,7 @@ export const generateChallanPdf = async (
       headerImageBase64,
       footerImageBase64,
       authSignatureBase64,
+      courier,
     );
   } else {
     const pdfDoc = await PDFDocument.create();
@@ -610,7 +612,7 @@ export const generateChallanPdf = async (
     let cDate = dateObj.toLocaleDateString("en-GB").replace(/\//g, "-");
     link.download = `${cDate}_${challans[0].bankName}_challan${
       challans[0].isAgent ? "_agent" : ""
-    }.pdf`;
+    }${courier ? `_${courier}` : ""}.pdf`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
