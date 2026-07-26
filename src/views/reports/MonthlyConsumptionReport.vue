@@ -213,6 +213,10 @@ interface ReportItem {
   sb25Leaves: number;
   sba10Books: number;
   sba10Leaves: number;
+  msa10Books: number;
+  msa10Leaves: number;
+  msa20Books: number;
+  msa20Leaves: number;
   msd10Books: number;
   msd10Leaves: number;
   msd50Books: number;
@@ -237,6 +241,12 @@ interface ReportItem {
   acd50Leaves: number;
   acd100Books: number;
   acd100Leaves: number;
+  awca20Books: number;
+  awca20Leaves: number;
+  awca50Books: number;
+  awca50Leaves: number;
+  awca100Books: number;
+  awca100Leaves: number;
   awcd25Books: number;
   awcd25Leaves: number;
   sna25Books: number;
@@ -308,6 +318,10 @@ interface Totals {
   msd10Leaves: number;
   msd50Books: number;
   msd50Leaves: number;
+  msa10Books: number;
+  msa10Leaves: number;
+  msa20Books: number;
+  msa20Leaves: number;
   cd10Books: number;
   cd10Leaves: number;
   cd25Books: number;
@@ -328,6 +342,12 @@ interface Totals {
   acd50Leaves: number;
   acd100Books: number;
   acd100Leaves: number;
+  awca20Books: number;
+  awca20Leaves: number;
+  awca50Books: number;
+  awca50Leaves: number;
+  awca100Books: number;
+  awca100Leaves: number;
   awcd25Books: number;
   awcd25Leaves: number;
   sna25Books: number;
@@ -426,6 +446,10 @@ const totals = computed((): Totals => {
     msd10Leaves: data.reduce((sum, item) => sum + item.msd10Leaves, 0),
     msd50Books: data.reduce((sum, item) => sum + item.msd50Books, 0),
     msd50Leaves: data.reduce((sum, item) => sum + item.msd50Leaves, 0),
+    msa10Books: data.reduce((sum, item) => sum + item.msa10Books, 0),
+    msa10Leaves: data.reduce((sum, item) => sum + item.msa10Leaves, 0),
+    msa20Books: data.reduce((sum, item) => sum + item.msa20Books, 0),
+    msa20Leaves: data.reduce((sum, item) => sum + item.msa20Leaves, 0),
     cd10Books: data.reduce((sum, item) => sum + item.cd10Books, 0),
     cd10Leaves: data.reduce((sum, item) => sum + item.cd10Leaves, 0),
     cd25Books: data.reduce((sum, item) => sum + item.cd25Books, 0),
@@ -446,6 +470,12 @@ const totals = computed((): Totals => {
     acd50Leaves: data.reduce((sum, item) => sum + item.acd50Leaves, 0),
     acd100Books: data.reduce((sum, item) => sum + item.acd100Books, 0),
     acd100Leaves: data.reduce((sum, item) => sum + item.acd100Leaves, 0),
+    awca20Books: data.reduce((sum, item) => sum + item.awca20Books, 0),
+    awca20Leaves: data.reduce((sum, item) => sum + item.awca20Leaves, 0),
+    awca50Books: data.reduce((sum, item) => sum + item.awca50Books, 0),
+    awca50Leaves: data.reduce((sum, item) => sum + item.awca50Leaves, 0),
+    awca100Books: data.reduce((sum, item) => sum + item.awca100Books, 0),
+    awca100Leaves: data.reduce((sum, item) => sum + item.awca100Leaves, 0),
     awcd25Books: data.reduce((sum, item) => sum + item.awcd25Books, 0),
     awcd25Leaves: data.reduce((sum, item) => sum + item.awcd25Leaves, 0),
     sna25Books: data.reduce((sum, item) => sum + item.sna25Books, 0),
@@ -750,6 +780,21 @@ const downloadExcel = async () => {
           "po100",
         ],
       },
+      IBBL: {
+        mainHeaders: [
+          "SL",
+          "Date",
+          "MSA-10",
+          "MSA-20",
+          "AWCA-20",
+          "AWCA-50",
+          "AWCA-100",
+          "PO-50",
+          "Total Books",
+          "Total Leaves",
+        ],
+        dataKeys: ["msa10", "msa20", "awca20", "awca50", "awca100", "po50"],
+      },
       // Default configuration for other banks
       default: {
         mainHeaders: [
@@ -1002,8 +1047,13 @@ const downloadExcel = async () => {
         vertical: "middle",
       };
 
+      let workORderRef =
+        bankName === "IBBL"
+          ? "IBBPLC/HO/CSD/PSSD/2025/1659"
+          : "BGCB-GSD-TIO-2024/101";
+
       sheet.mergeCells(`A3:AD3`);
-      sheet.getCell("A3").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
+      sheet.getCell("A3").value = `Work Order Ref: ${workORderRef}`;
       sheet.getCell("A3").font = { bold: true, size: 12 };
       sheet.getCell("A3").alignment = {
         horizontal: "center",
@@ -1119,9 +1169,13 @@ const downloadExcel = async () => {
         horizontal: "center",
         vertical: "middle",
       };
+      let workORderRef =
+        bankName === "IBBL"
+          ? "IBBPLC/HO/CSD/PSSD/2025/1659"
+          : "BGCB-GSD-TIO-2024/101";
 
       sheet.mergeCells(`A4:${titleCol}4`);
-      sheet.getCell("A4").value = "Work Order Ref: BGCB-GSD-TIO-2024/100";
+      sheet.getCell("A4").value = `Work Order Ref: ${workORderRef}`;
       sheet.getCell("A4").font = { bold: true, size: 12 };
       sheet.getCell("A4").alignment = {
         horizontal: "center",

@@ -428,13 +428,27 @@ const handleFileChange = (info: UploadChangeParam) => {
         const data = new Uint8Array(e.target?.result as ArrayBuffer);
         const workbook = XLSX.read(data, { type: "array" });
         const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-        const jsonData =
+        let jsonData =
           XLSX.utils.sheet_to_json<Record<string, unknown>>(worksheet);
 
         if (jsonData.length === 0) {
           errorMessage.value = "Excel file is empty";
           return;
         }
+
+        jsonData = jsonData.map((row) => {
+          const newRow: Record<string, unknown> = {};
+
+          Object.keys(row).forEach((key) => {
+            if (key === "End No") {
+              newRow["Book Quantity"] = row[key];
+            } else {
+              newRow[key] = row[key];
+            }
+          });
+
+          return newRow;
+        });
 
         const headers = Object.keys(jsonData[0]);
         const leavesIndex = findColumnIndex(headers, "Leaves Quantity");
@@ -479,71 +493,79 @@ const DEFAULT_ROW: RowData = {
   "Routing No": "000000000",
   "Transaction Code": 10,
   "Account No": "0000000000000",
+  "ID(Inside QR)": "",
+  "Security Code(QR+Under QR)": "",
+  "Token Text(Leveas Counter part)": "",
+  "Cover Text(Cover Page)": "",
 };
 
 const generateShimantoSerial = () => {
   const num = Math.floor(10000000 + Math.random() * 90000000).toString();
   return `${num.slice(0, 4)}. ${num.slice(4)}`;
 };
+let bankName = "";
 
 const expandRows = (headers: string[], leavesIndex: number) => {
+  const data = originalData.value;
   const expanded: RowData[] = [];
   let totalLeavesCount = 0;
 
-  const data = originalData.value;
-
-  /* -------------------------------
-     STEP 1: Expand rows
-  --------------------------------*/
   for (const row of data) {
+    bankName = row["Bank Name"];
     const leaves = Number(row[headers[leavesIndex]]) || 0;
     const startSerial = Number(row["Cheque Serial"]) || 0;
+
+    const isIBBL = bankName === "IBBL";
+    const isShimanto = bankName === "Shimanto Bank PLC";
+
+    const securityCodes = isIBBL
+      ? String(row["Security Code(QR+Under QR)"] ?? "")
+          .split(",")
+          .map((code) => code.trim())
+          .filter(Boolean)
+      : [];
+
+    if (isIBBL && securityCodes.length !== leaves) {
+      console.warn(
+        `IBBL Security Code mismatch: Leaves=${leaves}, Security Codes=${securityCodes.length}`,
+        row,
+      );
+    }
 
     totalLeavesCount += leaves;
 
     for (let i = 0; i < leaves; i++) {
-      const isShimanto = row["Bank Name"] === "Shimanto Bank PLC";
-      const accountNo = isShimanto
-        ? generateShimantoSerial()
-        : row["Account No"];
       expanded.push({
         ...row,
         "Cheque Serial": String(startSerial + i).padStart(7, "0"),
         "Leaves Quantity": 1,
-        "Account No": accountNo,
+        "Book Quantity": 1,
+        "Account No": isShimanto ? generateShimantoSerial() : row["Account No"],
+        "Security Code(QR+Under QR)": isIBBL ? (securityCodes[i] ?? "") : "",
       });
     }
   }
 
-  /* -------------------------------
-     STEP 2: Layout arrangement
-  --------------------------------*/
-  const firstBank = expanded[0]?.["Bank Name"];
+  const firstBank = data[0]?.["Bank Name"] ?? "";
   const paperUps = firstBank === "Pubali Bank PLC." ? 4 : 5;
 
   const rowsPerColumn = Math.ceil(expanded.length / paperUps);
-  const finalData: RowData[] = [];
 
-  for (let rowIndex = 0; rowIndex < rowsPerColumn; rowIndex++) {
-    for (let col = 0; col < paperUps; col++) {
+  const finalData = Array.from({ length: rowsPerColumn }, (_, rowIndex) =>
+    Array.from({ length: paperUps }, (_, col) => {
       const index = rowIndex + col * rowsPerColumn;
-
-      finalData.push(
+      return (
         expanded[index] ?? {
           ...DEFAULT_ROW,
           "Bank Name": firstBank,
           "Transaction Code": expanded[0]?.["Transaction Code"] ?? 0,
-        },
+        }
       );
-    }
-  }
+    }),
+  ).flat();
 
-  /* -------------------------------
-     STEP 3: Update state
-  --------------------------------*/
   expandedData.value = finalData;
   totalLeaves.value = totalLeavesCount;
-
   pagination.total = expanded.length;
   pagination.current = 1;
 };
@@ -554,7 +576,7 @@ const downloadExcel = () => {
       const { __key__, ...rest } = row;
       return rest;
     });
-    const bankName = dataToExport[0]["Bank Name"];
+    // const bankName = dataToExport[0]["Bank Name"];
     const todayDate = new Date()
       .toLocaleDateString("en-GB")
       .split("/")

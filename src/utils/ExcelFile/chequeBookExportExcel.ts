@@ -5,7 +5,7 @@ import * as XLSX from "xlsx";
 export const exportToExcel = (
   data: any[],
   fileName: string = "export",
-  sheetName: string = "Sheet1"
+  sheetName: string = "Sheet1",
 ) => {
   if (!Array.isArray(data) || data.length === 0) {
     message.warning("No data to export");

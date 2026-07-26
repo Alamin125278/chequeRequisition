@@ -380,7 +380,6 @@ import ExcelJS from "exceljs";
 import { computed, onMounted, reactive, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import { courierSummaryForPrime } from "@/composable/reports/courierSummaryForPrime";
-
 interface Bank {
   id: number;
   bankName: string;
@@ -430,6 +429,8 @@ interface ReportItem {
   sb50: number;
   sba10: number;
   msd10: number;
+  msa10: number;
+  msa20: number;
   msd50: number;
   cd5: number;
   cd10: number;
@@ -442,6 +443,11 @@ interface ReportItem {
   acd100: number;
   cda25: number;
   awcd25: number;
+  awca20: number;
+  awca50: number;
+  awca100: number;
+  msna50: number;
+  msna100: number;
   sna25: number;
   snd25: number;
   snd50: number;
@@ -468,6 +474,8 @@ interface Totals {
   sb50: number;
   sba10: number;
   msd10: number;
+  msa10: number;
+  msa20: number;
   msd50: number;
   cd5: number;
   cd10: number;
@@ -480,6 +488,11 @@ interface Totals {
   acd100: number;
   cda25: number;
   awcd25: number;
+  awca20: number;
+  awca50: number;
+  awca100: number;
+  msna50: number;
+  msna100: number;
   sna25: number;
   snd25: number;
   snd50: number;
@@ -536,6 +549,8 @@ const totals = computed((): Totals => {
     sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     sba10: data.reduce((sum, item) => sum + item.sba10, 0),
     msd10: data.reduce((sum, item) => sum + item.msd10, 0),
+    msa10: data.reduce((sum, item) => sum + item.msa10, 0),
+    msa20: data.reduce((sum, item) => sum + item.msa20, 0),
     msd50: data.reduce((sum, item) => sum + item.msd50, 0),
     cd5: data.reduce((sum, item) => sum + item.cd5, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
@@ -548,6 +563,11 @@ const totals = computed((): Totals => {
     acd100: data.reduce((sum, item) => sum + item.acd100, 0),
     cda25: data.reduce((sum, item) => sum + item.cda25, 0),
     awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
+    awca20: data.reduce((sum, item) => sum + item.awca20, 0),
+    awca50: data.reduce((sum, item) => sum + item.awca50, 0),
+    awca100: data.reduce((sum, item) => sum + item.awca100, 0),
+    msna50: data.reduce((sum, item) => sum + item.msna50, 0),
+    msna100: data.reduce((sum, item) => sum + item.msna100, 0),
     sna25: data.reduce((sum, item) => sum + item.sna25, 0),
     snd25: data.reduce((sum, item) => sum + item.snd25, 0),
     snd50: data.reduce((sum, item) => sum + item.snd50, 0),
@@ -575,6 +595,8 @@ type ReportColumnKey =
   | "sb50"
   | "sba10"
   | "msd10"
+  | "msa10"
+  | "msa20"
   | "msd50"
   | "cd5"
   | "cd10"
@@ -587,6 +609,11 @@ type ReportColumnKey =
   | "acd100"
   | "cda25"
   | "awcd25"
+  | "awca20"
+  | "awca50"
+  | "awca100"
+  | "msna50"
+  | "msna100"
   | "sna25"
   | "snd25"
   | "snd50"
@@ -610,6 +637,8 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "sb50", label: "SB(50)" },
   { key: "sba10", label: "SBA(10)" },
   { key: "msd10", label: "MSD(10)" },
+  { key: "msa10", label: "MSA(10)" },
+  { key: "msa20", label: "MSA(20)" },
   { key: "msd50", label: "MSD(50)" },
   { key: "cd5", label: "CD(5)" },
   { key: "cd10", label: "CD(10)" },
@@ -622,6 +651,11 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "acd50", label: "ACD(50)" },
   { key: "acd100", label: "ACD(100)" },
   { key: "awcd25", label: "AWCD(25)" },
+  { key: "awca20", label: "AWCA(20)" },
+  { key: "awca50", label: "AWCA(50)" },
+  { key: "awca100", label: "AWCA(100)" },
+  { key: "msna50", label: "MSNA(50)" },
+  { key: "msna100", label: "MSNA(100)" },
   { key: "sna25", label: "SNA(25)" },
   { key: "snd25", label: "SND(25)" },
   { key: "snd50", label: "SND(50)" },
@@ -905,6 +939,9 @@ const downloadExcel = async () => {
     const columnWidths = [8, 20, 15, 15, 10, 10, 10, 10, 10, 10, 10, 10, 12];
     sheet.columns.forEach((col, index) => {
       col.width = columnWidths[index];
+    });
+    sheet.eachRow((row) => {
+      row.height = 25;
     });
 
     const courierName = couriers.value.find(

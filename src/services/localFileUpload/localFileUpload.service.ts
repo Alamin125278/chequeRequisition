@@ -24,6 +24,11 @@ export interface LocalFileUploadCommand {
   agentNum?: string;
   isAgent: boolean;
   accFlag: string;
+  distId?: string;
+  qrId?: string;
+  securityCode?: string;
+  tokenText?: string;
+  coverText?: string;
 }
 
 export interface LocalFileUploadResult {

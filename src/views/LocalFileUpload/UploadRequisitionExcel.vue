@@ -459,6 +459,11 @@ interface ImportedItem {
   deliveryBranchCode?: string;
   isAgent: string;
   accFlag: string;
+  distId?: string;
+  qrId?: string;
+  securityCode?: string;
+  tokenText?: string;
+  coverText?: string;
 }
 
 // Current date for display
@@ -617,6 +622,36 @@ const columns = [
     title: "Is Agent",
     dataIndex: "isAgent",
     key: "isAgent",
+    width: 150,
+  },
+  {
+    title: "Dist Id",
+    dataIndex: "distId",
+    key: "distId",
+    width: 150,
+  },
+  {
+    title: "Qr Id",
+    dataIndex: "qrId",
+    key: "qrId",
+    width: 150,
+  },
+  {
+    title: "Security Code",
+    dataIndex: "securityCode",
+    key: "securityCode",
+    width: 3000,
+  },
+  {
+    title: "Token Text",
+    dataIndex: "tokenText",
+    key: "tokenText",
+    width: 150,
+  },
+  {
+    title: "Cover Text",
+    dataIndex: "coverText",
+    key: "coverText",
     width: 150,
   },
 ];
@@ -827,6 +862,134 @@ const processFile = async () => {
             }
           }
 
+          let courierCode = "M";
+
+          const branchList = [
+            "BAISHTEKI-ABC0108",
+            "BALARAMPUR-ABC0191",
+            "BALIYAHATI BAZAR-ABC0045",
+            "BANGLA BAZAR-ABC0091",
+            "BAUSHIA MORE BAZAR-ABC0181",
+            "BETILA-ABC0012",
+            "BHABANIGANJ BAZAR-ABC0073",
+            "BIBIRHAT BAZAR-ABC0184",
+            "BOALIA BAZAR-ABC0212",
+            "BOARD SCHOOL BAZAR-ABC0107",
+            "Boiragy Bazar-ABC0077",
+            "BOLIDARA BAZAR-ABC0113",
+            "BOTRISH-ABC0166",
+            "BURBURIA BAZAR-ABC0123",
+            "Chanderchar bazar-ABC0024",
+            "CHARABAG-ABC0203",
+            "CHASHIRHAT BAZAR-ABC0179",
+            "CHAWKBAZAR-ABC0099",
+            "DATTAPARA-ABC0030",
+            "DEUTY BAZAR-ABC0138",
+            "DHAMTI BAZAR-ABC0090",
+            "DHOLARHAT-ABC0124",
+            "DHOLBHANGA BAZAR-ABC0171",
+            "DHOLLA BAZAR-ABC0013",
+            "DOHARGAON BAZAR-ABC0085",
+            "FAKIR BAZAR-ABC0161",
+            "FAKIRGANJ BAZAR-ABC0165",
+            "FATEPUR BAZAR-ABC0028",
+            "FHP-BAJITPUR-ABC0004",
+            "HASHEM BAZAR-ABC0101",
+            "HORINACHALA-ABC0205",
+            "HORISHKUL BAZAR-ABC0067",
+            "HOTKATOLI BAZAR-ABC0188",
+            "JHATURDIA BAZAR-ABC0039",
+            "JOINA BAZAR-ABC0169",
+            "JUMARBARI BAZAR-ABC0135",
+            "JURAIN BAZAR-ABC0082",
+            "KADAMTALA-ABC0014",
+            "KALABAGAN-ABC0137",
+            "KALIAKOIR BAZAR-ABC0070",
+            "KALIBARI BAZAR-ABC0141",
+            "KALIR BAZAR-ABC0117",
+            "Kalma Bazar-ABC0029",
+            "KATIADI-ABC0004",
+            "KATIADI THANAR MOR-ABC0210",
+            "KAWLIBERA BAZAR-ABC0155",
+            "KAWRAN BAZAR-ABC0151",
+            "KOCHASOHOR BAZAR-ABC0206",
+            "LEMUBARI NOTUNHAT-ABC0021",
+            "MADARIPOOL BAZAR-ABC0097",
+            "MALUMGHAT BAZAR-ABC0027",
+            "MOHICHAIL BAZAR-ABC0189",
+            "MOHIMAGANJ BAZAR-ABC0044",
+            "MOUCHAK-ABC0202",
+            "NARAYANPUR BAZAR -ABC0019",
+            "NAWABGANJ BAZAR-ABC0182",
+            "Nazrul Avenue-ABC0080",
+            "NOBDIGANJ BAZAR-ABC0175",
+            "NOORULLAH GODOWN-ABC0156",
+            "NORSHINGHAPUR-ABC0143",
+            "OVIRAMPUR-ABC0187",
+            "PAKERHAT-ABC0057",
+            "Paril Bazar-ABC0047",
+            "PIRGACHA-ABC0193",
+            "PIRGANJ BAZAR-ABC0180",
+            "RAIL GATE BAZAR-ABC0079",
+            "RUPAYAN PRIME-ABC0084",
+            "SALNA BAZAR-ABC0054",
+            "Shahorail Bazar-ABC0103",
+            "SHARAKGHAT BAZAR-ABC0115",
+            "SHIBCHAR BAZAR-ABC0023",
+            "SHIRUAIL BAZAR-ABC0055",
+            "SIGNBOARD-ABC0186",
+            "SOUTH DATTAPARA BAZAR-ABC0055",
+            "Taltola Bazar-ABC0119",
+            "TATUL JORA BAZAR-ABC0204",
+            "THANAR MORE-ABC0065",
+            "TORABGANJ-ABC0008",
+            "TUITAL BAZAR-ABC0053",
+            "UDDOBGONJ-ABC0148",
+            "USHA-TARABO-ABC0001",
+            "YASIN HAZIR BAZAR-ABC0200",
+            "BANANI BRANCH",
+            "DHANMONDI BRANCH",
+            "DILKUSHA CORPORATE BRANCH",
+            "GULSHAN BRANCH",
+            "ISLAMPUR BRANCH",
+            "KAMARPARA BRANCH",
+            "KAWRAN BAZAR BRANCH",
+            "MIRPUR BRANCH",
+            "UTTARA BRANCH",
+            "MADANI AVENUE SUB-BRANCH",
+            "MOTIJHEEL SUB-BRANCH",
+            "NAWABPUR SUB-BRANCH",
+            "NURJAHAN ROAD SUB-BRANCH",
+            "RUPNAGAR SUB-BRANCH",
+            "UTTARA SHAHJALAL AVENUE SUB-BRANCH",
+            "SREENAGAR SUB-BRANCH",
+            "SHIBGONJ SUB-BRANCH",
+            "SHAHJADPUR SUB-BRANCH",
+            "SAIDPUR SUB BRANCH",
+            "RAJSHAHI CITY CORPORATION SUB-BRANCH",
+            "NOAPARA SUB-BRANCH",
+            "NOSER MARKET SUB-BRANCH",
+            "MYMENSINGH SUB-BRANCH",
+            "MIEZ SUB-BRANCH",
+            "LAKSHMIPUR SUB-BRANCH",
+            "MADHABDI SUB-BRANCH",
+            "JUBILEE ROAD SUB-BRANCH",
+            "KARATIA SUB-BRANCH",
+            "DENDABOR SUB-BRANCH",
+            "CHATKHIL SUB-BRANCH",
+            "BOGURA POURASHAVA SUB-BRANCH",
+            "ASHULIA SUB BRANCH",
+            "ISLAMI BANKING GULSHAN WINDOW",
+          ];
+          let Dbranch =
+            row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "";
+
+          if (branchList.includes(Dbranch.trim())) {
+            courierCode = "B";
+          } else {
+            courierCode = "L";
+          }
+
           processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
@@ -862,7 +1025,7 @@ const processFile = async () => {
               distributionPointNameAddress ??
               ""
             ).trim(),
-            courierCode: "M",
+            courierCode: courierCode,
             agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
@@ -1504,14 +1667,17 @@ const processFile = async () => {
           let endNo = (row["end no"] || "").trim();
           let bookQty = 1;
           let accFlag = (row["a/c flag"] || "").trim();
-          if (accFlag == "Monarch Account") {
+          if (
+            accFlag == "Monarch Account" ||
+            accFlag == "Priority Banking Account" ||
+            accFlag == "Priority Banking"
+          ) {
             accFlag = "Priority";
           } else if (accFlag == "Islamic Banking") {
             accFlag = "Islamic";
           } else {
             accFlag = "CONV";
           }
-          console.log("Delivery Branch Name: ", deliveryBranchName);
           processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
@@ -1540,6 +1706,80 @@ const processFile = async () => {
             deliveryBranchCode: deliveryBranchCode,
             isAgent: selectedType.value === true ? "True" : "False",
             accFlag: accFlag,
+          });
+        }
+      } else if (selectedBank.value == 9) {
+        for (const [index, originalRow] of (jsonData as any[]).entries()) {
+          // Normalize keys to lowercase for case-insensitive access
+          const row: Record<string, any> = {};
+          for (const key of Object.keys(originalRow)) {
+            row[key.toLowerCase()] = originalRow[key];
+          }
+          const courierName = (row["courier name"] || "").trim().toUpperCase();
+          let courierCode = "";
+          if (courierName === "UNITED EXPRESS COURIER") {
+            courierCode = "U";
+          } else if (courierName === "PADMA COURIER SERVICE") {
+            courierCode = "P";
+          } else if (courierName === "D. M COURIER SERVICE") {
+            courierCode = "D";
+          } else if (courierName === "WORLD RUNNER COURIER") {
+            courierCode = "W";
+          } else if (courierName === "SUNDARBAN COURIER SERVICE (PVT.) LTD") {
+            courierCode = "S";
+          }
+
+          const chequePrefix = row["prefix"].trim();
+          let chequeType = "";
+          if (
+            chequePrefix == "MSZ" ||
+            chequePrefix == "MCW" ||
+            chequePrefix == "MCX"
+          ) {
+            chequeType = "MSA";
+          } else if (
+            chequePrefix == "IBS" ||
+            chequePrefix == "IBI" ||
+            chequePrefix == "IDG" ||
+            chequePrefix == "IDH"
+          ) {
+            chequeType = "AWCA";
+          } else if (chequePrefix == "ABA") {
+            chequeType = "PO";
+          }
+          processedData.push({
+            key: index.toString(),
+            bankName: selectedBankName.value,
+            bankId: selectedBank.value || 9,
+            branchName: row["issue branch name"].trim().toUpperCase(),
+            routingNo: row["routing no"].trim(),
+            accountNo: row["account no."].toString().trim(),
+            accountName: (row["account title"] || "").trim().toUpperCase(),
+            chequeType: chequeType,
+            chequePrefix: chequePrefix,
+            micrNo: row["micr account no"].toString().trim(),
+            series: row["prefix"].trim(),
+            transactionCode: row["trans code"] || "",
+            leafCount: row["leaf"] || "",
+            startNo: row["start no."] || "",
+            endNo: row["end no."] || "",
+            bookQty: 1,
+            receivingBranch: row["delivery location"].trim().toUpperCase(),
+            distributionPointName: row["delivery point"].trim().toUpperCase(),
+            courierCode: courierCode,
+            agentNum: "",
+            serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
+            requestDate:
+              row["request date"] || new Date().toISOString().slice(0, 10),
+            homeBranchCode: "0004",
+            deliveryBranchCode: "0000",
+            isAgent: selectedType.value === true ? "True" : "False",
+            accFlag: "general",
+            distId: row["dist. id"] || "",
+            qrId: row["id"] || "",
+            securityCode: row["security code"] || "",
+            tokenText: row["token text"] || "",
+            coverText: row["cover text"] || "",
           });
         }
       }
@@ -1598,6 +1838,11 @@ const handleSubmit = async () => {
       deliveryBranchCode: item.deliveryBranchCode,
       isAgent: selectedType.value,
       accFlag: item.accFlag,
+      distId: item.distId,
+      qrId: item.qrId,
+      securityCode: item.securityCode,
+      tokenText: item.tokenText,
+      coverText: item.coverText,
     }));
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {

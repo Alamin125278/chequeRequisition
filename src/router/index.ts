@@ -152,13 +152,18 @@ const router = createRouter({
         },
         {
           path: "/reports/summary-report",
-          name: "Make A Challan",
+          name: "Branch Wise Bill",
           component: () => import("@/views/reports/Summary.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/reports/courier-summary",
           name: "Courier Summary",
           component: () => import("@/views/reports/CourierSummary.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/token-receipt",
+          name: "Token Receipt",
+          component: () => import("@/views/reports/AgentSummary.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/reports/production-report",
@@ -170,6 +175,11 @@ const router = createRouter({
           name: "Consumption Report",
           component: () =>
             import("@/views/reports/MonthlyConsumptionReport.vue"), // Placeholder, would be a real page in production
+        },
+        {
+          path: "/reports/agent-receipt",
+          name: "Agent Receipt",
+          component: () => import("@/views/reports/AgentReceipt.vue"), // Placeholder, would be a real page in production
         },
         {
           path: "/role-management/menus",
@@ -210,7 +220,7 @@ router.beforeEach(async (to, from, next) => {
 
   const requiresAuth = to.matched.some((record) => record.meta.requiresAuth);
   const requirePermission = to.matched.some(
-    (record) => record.meta.requiresPermission
+    (record) => record.meta.requiresPermission,
   );
 
   const isLoggedIn = userStore.isLoggedIn;

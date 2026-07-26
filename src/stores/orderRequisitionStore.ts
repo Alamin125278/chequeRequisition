@@ -32,6 +32,10 @@ export interface OrderRequisition {
   branchCode?: string;
   deliveryBranchCode?: string;
   accFlag?: string;
+  qrId?: string;
+  securityCode?: string;
+  tokenText?: string;
+  coverText?: string;
 }
 export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
   const orderRequisition = ref<OrderRequisition[]>([]);

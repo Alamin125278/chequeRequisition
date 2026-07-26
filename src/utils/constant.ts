@@ -54,6 +54,8 @@ export default {
       "/api/requisition/get-all-order-requisitions-for-export",
     createChallan: "/api/challan/create",
     getChallansExport: "/api/challan/get-challans",
+    getAgentChallanReceipt: "/api/challan/agent-receipt",
+    getAgentSummaryReport: "/api/challan/agent-summary-report",
     getDownloadedRequistions: "/api/requisition/get-downloaded-requisitions",
     updateChequeRequisition: "/api/requisition/update-cheque-requisition",
     updateChequeSeverity: "/api/requisition/update-cheque-severity",

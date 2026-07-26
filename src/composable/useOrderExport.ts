@@ -347,92 +347,97 @@ export const useOrderExport = () => {
 
   // PSI-এর জন্য আলাদা ফরম্যাটিং ফাংশন
   const formatPSIData = (orders: OrderRequisition[]) => {
-    const formattedData: any[] = [];
+    return orders.flatMap((order) => {
+      const {
+        bookQty,
+        leaves,
+        startNo,
+        bankId,
+        bankName,
+        accountName,
+        chequePrefix,
+        micrNo,
+        routingNo,
+        transactionCode,
+        accountNo,
+      } = order;
 
-    orders.forEach((order) => {
-      const { bookQty, leaves, startNo } = order;
+      const branchName = getPSIFormattedBranchName(order);
+      const receivingBranchName = getPSIFormattedDeliveryBranchName(order);
 
-      // PSI-এর জন্য আলাদা ব্রাঞ্চ নাম ফরম্যাটিং
-      let branchName = getPSIFormattedBranchName(order);
-      let receivingBranchName = getPSIFormattedDeliveryBranchName(order);
+      let bookStartNo = Number(startNo);
 
-      let bookStartNo = parseInt(startNo);
-      for (let i = 0; i < bookQty; i++) {
+      return Array.from({ length: bookQty }, () => {
+        const strStartNo = bookStartNo.toString().padStart(7, "0");
         const bookEndNo = (bookStartNo + leaves - 1)
           .toString()
           .padStart(7, "0");
-        const strStartNo = bookStartNo.toString().padStart(7, "0");
 
-        const data: any = {
-          "Bank Name": order.bankName,
-          "Branch Name": branchName, // PSI-এর জন্য ফরম্যাট করা ব্রাঞ্চ নাম
-          "Account Name": order.accountName,
+        const data = {
+          "Bank Name": bankName,
+          "Branch Name": branchName,
+          "Account Name": accountName,
           "Customer Address": receivingBranchName,
-          "Cheque Prefix": order.chequePrefix,
-          "MICR No": order.micrNo,
+          "Cheque Prefix": chequePrefix,
+          "MICR No": micrNo,
           "Cheque Serial": strStartNo,
-          "Leaves Quantity": order.leaves,
+          "Leaves Quantity": leaves,
           "End No": bookEndNo,
-          "Routing No": order.routingNo,
-          "Transaction Code": order.transactionCode,
-          "Account No": order.accountNo,
+          "Routing No": routingNo,
+          "Transaction Code": transactionCode,
+          "Account No": accountNo,
+          "ID(Inside QR)": order.qrId,
+          "Security Code(QR+Under QR)": order.securityCode,
+          "Token Text(Leveas Counter part)": order.tokenText,
+          "Cover Text(Cover Page)": order.coverText,
         };
 
-        formattedData.push(data);
-        bookStartNo += order.leaves;
-      }
+        bookStartNo += leaves;
+
+        return data;
+      });
     });
-
-    // formattedData.sort((a, b) =>
-    //   a["Customer Address"].localeCompare(b["Customer Address"]),
-    // );
-
-    return formattedData;
   };
 
   // চেক টাইপ এক্সপোর্টের জন্য আলাদা ফরম্যাটিং ফাংশন
   const formatCheckTypeData = (orders: OrderRequisition[]) => {
-    const formattedData: any[] = [];
-    // const sortedOrders = [...orders].sort((a, b) =>
-    //   (a.receivingBranchName || "").localeCompare(b.receivingBranchName || ""),
-    // );
+    return orders.flatMap((order) => {
+      const branchName = getCheckTypeFormattedBranchName(order);
+      const receivingBranchName =
+        getCheckTypeFormattedDeliveryBranchName(order);
 
-    orders.forEach((order) => {
-      const { bookQty, leaves, startNo } = order;
-
-      // চেক টাইপের জন্য আলাদা ব্রাঞ্চ নাম ফরম্যাটিং
-      let branchName = getCheckTypeFormattedBranchName(order);
-      let receivingBranchName = getCheckTypeFormattedDeliveryBranchName(order);
-
-      let bookStartNo = parseInt(startNo);
-      for (let i = 0; i < bookQty; i++) {
+      let bookStartNo = Number(order.startNo);
+      // let codes = order.securityCode
+      //   ? order.securityCode.split(",").map((code) => code.trim())
+      //   : [];
+      // codes.join(",")
+      return Array.from({ length: order.bookQty }, () => {
         const strStartNo = bookStartNo.toString().padStart(7, "0");
 
-        const data: any = {
+        const data = {
           "Bank Name": order.bankName,
-          "Branch Name": branchName, // চেক টাইপের জন্য ফরম্যাট করা ব্রাঞ্চ নাম
+          "Branch Name": branchName,
           "Account Name": order.accountName,
           "Customer Address": receivingBranchName,
           "Cheque Prefix": order.chequePrefix,
           "MICR No": order.micrNo,
           "Cheque Serial": strStartNo,
           "Leaves Quantity": order.leaves,
-          "Book Quantity": 1, // চেক টাইপে Book Quantity থাকে
+          "Book Quantity": 1,
           "Routing No": order.routingNo,
           "Transaction Code": order.transactionCode,
           "Account No": order.accountNo,
+          "ID(Inside QR)": order.qrId,
+          "Security Code(QR+Under QR)": order.securityCode,
+          "Token Text(Leveas Counter part)": order.tokenText,
+          "Cover Text(Cover Page)": order.coverText,
         };
 
-        formattedData.push(data);
         bookStartNo += order.leaves;
-      }
+
+        return data;
+      });
     });
-
-    // formattedData.sort((a, b) =>
-    //   a["Customer Address"].localeCompare(b["Customer Address"]),
-    // );
-
-    return formattedData;
   };
   // PSI-এর জন্য ব্রাঞ্চ নাম ফরম্যাটিং
   const getPSIFormattedBranchName = (order: OrderRequisition) => {
@@ -447,7 +452,8 @@ export const useOrderExport = () => {
     } else if (
       (order.bankId === 3 && order.chequePrefix === "PO") ||
       order.bankId === 5 ||
-      order.bankId === 8
+      order.bankId === 8 ||
+      order.bankId === 9
     ) {
       return `${order.branchName} (${order.routingNo})`;
     } else {
@@ -457,7 +463,7 @@ export const useOrderExport = () => {
   const getPSIFormattedDeliveryBranchName = (order: OrderRequisition) => {
     if (order.bankId === 7) {
       return order.branchCode;
-    } else if (order.bankId === 5) {
+    } else if (order.bankId === 5 || order.bankId === 9) {
       return order.branchName;
     } else {
       return order.receivingBranchName;
@@ -472,7 +478,8 @@ export const useOrderExport = () => {
     } else if (
       (order.bankId === 3 && order.chequePrefix === "PO") ||
       order.bankId === 5 ||
-      order.bankId === 8
+      order.bankId === 8 ||
+      order.bankId === 9
     ) {
       return `${order.branchName} (${order.routingNo})`;
     } else if (order.bankId === 1) {
@@ -486,7 +493,7 @@ export const useOrderExport = () => {
   const getCheckTypeFormattedDeliveryBranchName = (order: OrderRequisition) => {
     if (order.bankId === 7) {
       return order.branchCode;
-    } else if (order.bankId === 5) {
+    } else if (order.bankId === 5 || order.bankId === 9) {
       return order.branchName;
     } else {
       return order.receivingBranchName;

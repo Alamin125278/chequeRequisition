@@ -77,13 +77,7 @@
               </a-form-item>
 
               <!-- Agent Type -->
-              <a-form-item
-                label="AgentType"
-                name="agentType"
-                :rules="[
-                  { required: true, message: 'Please select agent type' },
-                ]"
-              >
+              <a-form-item label="AgentType" name="agentType">
                 <a-select
                   v-model:value="formState.agentType"
                   placeholder="Select Type"
@@ -386,6 +380,7 @@ interface ReportItem {
   courierName: string;
   requestDate: string;
   isAgent: boolean;
+  distId?: string;
   sb5: number;
   sb10: number;
   sb20: number;
@@ -393,6 +388,8 @@ interface ReportItem {
   sb50: number;
   sba10: number;
   msd10: number;
+  msa10: number;
+  msa20: number;
   msd50: number;
   cd5: number;
   cd10: number;
@@ -405,6 +402,11 @@ interface ReportItem {
   acd100: number;
   cda25: number;
   awcd25: number;
+  awca20: number;
+  awca50: number;
+  awca100: number;
+  msna50: number;
+  msna100: number;
   sna25: number;
   snd25: number;
   snd50: number;
@@ -443,6 +445,8 @@ interface Totals {
   sb50: number;
   sba10: number;
   msd10: number;
+  msa10: number;
+  msa20: number;
   msd50: number;
   cd5: number;
   cd10: number;
@@ -455,6 +459,11 @@ interface Totals {
   acd100: number;
   cda25: number;
   awcd25: number;
+  awca20: number;
+  awca50: number;
+  awca100: number;
+  msna50: number;
+  msna100: number;
   sna25: number;
   snd25: number;
   snd50: number;
@@ -499,7 +508,7 @@ const formState = reactive({
   startDate: dayjs().startOf("month"), // বর্তমান মাসের প্রথম দিন
   endDate: dayjs(),
   bankId: null as number | null,
-  agentType: false as boolean,
+  agentType: null as boolean | null,
 });
 
 // Modal and loading states
@@ -521,6 +530,8 @@ const totals = computed((): Totals => {
     sb50: data.reduce((sum, item) => sum + item.sb50, 0),
     sba10: data.reduce((sum, item) => sum + item.sba10, 0),
     msd10: data.reduce((sum, item) => sum + item.msd10, 0),
+    msa10: data.reduce((sum, item) => sum + item.msa10, 0),
+    msa20: data.reduce((sum, item) => sum + item.msa20, 0),
     msd50: data.reduce((sum, item) => sum + item.msd50, 0),
     cd5: data.reduce((sum, item) => sum + item.cd5, 0),
     cd10: data.reduce((sum, item) => sum + item.cd10, 0),
@@ -533,6 +544,11 @@ const totals = computed((): Totals => {
     acd50: data.reduce((sum, item) => sum + item.acd50, 0),
     acd100: data.reduce((sum, item) => sum + item.acd100, 0),
     awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
+    awca20: data.reduce((sum, item) => sum + item.awca20, 0),
+    awca50: data.reduce((sum, item) => sum + item.awca50, 0),
+    awca100: data.reduce((sum, item) => sum + item.awca100, 0),
+    msna50: data.reduce((sum, item) => sum + item.msna50, 0),
+    msna100: data.reduce((sum, item) => sum + item.msna100, 0),
     sna25: data.reduce((sum, item) => sum + item.sna25, 0),
     snd25: data.reduce((sum, item) => sum + item.snd25, 0),
     snd50: data.reduce((sum, item) => sum + item.snd50, 0),
@@ -572,6 +588,8 @@ type ReportColumnKey =
   | "sb50"
   | "sba10"
   | "msd10"
+  | "msa10"
+  | "msa20"
   | "msd50"
   | "cd5"
   | "cd10"
@@ -584,6 +602,11 @@ type ReportColumnKey =
   | "acd100"
   | "cda25"
   | "awcd25"
+  | "awca20"
+  | "awca50"
+  | "awca100"
+  | "msna50"
+  | "msna100"
   | "sna25"
   | "snd25"
   | "snd50"
@@ -636,6 +659,8 @@ const handleBankChange = () => {
       { key: "sb50", label: "SB(50)" },
       { key: "sba10", label: "SBA(10)" },
       { key: "msd10", label: "MSD(10)" },
+      { key: "msa10", label: "MSA(10)" },
+      { key: "msa20", label: "MSA(20)" },
       { key: "msd50", label: "MSD(50)" },
       { key: "cd5", label: "CD(5)" },
       { key: "cd10", label: "CD(10)" },
@@ -648,6 +673,11 @@ const handleBankChange = () => {
       { key: "acd50", label: "ACD(50)" },
       { key: "acd100", label: "ACD(100)" },
       { key: "awcd25", label: "AWCD(25)" },
+      { key: "awca20", label: "AWCA(20)" },
+      { key: "awca50", label: "AWCA(50)" },
+      { key: "msna50", label: "MSNA(50)" },
+      { key: "awca100", label: "AWCA(100)" },
+      { key: "msna100", label: "MSNA(100)" },
       { key: "sna25", label: "SNA(25)" },
       { key: "snd25", label: "SND(25)" },
       { key: "snd50", label: "SND(50)" },
@@ -695,7 +725,7 @@ const handlePreview = async () => {
       startDate: stDate,
       endDate: enDate,
       severity: 1,
-      agentType: formState.agentType ?? false,
+      agentType: formState.agentType,
     };
     // Generate mock data
     const response = await getSummaryReportService(params);
@@ -704,7 +734,23 @@ const handlePreview = async () => {
       // console.log(response.data);
       reportData.value = response.data.summaryReports;
       reportData.value.sort((a, b) => {
-        return a.deliveryBranch.localeCompare(b.deliveryBranch);
+        const branchCompare = a.deliveryBranch.localeCompare(b.deliveryBranch);
+
+        if (branchCompare !== 0) {
+          return branchCompare;
+        }
+
+        const distA = (a.distId ?? "").trim();
+        const distB = (b.distId ?? "").trim();
+
+        // Empty distId first
+        if (distA === "" && distB !== "") return -1;
+        if (distA !== "" && distB === "") return 1;
+
+        return distA.localeCompare(distB, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
       });
 
       if (reportData.value.length === 0) {
@@ -768,7 +814,7 @@ const downloadExcel = async () => {
     const sheet = workbook.addWorksheet("Branch Wise Bill Report");
     sheet.pageSetup = {
       paperSize: 9, // 9 = A4 size in ExcelJS
-      orientation: "landscape", // or "landscape"
+      orientation: "portrait",
       fitToPage: true,
       fitToWidth: 1,
       fitToHeight: 0, // Let it flow vertically
@@ -809,15 +855,15 @@ const downloadExcel = async () => {
     // Heading: Bank Name
     sheet.mergeCells("A4:I4");
     const reportTypeCell = sheet.getCell("B4");
-    reportTypeCell.value = `Report: Branch Wise Bill`;
+    reportTypeCell.value = `Report: Branch Wise Summary`;
     reportTypeCell.font = { bold: true, size: 16 };
     reportTypeCell.alignment = { horizontal: "center" };
 
     // Heading: Date Range
     sheet.mergeCells("A5:I5");
     const dateCell = sheet.getCell("B5");
-    dateCell.value = dateRange;
-    dateCell.font = { bold: true, size: 12 };
+    dateCell.value = `Requistion Date: ${dateRange}`;
+    dateCell.font = { bold: true, size: 14 };
     dateCell.alignment = { horizontal: "center" };
 
     sheet.addRow([]);
@@ -846,9 +892,10 @@ const downloadExcel = async () => {
 
     // Data rows
     reportData.value.forEach((item, index) => {
+      const distId = (item.distId ?? "").trim();
       const row = sheet.addRow([
         index + 1,
-        item.deliveryBranch,
+        `${item.deliveryBranch} ${distId !== "" ? "(" + distId + ")" : ""}`,
         ...activeColumns.value.map((h) => item[h.key]),
         item.total,
         item.totalLeaves,
@@ -910,6 +957,9 @@ const downloadExcel = async () => {
     ];
     sheet.columns.forEach((col, index) => {
       col.width = columnWidths[index];
+    });
+    sheet.eachRow((row) => {
+      row.height = 25;
     });
 
     // Generate filename

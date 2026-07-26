@@ -25,6 +25,10 @@ export interface OrderRequisition {
   branchCode?: string;
   deliveryBranchCode?: string;
   accFlag?: string;
+  qrId?: string;
+  securityCode?: string;
+  tokenText?: string;
+  coverText?: string;
 }
 
 export interface Bank {
