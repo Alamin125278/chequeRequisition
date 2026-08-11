@@ -197,84 +197,92 @@ interface ReportItem {
   isbcd20Leaves: number;
   isbcd50Books: number;
   isbcd50Leaves: number;
-  psbcd5Books: number;
-  psbcd5Leaves: number;
   psbcd10Books: number;
   psbcd10Leaves: number;
   psbcd20Books: number;
   psbcd20Leaves: number;
   psbcd50Books: number;
   psbcd50Leaves: number;
-  sb10Books: number;
-  sb10Leaves: number;
-  sb20Books: number;
-  sb20Leaves: number;
-  sb25Books: number;
-  sb25Leaves: number;
-  sba10Books: number;
-  sba10Leaves: number;
-  msa10Books: number;
-  msa10Leaves: number;
-  msa20Books: number;
-  msa20Leaves: number;
-  msd10Books: number;
-  msd10Leaves: number;
-  msd50Books: number;
-  msd50Leaves: number;
-  cd10Books: number;
-  cd10Leaves: number;
-  cd25Books: number;
-  cd25Leaves: number;
-  cd50Books: number;
-  cd50Leaves: number;
-  cd100Books: number;
-  cd100Leaves: number;
-  cc50Books: number;
-  cc50Leaves: number;
-  cc100Books: number;
-  cc100Leaves: number;
-  cda25Books: number;
-  cda25Leaves: number;
-  acd25Books: number;
-  acd25Leaves: number;
-  acd50Books: number;
-  acd50Leaves: number;
-  acd100Books: number;
-  acd100Leaves: number;
-  awca20Books: number;
-  awca20Leaves: number;
-  awca50Books: number;
-  awca50Leaves: number;
-  awca100Books: number;
-  awca100Leaves: number;
-  awcd25Books: number;
-  awcd25Leaves: number;
-  sna25Books: number;
-  sna25Leaves: number;
-  snd25Books: number;
-  snd25Leaves: number;
-  snd50Books: number;
-  snd50Leaves: number;
-  snd100Books: number;
-  snd100Leaves: number;
-  msnd25Books: number;
-  msnd25Leaves: number;
-  po50Books: number;
-  po50Leaves: number;
-  po100Books: number;
-  po100Leaves: number;
-  poa50Books: number;
-  poa50Leaves: number;
-  poi50Books: number;
-  poi50Leaves: number;
-  fdr50Books: number;
-  fdr50Leaves: number;
-  fdr100Books: number;
-  fdr100Leaves: number;
-  mtdr25Books: number;
-  mtdr25Leaves: number;
-  mtdr50Books: number;
-  mtdr50Leaves: number;
+  conSb10Books: number;
+  conSb10Leaves: number;
+  conSb20Books: number;
+  conSb20Leaves: number;
+  conSb25Books: number;
+  conSb25Leaves: number;
+  islmSb10Books: number;
+  islmSb10Leaves: number;
+  islmSb20Books: number;
+  islmSb20Leaves: number;
+  islmSb25Books: number;
+  islmSb25Leaves: number;
+  conSba10Books: number;
+  conSba10Leaves: number;
+  conMsa10Books: number;
+  conMsa10Leaves: number;
+  conMsa20Books: number;
+  conMsa20Leaves: number;
+  conMsd10Books: number;
+  conMsd10Leaves: number;
+  conMsd50Books: number;
+  conMsd50Leaves: number;
+  conCd10Books: number;
+  conCd10Leaves: number;
+  conCd25Books: number;
+  conCd25Leaves: number;
+  conCd50Books: number;
+  conCd50Leaves: number;
+  islmCd25Books: number;
+  islmCd25Leaves: number;
+  islmCd50Books: number;
+  islmCd50Leaves: number;
+  conCd100Books: number;
+  conCd100Leaves: number;
+  conCc50Books: number;
+  conCc50Leaves: number;
+  conCc100Books: number;
+  conCc100Leaves: number;
+  conCda25Books: number;
+  conCda25Leaves: number;
+  conAcd25Books: number;
+  conAcd25Leaves: number;
+  conAcd50Books: number;
+  conAcd50Leaves: number;
+  conAcd100Books: number;
+  conAcd100Leaves: number;
+  conAwca20Books: number;
+  conAwca20Leaves: number;
+  conAwca50Books: number;
+  conAwca50Leaves: number;
+  conAwca100Books: number;
+  conAwca100Leaves: number;
+  conAwcd25Books: number;
+  conAwcd25Leaves: number;
+  conSna25Books: number;
+  conSna25Leaves: number;
+  conSnd25Books: number;
+  conSnd25Leaves: number;
+  conSnd50Books: number;
+  conSnd50Leaves: number;
+  conSnd100Books: number;
+  conSnd100Leaves: number;
+  conMsnd25Books: number;
+  conMsnd25Leaves: number;
+  conPo50Books: number;
+  conPo50Leaves: number;
+  conPo100Books: number;
+  conPo100Leaves: number;
+  conPoa50Books: number;
+  conPoa50Leaves: number;
+  conPoi50Books: number;
+  conPoi50Leaves: number;
+  conFdr50Books: number;
+  conFdr50Leaves: number;
+  conFdr100Books: number;
+  conFdr100Leaves: number;
+  conMtdr25Books: number;
+  conMtdr25Leaves: number;
+  conMtdr50Books: number;
+  conMtdr50Leaves: number;
   totalBooks: number;
   totalLeaves: number;
 
@@ -298,84 +306,92 @@ interface Totals {
   isbcd20Leaves: number;
   isbcd50Books: number;
   isbcd50Leaves: number;
-  psbcd5Books: number;
-  psbcd5Leaves: number;
   psbcd10Books: number;
   psbcd10Leaves: number;
   psbcd20Books: number;
   psbcd20Leaves: number;
   psbcd50Books: number;
   psbcd50Leaves: number;
-  sb10Books: number;
-  sb10Leaves: number;
-  sb20Books: number;
-  sb20Leaves: number;
-  sb25Books: number;
-  sb25Leaves: number;
-  sba10Books: number;
-  sba10Leaves: number;
-  msd10Books: number;
-  msd10Leaves: number;
-  msd50Books: number;
-  msd50Leaves: number;
-  msa10Books: number;
-  msa10Leaves: number;
-  msa20Books: number;
-  msa20Leaves: number;
-  cd10Books: number;
-  cd10Leaves: number;
-  cd25Books: number;
-  cd25Leaves: number;
-  cd50Books: number;
-  cd50Leaves: number;
-  cd100Books: number;
-  cd100Leaves: number;
-  cc50Books: number;
-  cc50Leaves: number;
-  cc100Books: number;
-  cc100Leaves: number;
-  cda25Books: number;
-  cda25Leaves: number;
-  acd25Books: number;
-  acd25Leaves: number;
-  acd50Books: number;
-  acd50Leaves: number;
-  acd100Books: number;
-  acd100Leaves: number;
-  awca20Books: number;
-  awca20Leaves: number;
-  awca50Books: number;
-  awca50Leaves: number;
-  awca100Books: number;
-  awca100Leaves: number;
-  awcd25Books: number;
-  awcd25Leaves: number;
-  sna25Books: number;
-  sna25Leaves: number;
-  snd25Books: number;
-  snd25Leaves: number;
-  snd50Books: number;
-  snd50Leaves: number;
-  snd100Books: number;
-  snd100Leaves: number;
-  msnd25Books: number;
-  msnd25Leaves: number;
-  po50Books: number;
-  po50Leaves: number;
-  po100Books: number;
-  po100Leaves: number;
-  poa50Books: number;
-  poa50Leaves: number;
-  poi50Books: number;
-  poi50Leaves: number;
-  fdr50Books: number;
-  fdr50Leaves: number;
-  fdr100Books: number;
-  fdr100Leaves: number;
-  mtdr25Books: number;
-  mtdr25Leaves: number;
-  mtdr50Books: number;
-  mtdr50Leaves: number;
+  conSb10Books: number;
+  conSb10Leaves: number;
+  conSb20Books: number;
+  conSb20Leaves: number;
+  conSb25Books: number;
+  conSb25Leaves: number;
+  islmSb10Books: number;
+  islmSb10Leaves: number;
+  islmSb20Books: number;
+  islmSb20Leaves: number;
+  islmSb25Books: number;
+  islmSb25Leaves: number;
+  conSba10Books: number;
+  conSba10Leaves: number;
+  conMsa10Books: number;
+  conMsa10Leaves: number;
+  conMsa20Books: number;
+  conMsa20Leaves: number;
+  conMsd10Books: number;
+  conMsd10Leaves: number;
+  conMsd50Books: number;
+  conMsd50Leaves: number;
+  conCd10Books: number;
+  conCd10Leaves: number;
+  conCd25Books: number;
+  conCd25Leaves: number;
+  conCd50Books: number;
+  conCd50Leaves: number;
+  islmCd25Books: number;
+  islmCd25Leaves: number;
+  islmCd50Books: number;
+  islmCd50Leaves: number;
+  conCd100Books: number;
+  conCd100Leaves: number;
+  conCc50Books: number;
+  conCc50Leaves: number;
+  conCc100Books: number;
+  conCc100Leaves: number;
+  conCda25Books: number;
+  conCda25Leaves: number;
+  conAcd25Books: number;
+  conAcd25Leaves: number;
+  conAcd50Books: number;
+  conAcd50Leaves: number;
+  conAcd100Books: number;
+  conAcd100Leaves: number;
+  conAwca20Books: number;
+  conAwca20Leaves: number;
+  conAwca50Books: number;
+  conAwca50Leaves: number;
+  conAwca100Books: number;
+  conAwca100Leaves: number;
+  conAwcd25Books: number;
+  conAwcd25Leaves: number;
+  conSna25Books: number;
+  conSna25Leaves: number;
+  conSnd25Books: number;
+  conSnd25Leaves: number;
+  conSnd50Books: number;
+  conSnd50Leaves: number;
+  conSnd100Books: number;
+  conSnd100Leaves: number;
+  conMsnd25Books: number;
+  conMsnd25Leaves: number;
+  conPo50Books: number;
+  conPo50Leaves: number;
+  conPo100Books: number;
+  conPo100Leaves: number;
+  conPoa50Books: number;
+  conPoa50Leaves: number;
+  conPoi50Books: number;
+  conPoi50Leaves: number;
+  conFdr50Books: number;
+  conFdr50Leaves: number;
+  conFdr100Books: number;
+  conFdr100Leaves: number;
+  conMtdr25Books: number;
+  conMtdr25Leaves: number;
+  conMtdr50Books: number;
+  conMtdr50Leaves: number;
   totalBooks: number;
   totalLeaves: number;
 }
@@ -426,84 +442,95 @@ const totals = computed((): Totals => {
     isbcd20Leaves: data.reduce((sum, item) => sum + item.isbcd20Leaves, 0),
     isbcd50Books: data.reduce((sum, item) => sum + item.isbcd50Books, 0),
     isbcd50Leaves: data.reduce((sum, item) => sum + item.isbcd50Leaves, 0),
-    psbcd5Books: data.reduce((sum, item) => sum + item.psbcd5Books, 0),
-    psbcd5Leaves: data.reduce((sum, item) => sum + item.psbcd5Leaves, 0),
     psbcd10Books: data.reduce((sum, item) => sum + item.psbcd10Books, 0),
     psbcd10Leaves: data.reduce((sum, item) => sum + item.psbcd10Leaves, 0),
     psbcd20Books: data.reduce((sum, item) => sum + item.psbcd20Books, 0),
     psbcd20Leaves: data.reduce((sum, item) => sum + item.psbcd20Leaves, 0),
     psbcd50Books: data.reduce((sum, item) => sum + item.psbcd50Books, 0),
     psbcd50Leaves: data.reduce((sum, item) => sum + item.psbcd50Leaves, 0),
-    sb10Books: data.reduce((sum, item) => sum + item.sb10Books, 0),
-    sb10Leaves: data.reduce((sum, item) => sum + item.sb10Leaves, 0),
-    sb20Books: data.reduce((sum, item) => sum + item.sb20Books, 0),
-    sb20Leaves: data.reduce((sum, item) => sum + item.sb20Leaves, 0),
-    sb25Books: data.reduce((sum, item) => sum + item.sb25Books, 0),
-    sb25Leaves: data.reduce((sum, item) => sum + item.sb25Leaves, 0),
-    sba10Books: data.reduce((sum, item) => sum + item.sba10Books, 0),
-    sba10Leaves: data.reduce((sum, item) => sum + item.sba10Leaves, 0),
-    msd10Books: data.reduce((sum, item) => sum + item.msd10Books, 0),
-    msd10Leaves: data.reduce((sum, item) => sum + item.msd10Leaves, 0),
-    msd50Books: data.reduce((sum, item) => sum + item.msd50Books, 0),
-    msd50Leaves: data.reduce((sum, item) => sum + item.msd50Leaves, 0),
-    msa10Books: data.reduce((sum, item) => sum + item.msa10Books, 0),
-    msa10Leaves: data.reduce((sum, item) => sum + item.msa10Leaves, 0),
-    msa20Books: data.reduce((sum, item) => sum + item.msa20Books, 0),
-    msa20Leaves: data.reduce((sum, item) => sum + item.msa20Leaves, 0),
-    cd10Books: data.reduce((sum, item) => sum + item.cd10Books, 0),
-    cd10Leaves: data.reduce((sum, item) => sum + item.cd10Leaves, 0),
-    cd25Books: data.reduce((sum, item) => sum + item.cd25Books, 0),
-    cd25Leaves: data.reduce((sum, item) => sum + item.cd25Leaves, 0),
-    cd50Books: data.reduce((sum, item) => sum + item.cd50Books, 0),
-    cd50Leaves: data.reduce((sum, item) => sum + item.cd50Leaves, 0),
-    cd100Books: data.reduce((sum, item) => sum + item.cd100Books, 0),
-    cd100Leaves: data.reduce((sum, item) => sum + item.cd100Leaves, 0),
-    cc50Books: data.reduce((sum, item) => sum + item.cc50Books, 0),
-    cc50Leaves: data.reduce((sum, item) => sum + item.cc50Leaves, 0),
-    cc100Books: data.reduce((sum, item) => sum + item.cc100Books, 0),
-    cc100Leaves: data.reduce((sum, item) => sum + item.cc100Leaves, 0),
-    cda25Books: data.reduce((sum, item) => sum + item.cda25Books, 0),
-    cda25Leaves: data.reduce((sum, item) => sum + item.cda25Leaves, 0),
-    acd25Books: data.reduce((sum, item) => sum + item.acd25Books, 0),
-    acd25Leaves: data.reduce((sum, item) => sum + item.acd25Leaves, 0),
-    acd50Books: data.reduce((sum, item) => sum + item.acd50Books, 0),
-    acd50Leaves: data.reduce((sum, item) => sum + item.acd50Leaves, 0),
-    acd100Books: data.reduce((sum, item) => sum + item.acd100Books, 0),
-    acd100Leaves: data.reduce((sum, item) => sum + item.acd100Leaves, 0),
-    awca20Books: data.reduce((sum, item) => sum + item.awca20Books, 0),
-    awca20Leaves: data.reduce((sum, item) => sum + item.awca20Leaves, 0),
-    awca50Books: data.reduce((sum, item) => sum + item.awca50Books, 0),
-    awca50Leaves: data.reduce((sum, item) => sum + item.awca50Leaves, 0),
-    awca100Books: data.reduce((sum, item) => sum + item.awca100Books, 0),
-    awca100Leaves: data.reduce((sum, item) => sum + item.awca100Leaves, 0),
-    awcd25Books: data.reduce((sum, item) => sum + item.awcd25Books, 0),
-    awcd25Leaves: data.reduce((sum, item) => sum + item.awcd25Leaves, 0),
-    sna25Books: data.reduce((sum, item) => sum + item.sna25Books, 0),
-    sna25Leaves: data.reduce((sum, item) => sum + item.sna25Leaves, 0),
-    snd25Books: data.reduce((sum, item) => sum + item.snd25Books, 0),
-    snd25Leaves: data.reduce((sum, item) => sum + item.snd25Leaves, 0),
-    snd50Books: data.reduce((sum, item) => sum + item.snd50Books, 0),
-    snd50Leaves: data.reduce((sum, item) => sum + item.snd50Leaves, 0),
-    snd100Books: data.reduce((sum, item) => sum + item.snd100Books, 0),
-    snd100Leaves: data.reduce((sum, item) => sum + item.snd100Leaves, 0),
-    msnd25Books: data.reduce((sum, item) => sum + item.msnd25Books, 0),
-    msnd25Leaves: data.reduce((sum, item) => sum + item.msnd25Leaves, 0),
-    po50Books: data.reduce((sum, item) => sum + item.po50Books, 0),
-    po50Leaves: data.reduce((sum, item) => sum + item.po50Leaves, 0),
-    po100Books: data.reduce((sum, item) => sum + item.po100Books, 0),
-    po100Leaves: data.reduce((sum, item) => sum + item.po100Leaves, 0),
-    poa50Books: data.reduce((sum, item) => sum + item.poa50Books, 0),
-    poa50Leaves: data.reduce((sum, item) => sum + item.poa50Leaves, 0),
-    poi50Books: data.reduce((sum, item) => sum + item.poi50Books, 0),
-    poi50Leaves: data.reduce((sum, item) => sum + item.poi50Leaves, 0),
-    fdr50Books: data.reduce((sum, item) => sum + item.fdr50Books, 0),
-    fdr50Leaves: data.reduce((sum, item) => sum + item.fdr50Leaves, 0),
-    fdr100Books: data.reduce((sum, item) => sum + item.fdr100Books, 0),
-    fdr100Leaves: data.reduce((sum, item) => sum + item.fdr100Leaves, 0),
-    mtdr25Books: data.reduce((sum, item) => sum + item.mtdr25Books, 0),
-    mtdr25Leaves: data.reduce((sum, item) => sum + item.mtdr25Leaves, 0),
-    mtdr50Books: data.reduce((sum, item) => sum + item.mtdr50Books, 0),
-    mtdr50Leaves: data.reduce((sum, item) => sum + item.mtdr50Leaves, 0),
+    conSb10Books: data.reduce((sum, item) => sum + item.conSb10Books, 0),
+    conSb10Leaves: data.reduce((sum, item) => sum + item.conSb10Leaves, 0),
+    conSb20Books: data.reduce((sum, item) => sum + item.conSb20Books, 0),
+    conSb20Leaves: data.reduce((sum, item) => sum + item.conSb20Leaves, 0),
+    conSb25Books: data.reduce((sum, item) => sum + item.conSb25Books, 0),
+    conSb25Leaves: data.reduce((sum, item) => sum + item.conSb25Leaves, 0),
+    islmSb10Books: data.reduce((sum, item) => sum + item.islmSb10Books, 0),
+    islmSb10Leaves: data.reduce((sum, item) => sum + item.islmSb10Leaves, 0),
+    islmSb20Books: data.reduce((sum, item) => sum + item.islmSb20Books, 0),
+    islmSb20Leaves: data.reduce((sum, item) => sum + item.islmSb20Leaves, 0),
+    islmSb25Books: data.reduce((sum, item) => sum + item.islmSb25Books, 0),
+    islmSb25Leaves: data.reduce((sum, item) => sum + item.islmSb25Leaves, 0),
+    conSba10Books: data.reduce((sum, item) => sum + item.conSba10Books, 0),
+    conSba10Leaves: data.reduce((sum, item) => sum + item.conSba10Leaves, 0),
+    conMsa10Books: data.reduce((sum, item) => sum + item.conMsa10Books, 0),
+    conMsa10Leaves: data.reduce((sum, item) => sum + item.conMsa10Leaves, 0),
+    conMsa20Books: data.reduce((sum, item) => sum + item.conMsa20Books, 0),
+    conMsa20Leaves: data.reduce((sum, item) => sum + item.conMsa20Leaves, 0),
+    conMsd10Books: data.reduce((sum, item) => sum + item.conMsd10Books, 0),
+    conMsd10Leaves: data.reduce((sum, item) => sum + item.conMsd10Leaves, 0),
+    conMsd50Books: data.reduce((sum, item) => sum + item.conMsd50Books, 0),
+    conMsd50Leaves: data.reduce((sum, item) => sum + item.conMsd50Leaves, 0),
+    conCd10Books: data.reduce((sum, item) => sum + item.conCd10Books, 0),
+    conCd10Leaves: data.reduce((sum, item) => sum + item.conCd10Leaves, 0),
+    conCd25Books: data.reduce((sum, item) => sum + item.conCd25Books, 0),
+    conCd25Leaves: data.reduce((sum, item) => sum + item.conCd25Leaves, 0),
+    conCd50Books: data.reduce((sum, item) => sum + item.conCd50Books, 0),
+    conCd50Leaves: data.reduce((sum, item) => sum + item.conCd50Leaves, 0),
+    islmCd25Books: data.reduce((sum, item) => sum + item.islmCd25Books, 0),
+    islmCd25Leaves: data.reduce((sum, item) => sum + item.islmCd25Leaves, 0),
+    islmCd50Books: data.reduce((sum, item) => sum + item.islmCd50Books, 0),
+    islmCd50Leaves: data.reduce((sum, item) => sum + item.islmCd50Leaves, 0),
+    conCd100Books: data.reduce((sum, item) => sum + item.conCd100Books, 0),
+    conCd100Leaves: data.reduce((sum, item) => sum + item.conCd100Leaves, 0),
+    conCc50Books: data.reduce((sum, item) => sum + item.conCc50Books, 0),
+    conCc50Leaves: data.reduce((sum, item) => sum + item.conCc50Leaves, 0),
+    conCc100Books: data.reduce((sum, item) => sum + item.conCc100Books, 0),
+    conCc100Leaves: data.reduce((sum, item) => sum + item.conCc100Leaves, 0),
+    conCda25Books: data.reduce((sum, item) => sum + item.conCda25Books, 0),
+    conCda25Leaves: data.reduce((sum, item) => sum + item.conCda25Leaves, 0),
+    conAcd25Books: data.reduce((sum, item) => sum + item.conAcd25Books, 0),
+    conAcd25Leaves: data.reduce((sum, item) => sum + item.conAcd25Leaves, 0),
+    conAcd50Books: data.reduce((sum, item) => sum + item.conAcd50Books, 0),
+    conAcd50Leaves: data.reduce((sum, item) => sum + item.conAcd50Leaves, 0),
+    conAcd100Books: data.reduce((sum, item) => sum + item.conAcd100Books, 0),
+    conAcd100Leaves: data.reduce((sum, item) => sum + item.conAcd100Leaves, 0),
+    conAwca20Books: data.reduce((sum, item) => sum + item.conAwca20Books, 0),
+    conAwca20Leaves: data.reduce((sum, item) => sum + item.conAwca20Leaves, 0),
+    conAwca50Books: data.reduce((sum, item) => sum + item.conAwca50Books, 0),
+    conAwca50Leaves: data.reduce((sum, item) => sum + item.conAwca50Leaves, 0),
+    conAwca100Books: data.reduce((sum, item) => sum + item.conAwca100Books, 0),
+    conAwca100Leaves: data.reduce(
+      (sum, item) => sum + item.conAwca100Leaves,
+      0,
+    ),
+    conAwcd25Books: data.reduce((sum, item) => sum + item.conAwcd25Books, 0),
+    conAwcd25Leaves: data.reduce((sum, item) => sum + item.conAwcd25Leaves, 0),
+    conSna25Books: data.reduce((sum, item) => sum + item.conSna25Books, 0),
+    conSna25Leaves: data.reduce((sum, item) => sum + item.conSna25Leaves, 0),
+    conSnd25Books: data.reduce((sum, item) => sum + item.conSnd25Books, 0),
+    conSnd25Leaves: data.reduce((sum, item) => sum + item.conSnd25Leaves, 0),
+    conSnd50Books: data.reduce((sum, item) => sum + item.conSnd50Books, 0),
+    conSnd50Leaves: data.reduce((sum, item) => sum + item.conSnd50Leaves, 0),
+    conSnd100Books: data.reduce((sum, item) => sum + item.conSnd100Books, 0),
+    conSnd100Leaves: data.reduce((sum, item) => sum + item.conSnd100Leaves, 0),
+    conMsnd25Books: data.reduce((sum, item) => sum + item.conMsnd25Books, 0),
+    conMsnd25Leaves: data.reduce((sum, item) => sum + item.conMsnd25Leaves, 0),
+    conPo50Books: data.reduce((sum, item) => sum + item.conPo50Books, 0),
+    conPo50Leaves: data.reduce((sum, item) => sum + item.conPo50Leaves, 0),
+    conPo100Books: data.reduce((sum, item) => sum + item.conPo100Books, 0),
+    conPo100Leaves: data.reduce((sum, item) => sum + item.conPo100Leaves, 0),
+    conPoa50Books: data.reduce((sum, item) => sum + item.conPoa50Books, 0),
+    conPoa50Leaves: data.reduce((sum, item) => sum + item.conPoa50Leaves, 0),
+    conPoi50Books: data.reduce((sum, item) => sum + item.conPoi50Books, 0),
+    conPoi50Leaves: data.reduce((sum, item) => sum + item.conPoi50Leaves, 0),
+    conFdr50Books: data.reduce((sum, item) => sum + item.conFdr50Books, 0),
+    conFdr50Leaves: data.reduce((sum, item) => sum + item.conFdr50Leaves, 0),
+    conFdr100Books: data.reduce((sum, item) => sum + item.conFdr100Books, 0),
+    conFdr100Leaves: data.reduce((sum, item) => sum + item.conFdr100Leaves, 0),
+    conMtdr25Books: data.reduce((sum, item) => sum + item.conMtdr25Books, 0),
+    conMtdr25Leaves: data.reduce((sum, item) => sum + item.conMtdr25Leaves, 0),
+    conMtdr50Books: data.reduce((sum, item) => sum + item.conMtdr50Books, 0),
+    conMtdr50Leaves: data.reduce((sum, item) => sum + item.conMtdr50Leaves, 0),
     totalBooks: data.reduce((sum, item) => sum + item.totalBooks, 0),
     totalLeaves: data.reduce((sum, item) => sum + item.totalLeaves, 0),
   };
@@ -646,16 +673,16 @@ const downloadExcel = async () => {
           "Total Leaves",
         ],
         dataKeys: [
-          "sba10",
-          "msd10",
-          "cda25",
-          "awcd25",
-          "sna25",
-          "msnd25",
-          "poa50",
-          "poi50",
-          "fdr50",
-          "mtdr50",
+          "conSba10",
+          "conMsd10",
+          "conCda25",
+          "conAwcd25",
+          "conSna25",
+          "conMsnd25",
+          "conPoa50",
+          "conPoi50",
+          "conFdr50",
+          "conMtdr50",
         ],
       },
       "Pubali Bank PLC.": {
@@ -676,34 +703,45 @@ const downloadExcel = async () => {
           "Total Leaves",
         ],
         dataKeys: [
-          "sb10",
-          "sb25",
-          "cd25",
-          "cd50",
-          "cd100",
-          "cc50",
-          "cc100",
-          "po100",
-          "fdr100",
-          "mtdr25",
+          "conSb10",
+          "conSb25",
+          "conCd25",
+          "conCd50",
+          "conCd100",
+          "conCc50",
+          "conCc100",
+          "conPo100",
+          "conFdr100",
+          "conMtdr25",
         ],
       },
       "Midland Bank PLC": {
         mainHeaders: [
           "SL",
           "Date",
-          "SB-20",
-          "CD-10",
-          "CD-25",
-          "CD-50",
+          "Gen-SB-20",
+          "Gen-CD-10",
+          "Gen-CD-25",
+          "Gen-CD-50",
+          "Islm-SB-20",
+          "Islm-CD-25",
+          "Islm-CD-50",
           "Total Books",
           "Total Leaves",
         ],
-        dataKeys: ["sb20", "cd10", "cd25", "cd50"],
+        dataKeys: [
+          "conSb20",
+          "conCd10",
+          "conCd25",
+          "conCd50",
+          "islmSb20",
+          "islmCd25",
+          "islmCd50",
+        ],
       },
       "Modhumoti Bank PLC.": {
         mainHeaders: ["SL", "Date", "PO-100", "Total Books", "Total Leaves"],
-        dataKeys: ["po100"],
+        dataKeys: ["conPo100"],
       },
       "Shahjalal Islami Bank PLC": {
         mainHeaders: [
@@ -722,15 +760,15 @@ const downloadExcel = async () => {
           "Total Leaves",
         ],
         dataKeys: [
-          "msd10",
-          "msd50",
-          "acd25",
-          "acd50",
-          "acd100",
-          "snd25",
-          "snd50",
-          "snd100",
-          "po100",
+          "conMsd10",
+          "conMsd50",
+          "conAcd25",
+          "conAcd50",
+          "conAcd100",
+          "conSnd25",
+          "conSnd50",
+          "conSnd100",
+          "conPo100",
         ],
       },
       "Jamuna Bank PLC": {
@@ -742,7 +780,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
-        dataKeys: ["sb10", "cd50"],
+        dataKeys: ["conSb10", "conCd50"],
       },
       "Prime Bank PLC.": {
         mainHeaders: [
@@ -756,7 +794,6 @@ const downloadExcel = async () => {
           "SB/CD-10",
           "SB/CD-20",
           "SB/CD-50",
-          "SB/CD-05",
           "SB/CD-10",
           "SB/CD-20",
           "SB/CD-50",
@@ -773,7 +810,6 @@ const downloadExcel = async () => {
           "isbcd10",
           "isbcd20",
           "isbcd50",
-          "psbcd5",
           "psbcd10",
           "psbcd20",
           "psbcd50",
@@ -793,7 +829,14 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
-        dataKeys: ["msa10", "msa20", "awca20", "awca50", "awca100", "po50"],
+        dataKeys: [
+          "conMsa10",
+          "conMsa20",
+          "conAwca20",
+          "conAwca50",
+          "conAwca100",
+          "conPo50",
+        ],
       },
       // Default configuration for other banks
       default: {
@@ -806,7 +849,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
-        dataKeys: ["sb10", "sb25", "cd25"],
+        dataKeys: ["conSb10", "conSb25", "conCd25"],
       },
     };
     const config =

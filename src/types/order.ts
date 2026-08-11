@@ -46,6 +46,7 @@ export interface CheckTypeVariation {
   pages: number;
   count: number;
   accFlag?: string;
+  bankId: number;
   loading: boolean;
   completed: boolean;
 }

@@ -56,7 +56,7 @@ export const useOrderExport = () => {
   const updateCheckTypeVariations = (orders: OrderRequisition[]) => {
     const variations: CheckTypeVariation[] = [];
 
-    if (orders[0]?.bankId !== 8) {
+    if (orders[0]?.bankId !== 8 && orders[0]?.bankId !== 2) {
       orders.forEach((order) => {
         const existing = variations.find(
           (v) => v.type === order.chequeType && v.pages === order.leaves,
@@ -70,6 +70,39 @@ export const useOrderExport = () => {
             count: 1,
             loading: false,
             completed: false,
+            bankId: order.bankId,
+          });
+        }
+      });
+
+      variations.sort((a, b) => {
+        const typeA = a.type ?? "";
+        const typeB = b.type ?? "";
+
+        if (typeA === typeB) return a.pages - b.pages;
+        return typeA.localeCompare(typeB);
+      });
+
+      checkTypeVariations.value = variations;
+    } else if (orders[0]?.bankId === 2) {
+      orders.forEach((order) => {
+        const existing = variations.find(
+          (v) =>
+            v.pages === order.leaves &&
+            v.accFlag === order.accFlag &&
+            v.type === order.chequeType,
+        );
+        if (existing) {
+          existing.count++;
+        } else {
+          variations.push({
+            type: order.chequeType,
+            pages: order.leaves,
+            count: 1,
+            loading: false,
+            completed: false,
+            accFlag: order.accFlag,
+            bankId: order.bankId,
           });
         }
       });
@@ -98,6 +131,7 @@ export const useOrderExport = () => {
             loading: false,
             completed: false,
             accFlag: order.accFlag,
+            bankId: order.bankId,
           });
         }
       });
@@ -147,9 +181,16 @@ export const useOrderExport = () => {
     const bankId = orders[0]?.bankId;
     // 🔹 Find variation (if bankId === 8, include accFlag in condition)
     const variation = checkTypeVariations.value.find((ct) =>
+      // bankId === 8
+      //   ? ct.pages === pages && ct.accFlag === accFlag
+      //   : ct.type === checkType && ct.pages === pages,
       bankId === 8
         ? ct.pages === pages && ct.accFlag === accFlag
-        : ct.type === checkType && ct.pages === pages,
+        : bankId === 2
+          ? ct.pages === pages &&
+            ct.accFlag === accFlag &&
+            ct.type === checkType
+          : ct.type === checkType && ct.pages === pages,
     );
 
     if (!variation || variation.completed) return;
@@ -159,9 +200,16 @@ export const useOrderExport = () => {
     try {
       // 🔹 Filter matching orders
       const matchingOrders = orders.filter((order) =>
+        // bankId === 8
+        //   ? order.leaves === pages && order.accFlag === accFlag
+        //   : order.chequeType === checkType && order.leaves === pages,
         bankId === 8
           ? order.leaves === pages && order.accFlag === accFlag
-          : order.chequeType === checkType && order.leaves === pages,
+          : bankId === 2
+            ? order.leaves === pages &&
+              order.accFlag === accFlag &&
+              order.chequeType === checkType
+            : order.chequeType === checkType && order.leaves === pages,
       );
       if (!matchingOrders.length) {
         message.warning("No matching data found");
@@ -181,6 +229,15 @@ export const useOrderExport = () => {
         fileName = `${todayDate}_${bankName}_${accFlag}_${pages}${
           courier ? `_${courier}` : ""
         }`;
+      } else if (bankId === 2) {
+        const suffix = courier
+          ? `_${courier}`
+          : matchingOrders[0]?.isAgent
+            ? "_Agent"
+            : "";
+        fileName = `${todayDate}_${bankName}_${checkType}_${pages}${
+          accFlag ? `_${accFlag}` : ""
+        }${suffix}`;
       } else {
         const suffix = courier
           ? `_${courier}`
@@ -195,7 +252,7 @@ export const useOrderExport = () => {
 
       // চেক টাইপের জন্য আলাদা ফরম্যাটিং
       const formattedData = formatCheckTypeData(matchingOrders);
-      if (bankId === 8) {
+      if (bankId === 8 || bankId === 2) {
         await exportToExcel(formattedData, fileName, accFlag);
       } else {
         await exportToExcel(formattedData, fileName, checkType);

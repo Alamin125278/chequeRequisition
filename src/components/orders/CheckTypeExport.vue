@@ -8,7 +8,11 @@
     <div class="flex flex-wrap gap-3">
       <a-button
         v-for="variation in checkTypeVariations"
-        :key="`${variation.accFlag ? variation.accFlag : variation.type}-${variation.pages}`"
+        :key="
+          variation.bankId === 2
+            ? `${variation.accFlag}-${variation.type}-${variation.pages}`
+            : `${variation.accFlag ? variation.accFlag : variation.type}-${variation.pages}`
+        "
         @click="
           $emit(
             'export-check-type',
@@ -36,8 +40,10 @@
                 : ""
           }}
 
-          {{ variation.accFlag ? variation.accFlag : variation.type }}-{{
-            variation.pages
+          {{
+            variation.bankId === 2
+              ? `${variation.accFlag}-${variation.type}-${variation.pages}`
+              : `${variation.accFlag ?? variation.type}-${variation.pages}`
           }}
         </span>
         <a-badge :count="variation.count" class="ml-2" />

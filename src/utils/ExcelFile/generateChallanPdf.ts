@@ -190,12 +190,58 @@ export const generateChallanPdf = async (
       let sl = 1;
       const summary: Record<string, number> = {};
 
+      // const drawFooter = () => {
+      //   // page.drawImage(footerImage, {
+      //   //   x: marginX,
+      //   //   y: marginY,
+      //   //   width: pageWidth - marginX * 2,
+      //   //   height: 30,
+      //   // });
+      //   page.drawText(
+      //     "IMPORTANT NOTICE: For any query please contact +8801857-484444",
+      //     {
+      //       x: marginX,
+      //       y: marginY + 30,
+      //       size: 9,
+      //       font,
+      //     },
+      //   );
+      // };
       const drawFooter = () => {
-        page.drawImage(footerImage, {
-          x: marginX,
-          y: marginY,
-          width: pageWidth - marginX * 2,
-          height: 30,
+        const notice = "FOR ANY QUERY PLEASE CONTACT +8801857-484444";
+        const fontSize = 12;
+        const boxHeight = 24;
+        const boxWidth = pageWidth - marginX * 2;
+        const footerY = marginY + 8;
+
+        // Border Box
+        page.drawLine({
+          start: {
+            x: marginX,
+            y: footerY + boxHeight,
+          },
+          end: {
+            x: pageWidth - marginX,
+            y: footerY + boxHeight,
+          },
+          thickness: 1,
+          color: rgb(0, 0, 0),
+        });
+
+        // Text Width
+        const textWidth = fontBold.widthOfTextAtSize(notice, fontSize);
+
+        // Center Position
+        const textX = marginX + (boxWidth - textWidth) / 2;
+        const textY = footerY + (boxHeight - fontSize) / 2 + 2; // +2 for better visual centering
+
+        // Draw Text
+        page.drawText(notice, {
+          x: textX,
+          y: textY,
+          size: fontSize,
+          font: fontBold,
+          color: rgb(0, 0, 0),
         });
       };
 
@@ -227,14 +273,14 @@ export const generateChallanPdf = async (
           font,
           size: 9,
         });
-        if (bankId !== 8) {
-          page.drawText(`Courier Mob: ${challan.courierPhone}`, {
-            x: pageWidth - marginX - 150,
-            y: y - 45,
-            font,
-            size: 9,
-          });
-        }
+        // if (bankId !== 8) {
+        //   page.drawText(`Courier Mob: ${challan.courierPhone}`, {
+        //     x: pageWidth - marginX - 150,
+        //     y: y - 45,
+        //     font,
+        //     size: 9,
+        //   });
+        // }
 
         let contentY = pageHeight - marginY - 20;
         page.drawText(challan.receivingBranchName, {

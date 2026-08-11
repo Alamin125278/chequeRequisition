@@ -422,92 +422,96 @@ interface ReportItem {
   branchPhone: string;
   requestDate: string;
   isAgent: boolean;
-  sb5: number;
-  sb10: number;
-  sb20: number;
-  sb25: number;
-  sb50: number;
-  sba10: number;
-  msd10: number;
-  msa10: number;
-  msa20: number;
-  msd50: number;
-  cd5: number;
-  cd10: number;
-  cd20: number;
-  cd25: number;
-  cd50: number;
-  cd100: number;
-  acd25: number;
-  acd50: number;
-  acd100: number;
-  cda25: number;
-  awcd25: number;
-  awca20: number;
-  awca50: number;
-  awca100: number;
-  msna50: number;
-  msna100: number;
-  sna25: number;
-  snd25: number;
-  snd50: number;
-  snd100: number;
-  msnd25: number;
-  po50: number;
-  po100: number;
-  poa50: number;
-  poi50: number;
-  ca50: number;
-  ca100: number;
-  fdr50: number;
-  fdr100: number;
-  mtdr25: number;
-  mtdr50: number;
+  consb10: number;
+  islmsb10: number;
+  consb20: number;
+  islmsb20: number;
+  consb25: number;
+  islmsb25: number;
+  consba10: number;
+  conmsd10: number;
+  conmsa10: number;
+  conmsa20: number;
+  conmsd50: number;
+  concd10: number;
+  concd20: number;
+  concd25: number;
+  islmcd25: number;
+  concd50: number;
+  islmcd50: number;
+  concd100: number;
+  conacd25: number;
+  conacd50: number;
+  conacd100: number;
+  concda25: number;
+  conawcd25: number;
+  conawca20: number;
+  conawca50: number;
+  conawca100: number;
+  // msna50: number;
+  // msna100: number;
+  consna25: number;
+  consnd25: number;
+  consnd50: number;
+  consnd100: number;
+  conmsnd25: number;
+  conpo50: number;
+  conpo100: number;
+  conpoa50: number;
+  conpoi50: number;
+  conca50: number;
+  conca100: number;
+  confdr50: number;
+  confdr100: number;
+  conmtdr25: number;
+  conmtdr50: number;
   total: number;
 }
 
 interface Totals {
-  sb5: number;
-  sb10: number;
-  sb20: number;
-  sb25: number;
-  sb50: number;
-  sba10: number;
-  msd10: number;
-  msa10: number;
-  msa20: number;
-  msd50: number;
-  cd5: number;
-  cd10: number;
-  cd20: number;
-  cd25: number;
-  cd50: number;
-  cd100: number;
-  acd25: number;
-  acd50: number;
-  acd100: number;
-  cda25: number;
-  awcd25: number;
-  awca20: number;
-  awca50: number;
-  awca100: number;
-  msna50: number;
-  msna100: number;
-  sna25: number;
-  snd25: number;
-  snd50: number;
-  snd100: number;
-  msnd25: number;
-  po50: number;
-  po100: number;
-  poa50: number;
-  poi50: number;
-  ca50: number;
-  ca100: number;
-  fdr50: number;
-  fdr100: number;
-  mtdr25: number;
-  mtdr50: number;
+  consb10: number;
+  islmsb10: number;
+  consb20: number;
+  islmsb20: number;
+  consb25: number;
+  islmsb25: number;
+  consba10: number;
+  conmsd10: number;
+  conmsa10: number;
+  conmsa20: number;
+  conmsd50: number;
+  concd10: number;
+  concd20: number;
+  concd25: number;
+  islmcd25: number;
+  concd50: number;
+  islmcd50: number;
+  concd100: number;
+  conacd25: number;
+  conacd50: number;
+  conacd100: number;
+  concda25: number;
+  conawcd25: number;
+  conawca20: number;
+  conawca50: number;
+  conawca100: number;
+  // msna50: number;
+  // msna100: number;
+  consna25: number;
+  consnd25: number;
+  consnd50: number;
+  consnd100: number;
+  conmsnd25: number;
+  conpo50: number;
+  conpo100: number;
+  conpoa50: number;
+  conpoi50: number;
+  conca50: number;
+  conca100: number;
+  confdr50: number;
+  confdr100: number;
+  conmtdr25: number;
+  conmtdr50: number;
   grandTotal: number;
 }
 
@@ -542,135 +546,129 @@ const reportData = ref<ReportItem[]>([]);
 const totals = computed((): Totals => {
   const data = reportData.value;
   return {
-    sb5: data.reduce((sum, item) => sum + item.sb5, 0),
-    sb10: data.reduce((sum, item) => sum + item.sb10, 0),
-    sb20: data.reduce((sum, item) => sum + item.sb20, 0),
-    sb25: data.reduce((sum, item) => sum + item.sb25, 0),
-    sb50: data.reduce((sum, item) => sum + item.sb50, 0),
-    sba10: data.reduce((sum, item) => sum + item.sba10, 0),
-    msd10: data.reduce((sum, item) => sum + item.msd10, 0),
-    msa10: data.reduce((sum, item) => sum + item.msa10, 0),
-    msa20: data.reduce((sum, item) => sum + item.msa20, 0),
-    msd50: data.reduce((sum, item) => sum + item.msd50, 0),
-    cd5: data.reduce((sum, item) => sum + item.cd5, 0),
-    cd10: data.reduce((sum, item) => sum + item.cd10, 0),
-    cd20: data.reduce((sum, item) => sum + item.cd20, 0),
-    cd25: data.reduce((sum, item) => sum + item.cd25, 0),
-    cd50: data.reduce((sum, item) => sum + item.cd50, 0),
-    cd100: data.reduce((sum, item) => sum + item.cd100, 0),
-    acd25: data.reduce((sum, item) => sum + item.acd25, 0),
-    acd50: data.reduce((sum, item) => sum + item.acd50, 0),
-    acd100: data.reduce((sum, item) => sum + item.acd100, 0),
-    cda25: data.reduce((sum, item) => sum + item.cda25, 0),
-    awcd25: data.reduce((sum, item) => sum + item.awcd25, 0),
-    awca20: data.reduce((sum, item) => sum + item.awca20, 0),
-    awca50: data.reduce((sum, item) => sum + item.awca50, 0),
-    awca100: data.reduce((sum, item) => sum + item.awca100, 0),
-    msna50: data.reduce((sum, item) => sum + item.msna50, 0),
-    msna100: data.reduce((sum, item) => sum + item.msna100, 0),
-    sna25: data.reduce((sum, item) => sum + item.sna25, 0),
-    snd25: data.reduce((sum, item) => sum + item.snd25, 0),
-    snd50: data.reduce((sum, item) => sum + item.snd50, 0),
-    snd100: data.reduce((sum, item) => sum + item.snd100, 0),
-    msnd25: data.reduce((sum, item) => sum + item.msnd25, 0),
-    po50: data.reduce((sum, item) => sum + item.po50, 0),
-    po100: data.reduce((sum, item) => sum + item.po100, 0),
-    poa50: data.reduce((sum, item) => sum + item.poa50, 0),
-    poi50: data.reduce((sum, item) => sum + item.poi50, 0),
-    ca50: data.reduce((sum, item) => sum + item.ca50, 0),
-    ca100: data.reduce((sum, item) => sum + item.ca100, 0),
-    fdr50: data.reduce((sum, item) => sum + item.fdr50, 0),
-    fdr100: data.reduce((sum, item) => sum + item.fdr100, 0),
-    mtdr25: data.reduce((sum, item) => sum + item.mtdr25, 0),
-    mtdr50: data.reduce((sum, item) => sum + item.mtdr50, 0),
+    consb10: data.reduce((sum, item) => sum + item.consb10, 0),
+    islmsb10: data.reduce((sum, item) => sum + item.islmsb10, 0),
+    consb20: data.reduce((sum, item) => sum + item.consb20, 0),
+    islmsb20: data.reduce((sum, item) => sum + item.islmsb20, 0),
+    consb25: data.reduce((sum, item) => sum + item.consb25, 0),
+    islmsb25: data.reduce((sum, item) => sum + item.islmsb25, 0),
+    consba10: data.reduce((sum, item) => sum + item.consba10, 0),
+    conmsd10: data.reduce((sum, item) => sum + item.conmsd10, 0),
+    conmsa10: data.reduce((sum, item) => sum + item.conmsa10, 0),
+    conmsa20: data.reduce((sum, item) => sum + item.conmsa20, 0),
+    conmsd50: data.reduce((sum, item) => sum + item.conmsd50, 0),
+    concd10: data.reduce((sum, item) => sum + item.concd10, 0),
+    concd20: data.reduce((sum, item) => sum + item.concd20, 0),
+    concd25: data.reduce((sum, item) => sum + item.concd25, 0),
+    islmcd25: data.reduce((sum, item) => sum + item.islmcd25, 0),
+    concd50: data.reduce((sum, item) => sum + item.concd50, 0),
+    islmcd50: data.reduce((sum, item) => sum + item.islmcd50, 0),
+    concd100: data.reduce((sum, item) => sum + item.concd100, 0),
+    conacd25: data.reduce((sum, item) => sum + item.conacd25, 0),
+    conacd50: data.reduce((sum, item) => sum + item.conacd50, 0),
+    conacd100: data.reduce((sum, item) => sum + item.conacd100, 0),
+    concda25: data.reduce((sum, item) => sum + item.concda25, 0),
+    conawcd25: data.reduce((sum, item) => sum + item.conawcd25, 0),
+    conawca20: data.reduce((sum, item) => sum + item.conawca20, 0),
+    conawca50: data.reduce((sum, item) => sum + item.conawca50, 0),
+    conawca100: data.reduce((sum, item) => sum + item.conawca100, 0),
+    consna25: data.reduce((sum, item) => sum + item.consna25, 0),
+    consnd25: data.reduce((sum, item) => sum + item.consnd25, 0),
+    consnd50: data.reduce((sum, item) => sum + item.consnd50, 0),
+    consnd100: data.reduce((sum, item) => sum + item.consnd100, 0),
+    conmsnd25: data.reduce((sum, item) => sum + item.conmsnd25, 0),
+    conpo50: data.reduce((sum, item) => sum + item.conpo50, 0),
+    conpo100: data.reduce((sum, item) => sum + item.conpo100, 0),
+    conpoa50: data.reduce((sum, item) => sum + item.conpoa50, 0),
+    conpoi50: data.reduce((sum, item) => sum + item.conpoi50, 0),
+    conca50: data.reduce((sum, item) => sum + item.conca50, 0),
+    conca100: data.reduce((sum, item) => sum + item.conca100, 0),
+    confdr50: data.reduce((sum, item) => sum + item.confdr50, 0),
+    confdr100: data.reduce((sum, item) => sum + item.confdr100, 0),
+    conmtdr25: data.reduce((sum, item) => sum + item.conmtdr25, 0),
+    conmtdr50: data.reduce((sum, item) => sum + item.conmtdr50, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
 });
 
 type ReportColumnKey =
-  | "sb5"
-  | "sb10"
-  | "sb20"
-  | "sb25"
-  | "sb50"
-  | "sba10"
-  | "msd10"
-  | "msa10"
-  | "msa20"
-  | "msd50"
-  | "cd5"
-  | "cd10"
-  | "cd20"
-  | "cd25"
-  | "cd50"
-  | "cd100"
-  | "acd25"
-  | "acd50"
-  | "acd100"
-  | "cda25"
-  | "awcd25"
-  | "awca20"
-  | "awca50"
-  | "awca100"
-  | "msna50"
-  | "msna100"
-  | "sna25"
-  | "snd25"
-  | "snd50"
-  | "snd100"
-  | "msnd25"
-  | "po50"
-  | "po100"
-  | "poa50"
-  | "poi50"
-  | "ca50"
-  | "ca100"
-  | "fdr50"
-  | "fdr100"
-  | "mtdr25"
-  | "mtdr50";
+  | "consb10"
+  | "islmsb10"
+  | "consb20"
+  | "islmsb20"
+  | "consb25"
+  | "islmsb25"
+  | "consba10"
+  | "conmsd10"
+  | "conmsa10"
+  | "conmsa20"
+  | "conmsd50"
+  | "concd10"
+  | "concd20"
+  | "concd25"
+  | "islmcd25"
+  | "concd50"
+  | "islmcd50"
+  | "concd100"
+  | "conacd25"
+  | "conacd50"
+  | "conacd100"
+  | "concda25"
+  | "conawcd25"
+  | "conawca20"
+  | "conawca50"
+  | "conawca100"
+  | "consna25"
+  | "consnd25"
+  | "consnd50"
+  | "consnd100"
+  | "conmsnd25"
+  | "conpo50"
+  | "conpo100"
+  | "conpoa50"
+  | "conpoi50"
+  | "conca50"
+  | "conca100"
+  | "confdr50"
+  | "confdr100"
+  | "conmtdr25"
+  | "conmtdr50";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
-  { key: "sb5", label: "SB(5)" },
-  { key: "sb10", label: "SB(10)" },
-  { key: "sb20", label: "SB(20)" },
-  { key: "sb25", label: "SB(25)" },
-  { key: "sb50", label: "SB(50)" },
-  { key: "sba10", label: "SBA(10)" },
-  { key: "msd10", label: "MSD(10)" },
-  { key: "msa10", label: "MSA(10)" },
-  { key: "msa20", label: "MSA(20)" },
-  { key: "msd50", label: "MSD(50)" },
-  { key: "cd5", label: "CD(5)" },
-  { key: "cd10", label: "CD(10)" },
-  { key: "cd20", label: "CD(20)" },
-  { key: "cd25", label: "CD(25)" },
-  { key: "cd50", label: "CD(50)" },
-  { key: "cd100", label: "CD(100)" },
-  { key: "cda25", label: "CDA(25)" },
-  { key: "acd25", label: "ACD(25)" },
-  { key: "acd50", label: "ACD(50)" },
-  { key: "acd100", label: "ACD(100)" },
-  { key: "awcd25", label: "AWCD(25)" },
-  { key: "awca20", label: "AWCA(20)" },
-  { key: "awca50", label: "AWCA(50)" },
-  { key: "awca100", label: "AWCA(100)" },
-  { key: "msna50", label: "MSNA(50)" },
-  { key: "msna100", label: "MSNA(100)" },
-  { key: "sna25", label: "SNA(25)" },
-  { key: "snd25", label: "SND(25)" },
-  { key: "snd50", label: "SND(50)" },
-  { key: "snd100", label: "SND(100)" },
-  { key: "msnd25", label: "MSND(25)" },
-  { key: "po50", label: "PO(50)" },
-  { key: "po100", label: "PO(100)" },
-  { key: "poa50", label: "POA(50)" },
-  { key: "poi50", label: "POI(50)" },
-  { key: "ca50", label: "CA(50)" },
-  { key: "ca100", label: "CA(100)" },
-  { key: "fdr50", label: "FDR(50)" },
-  { key: "fdr100", label: "FDR(100)" },
-  { key: "mtdr25", label: "MTDR(25)" },
-  { key: "mtdr50", label: "MTDR(50)" },
+  { key: "consb10", label: "Gen-SB(10)" },
+  { key: "consb20", label: "Gen-SB(20)" },
+  { key: "consb25", label: "Gen-SB(25)" },
+  { key: "concd10", label: "Gen-CD(10)" },
+  { key: "concd25", label: "Gen-CD(25)" },
+  { key: "concd50", label: "Gen-CD(50)" },
+  { key: "concd100", label: "Gen-CD(100)" },
+  { key: "conacd25", label: "Gen-ACD(25)" },
+  { key: "conacd50", label: "Gen-ACD(50)" },
+  { key: "conacd100", label: "Gen-ACD(100)" },
+  { key: "concda25", label: "Gen-CDA(25)" },
+  { key: "conawcd25", label: "Gen-AWCD(25)" },
+  { key: "conawca20", label: "Gen-AWCA(20)" },
+  { key: "conawca50", label: "Gen-AWCA(50)" },
+  { key: "conawca100", label: "Gen-AWCA(100)" },
+  { key: "consna25", label: "Gen-SNA(25)" },
+  { key: "consnd25", label: "Gen-SND(25)" },
+  { key: "consnd50", label: "Gen-SND(50)" },
+  { key: "consnd100", label: "Gen-SND(100)" },
+  { key: "conmsnd25", label: "Gen-MSND(25)" },
+  { key: "conpo50", label: "Gen-PO(50)" },
+  { key: "conpo100", label: "Gen-PO(100)" },
+  { key: "conpoa50", label: "Gen-POA(50)" },
+  { key: "conpoi50", label: "Gen-POI(50)" },
+  { key: "conca50", label: "Gen-CA(50)" },
+  { key: "conca100", label: "Gen-CA(100)" },
+  { key: "confdr50", label: "Gen-FDR(50)" },
+  { key: "confdr100", label: "Gen-FDR(100)" },
+  { key: "conmtdr25", label: "Gen-MTDR(25)" },
+  { key: "conmtdr50", label: "Gen-MTDR(50)" },
+  { key: "islmsb10", label: "ISLM-SB(10)" },
+  { key: "islmsb20", label: "ISLM-SB(20)" },
+  { key: "islmsb25", label: "ISLM-SB(25)" },
+  { key: "islmcd25", label: "ISLM-CD(25)" },
+  { key: "islmcd50", label: "ISLM-CD(50)" },
 ];
 
 const activeColumns = computed(() => {

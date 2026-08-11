@@ -862,132 +862,143 @@ const processFile = async () => {
             }
           }
 
-          let courierCode = "M";
+          let courierCode = "L";
 
-          const branchList = [
-            "BAISHTEKI-ABC0108",
-            "BALARAMPUR-ABC0191",
-            "BALIYAHATI BAZAR-ABC0045",
-            "BANGLA BAZAR-ABC0091",
-            "BAUSHIA MORE BAZAR-ABC0181",
-            "BETILA-ABC0012",
-            "BHABANIGANJ BAZAR-ABC0073",
-            "BIBIRHAT BAZAR-ABC0184",
-            "BOALIA BAZAR-ABC0212",
-            "BOARD SCHOOL BAZAR-ABC0107",
-            "Boiragy Bazar-ABC0077",
-            "BOLIDARA BAZAR-ABC0113",
-            "BOTRISH-ABC0166",
-            "BURBURIA BAZAR-ABC0123",
-            "Chanderchar bazar-ABC0024",
-            "CHARABAG-ABC0203",
-            "CHASHIRHAT BAZAR-ABC0179",
-            "CHAWKBAZAR-ABC0099",
-            "DATTAPARA-ABC0030",
-            "DEUTY BAZAR-ABC0138",
-            "DHAMTI BAZAR-ABC0090",
-            "DHOLARHAT-ABC0124",
-            "DHOLBHANGA BAZAR-ABC0171",
-            "DHOLLA BAZAR-ABC0013",
-            "DOHARGAON BAZAR-ABC0085",
-            "FAKIR BAZAR-ABC0161",
-            "FAKIRGANJ BAZAR-ABC0165",
-            "FATEPUR BAZAR-ABC0028",
-            "FHP-BAJITPUR-ABC0004",
-            "HASHEM BAZAR-ABC0101",
-            "HORINACHALA-ABC0205",
-            "HORISHKUL BAZAR-ABC0067",
-            "HOTKATOLI BAZAR-ABC0188",
-            "JHATURDIA BAZAR-ABC0039",
-            "JOINA BAZAR-ABC0169",
-            "JUMARBARI BAZAR-ABC0135",
-            "JURAIN BAZAR-ABC0082",
-            "KADAMTALA-ABC0014",
-            "KALABAGAN-ABC0137",
-            "KALIAKOIR BAZAR-ABC0070",
-            "KALIBARI BAZAR-ABC0141",
-            "KALIR BAZAR-ABC0117",
-            "Kalma Bazar-ABC0029",
-            "KATIADI-ABC0004",
-            "KATIADI THANAR MOR-ABC0210",
-            "KAWLIBERA BAZAR-ABC0155",
-            "KAWRAN BAZAR-ABC0151",
-            "KOCHASOHOR BAZAR-ABC0206",
-            "LEMUBARI NOTUNHAT-ABC0021",
-            "MADARIPOOL BAZAR-ABC0097",
-            "MALUMGHAT BAZAR-ABC0027",
-            "MOHICHAIL BAZAR-ABC0189",
-            "MOHIMAGANJ BAZAR-ABC0044",
-            "MOUCHAK-ABC0202",
-            "NARAYANPUR BAZAR -ABC0019",
-            "NAWABGANJ BAZAR-ABC0182",
-            "Nazrul Avenue-ABC0080",
-            "NOBDIGANJ BAZAR-ABC0175",
-            "NOORULLAH GODOWN-ABC0156",
-            "NORSHINGHAPUR-ABC0143",
-            "OVIRAMPUR-ABC0187",
-            "PAKERHAT-ABC0057",
-            "Paril Bazar-ABC0047",
-            "PIRGACHA-ABC0193",
-            "PIRGANJ BAZAR-ABC0180",
-            "RAIL GATE BAZAR-ABC0079",
-            "RUPAYAN PRIME-ABC0084",
-            "SALNA BAZAR-ABC0054",
-            "Shahorail Bazar-ABC0103",
-            "SHARAKGHAT BAZAR-ABC0115",
-            "SHIBCHAR BAZAR-ABC0023",
-            "SHIRUAIL BAZAR-ABC0055",
-            "SIGNBOARD-ABC0186",
-            "SOUTH DATTAPARA BAZAR-ABC0055",
-            "Taltola Bazar-ABC0119",
-            "TATUL JORA BAZAR-ABC0204",
-            "THANAR MORE-ABC0065",
-            "TORABGANJ-ABC0008",
-            "TUITAL BAZAR-ABC0053",
-            "UDDOBGONJ-ABC0148",
-            "USHA-TARABO-ABC0001",
-            "YASIN HAZIR BAZAR-ABC0200",
-            "BANANI BRANCH",
-            "DHANMONDI BRANCH",
-            "DILKUSHA CORPORATE BRANCH",
-            "GULSHAN BRANCH",
-            "ISLAMPUR BRANCH",
-            "KAMARPARA BRANCH",
-            "KAWRAN BAZAR BRANCH",
-            "MIRPUR BRANCH",
-            "UTTARA BRANCH",
-            "MADANI AVENUE SUB-BRANCH",
-            "MOTIJHEEL SUB-BRANCH",
-            "NAWABPUR SUB-BRANCH",
-            "NURJAHAN ROAD SUB-BRANCH",
-            "RUPNAGAR SUB-BRANCH",
-            "UTTARA SHAHJALAL AVENUE SUB-BRANCH",
-            "SREENAGAR SUB-BRANCH",
-            "SHIBGONJ SUB-BRANCH",
-            "SHAHJADPUR SUB-BRANCH",
-            "SAIDPUR SUB BRANCH",
-            "RAJSHAHI CITY CORPORATION SUB-BRANCH",
-            "NOAPARA SUB-BRANCH",
-            "NOSER MARKET SUB-BRANCH",
-            "MYMENSINGH SUB-BRANCH",
-            "MIEZ SUB-BRANCH",
-            "LAKSHMIPUR SUB-BRANCH",
-            "MADHABDI SUB-BRANCH",
-            "JUBILEE ROAD SUB-BRANCH",
-            "KARATIA SUB-BRANCH",
-            "DENDABOR SUB-BRANCH",
-            "CHATKHIL SUB-BRANCH",
-            "BOGURA POURASHAVA SUB-BRANCH",
-            "ASHULIA SUB BRANCH",
-            "ISLAMI BANKING GULSHAN WINDOW",
-          ];
-          let Dbranch =
-            row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "";
+          // const branchList = [
+          //   "BAISHTEKI-ABC0108",
+          //   "BALARAMPUR-ABC0191",
+          //   "BALIYAHATI BAZAR-ABC0045",
+          //   "BANGLA BAZAR-ABC0091",
+          //   "BAUSHIA MORE BAZAR-ABC0181",
+          //   "BETILA-ABC0012",
+          //   "BHABANIGANJ BAZAR-ABC0073",
+          //   "BIBIRHAT BAZAR-ABC0184",
+          //   "BOALIA BAZAR-ABC0212",
+          //   "BOARD SCHOOL BAZAR-ABC0107",
+          //   "Boiragy Bazar-ABC0077",
+          //   "BOLIDARA BAZAR-ABC0113",
+          //   "BOTRISH-ABC0166",
+          //   "BURBURIA BAZAR-ABC0123",
+          //   "Chanderchar bazar-ABC0024",
+          //   "CHARABAG-ABC0203",
+          //   "CHASHIRHAT BAZAR-ABC0179",
+          //   "CHAWKBAZAR-ABC0099",
+          //   "DATTAPARA-ABC0030",
+          //   "DEUTY BAZAR-ABC0138",
+          //   "DHAMTI BAZAR-ABC0090",
+          //   "DHOLARHAT-ABC0124",
+          //   "DHOLBHANGA BAZAR-ABC0171",
+          //   "DHOLLA BAZAR-ABC0013",
+          //   "DOHARGAON BAZAR-ABC0085",
+          //   "FAKIR BAZAR-ABC0161",
+          //   "FAKIRGANJ BAZAR-ABC0165",
+          //   "FATEPUR BAZAR-ABC0028",
+          //   "FHP-BAJITPUR-ABC0004",
+          //   "HASHEM BAZAR-ABC0101",
+          //   "HORINACHALA-ABC0205",
+          //   "HORISHKUL BAZAR-ABC0067",
+          //   "HOTKATOLI BAZAR-ABC0188",
+          //   "JHATURDIA BAZAR-ABC0039",
+          //   "JOINA BAZAR-ABC0169",
+          //   "JUMARBARI BAZAR-ABC0135",
+          //   "JURAIN BAZAR-ABC0082",
+          //   "KADAMTALA-ABC0014",
+          //   "KALABAGAN-ABC0137",
+          //   "KALIAKOIR BAZAR-ABC0070",
+          //   "KALIBARI BAZAR-ABC0141",
+          //   "KALIR BAZAR-ABC0117",
+          //   "Kalma Bazar-ABC0029",
+          //   "KATIADI-ABC0004",
+          //   "KATIADI THANAR MOR-ABC0210",
+          //   "KAWLIBERA BAZAR-ABC0155",
+          //   "KAWRAN BAZAR-ABC0151",
+          //   "KOCHASOHOR BAZAR-ABC0206",
+          //   "LEMUBARI NOTUNHAT-ABC0021",
+          //   "MADARIPOOL BAZAR-ABC0097",
+          //   "MALUMGHAT BAZAR-ABC0027",
+          //   "MOHICHAIL BAZAR-ABC0189",
+          //   "MOHIMAGANJ BAZAR-ABC0044",
+          //   "MOUCHAK-ABC0202",
+          //   "NARAYANPUR BAZAR -ABC0019",
+          //   "NAWABGANJ BAZAR-ABC0182",
+          //   "Nazrul Avenue-ABC0080",
+          //   "NOBDIGANJ BAZAR-ABC0175",
+          //   "NOORULLAH GODOWN-ABC0156",
+          //   "NORSHINGHAPUR-ABC0143",
+          //   "OVIRAMPUR-ABC0187",
+          //   "PAKERHAT-ABC0057",
+          //   "Paril Bazar-ABC0047",
+          //   "PIRGACHA-ABC0193",
+          //   "PIRGANJ BAZAR-ABC0180",
+          //   "RAIL GATE BAZAR-ABC0079",
+          //   "RUPAYAN PRIME-ABC0084",
+          //   "SALNA BAZAR-ABC0054",
+          //   "Shahorail Bazar-ABC0103",
+          //   "SHARAKGHAT BAZAR-ABC0115",
+          //   "SHIBCHAR BAZAR-ABC0023",
+          //   "SHIRUAIL BAZAR-ABC0055",
+          //   "SIGNBOARD-ABC0186",
+          //   "SOUTH DATTAPARA BAZAR-ABC0055",
+          //   "Taltola Bazar-ABC0119",
+          //   "TATUL JORA BAZAR-ABC0204",
+          //   "THANAR MORE-ABC0065",
+          //   "TORABGANJ-ABC0008",
+          //   "TUITAL BAZAR-ABC0053",
+          //   "UDDOBGONJ-ABC0148",
+          //   "USHA-TARABO-ABC0001",
+          //   "YASIN HAZIR BAZAR-ABC0200",
+          //   "BANANI BRANCH",
+          //   "DHANMONDI BRANCH",
+          //   "DILKUSHA CORPORATE BRANCH",
+          //   "GULSHAN BRANCH",
+          //   "ISLAMPUR BRANCH",
+          //   "KAMARPARA BRANCH",
+          //   "KAWRAN BAZAR BRANCH",
+          //   "MIRPUR BRANCH",
+          //   "UTTARA BRANCH",
+          //   "MADANI AVENUE SUB-BRANCH",
+          //   "MOTIJHEEL SUB-BRANCH",
+          //   "NAWABPUR SUB-BRANCH",
+          //   "NURJAHAN ROAD SUB-BRANCH",
+          //   "RUPNAGAR SUB-BRANCH",
+          //   "UTTARA SHAHJALAL AVENUE SUB-BRANCH",
+          //   "SREENAGAR SUB-BRANCH",
+          //   "SHIBGONJ SUB-BRANCH",
+          //   "SHAHJADPUR SUB-BRANCH",
+          //   "SAIDPUR SUB BRANCH",
+          //   "RAJSHAHI CITY CORPORATION SUB-BRANCH",
+          //   "NOAPARA SUB-BRANCH",
+          //   "NOSER MARKET SUB-BRANCH",
+          //   "MYMENSINGH SUB-BRANCH",
+          //   "MIEZ SUB-BRANCH",
+          //   "LAKSHMIPUR SUB-BRANCH",
+          //   "MADHABDI SUB-BRANCH",
+          //   "JUBILEE ROAD SUB-BRANCH",
+          //   "KARATIA SUB-BRANCH",
+          //   "DENDABOR SUB-BRANCH",
+          //   "CHATKHIL SUB-BRANCH",
+          //   "BOGURA POURASHAVA SUB-BRANCH",
+          //   "ASHULIA SUB BRANCH",
+          //   "ISLAMI BANKING GULSHAN WINDOW",
+          // ];
+          // let Dbranch =
+          //   row["Delivery_Branch"] ?? row["DeliveryBranchName"] ?? "";
 
-          if (branchList.includes(Dbranch.trim())) {
-            courierCode = "B";
-          } else {
+          if (selectedType.value === true) {
             courierCode = "L";
+          } else {
+            courierCode = "B";
+          }
+
+          let accFlagCode = (row["Account_no"] ?? row["AccountNumber"] ?? "")
+            .trim()
+            .substring(0, 1);
+          let accFlag = "";
+
+          if (accFlagCode == "8") {
+            accFlag = "Islamic";
+          } else {
+            accFlag = "CONV";
           }
 
           processedData.push({
@@ -1003,7 +1014,9 @@ const processFile = async () => {
               row["Account_Name"] ??
               row["AccountHoldersName"] ??
               ""
-            ).trim(),
+            )
+              .trim()
+              .toUpperCase(),
             chequeType: chequeType,
             chequePrefix: (row["Series"] ?? row["Type"] ?? "").trim(),
             series: (row["Series"] ?? row["Type"] ?? "").trim(),
@@ -1037,7 +1050,7 @@ const processFile = async () => {
               row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
             isAgent: selectedType.value === true ? "True" : "False",
             branchId: branchId,
-            accFlag: "General",
+            accFlag: accFlag,
           });
         }
       } else if (selectedBank.value == 1) {
@@ -1114,7 +1127,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: (row["Receiving Branch"] || "").trim(),
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "General",
+            accFlag: "CONV",
           });
         }
       } else if (selectedBank.value == 3) {
@@ -1153,17 +1166,23 @@ const processFile = async () => {
           console.error("Error fetching serial info:", error);
           message.error("Failed to fetch or calculate serial numbers.");
         }
-        for (const [index, row] of (jsonData as any[]).entries()) {
-          let micrNo = (row["Account no"] || "").trim();
+        for (const [index, originalRow] of (jsonData as any[]).entries()) {
+          // Normalize keys to lowercase
+          const row: Record<string, any> = {};
+
+          for (const key of Object.keys(originalRow)) {
+            row[key.toLowerCase()] = originalRow[key];
+          }
+          let micrNo = (row["account no"] || "").trim();
           let homeBranchCode = micrNo.substring(0, 4);
           micrNo = micrNo.length > 13 ? micrNo.slice(-13) : micrNo;
 
-          const bookCount = row["Bks"] * row["Lvs"];
+          const bookCount = row["bks"] * row["lvs"];
           let chequeType = "";
           const nextEnd = startNoNum + bookCount - 1;
           const endNo = nextEnd.toString().padStart(7, "0");
 
-          switch (row["Prefix"]) {
+          switch (row["prefix"]) {
             case "SB":
               chequeType = "Savings";
               break;
@@ -1179,32 +1198,32 @@ const processFile = async () => {
             key: index.toString(),
             bankName: selectedBankName.value,
             bankId: selectedBank.value || 3,
-            branchName: row["Home Branch"] || "".trim().toUpperCase(),
-            routingNo: (row["Routing No."] || "").trim(),
-            accountNo: (row["Account no"] || "").trim(),
-            accountName: (row["Account Name"] || "").trim(),
+            branchName: row["home branch"] || "".trim().toUpperCase(),
+            routingNo: (row["routing no."] || "").trim(),
+            accountNo: (row["account no"] || "").trim(),
+            accountName: (row["account name"] || "").trim(),
             chequeType: chequeType,
-            chequePrefix: (row["Prefix"] || "").trim(),
+            chequePrefix: (row["prefix"] || "").trim(),
             micrNo: micrNo,
-            series: (row["Prefix"] || "").trim(),
-            transactionCode: (row["Tr. Code"] || "").trim(),
-            leafCount: (row["Lvs"] || "").trim(),
+            series: (row["prefix"] || "").trim(),
+            transactionCode: (row["tr. code"] || "").trim(),
+            leafCount: (row["lvs"] || "").trim(),
             startNo: startNo.trim(),
             endNo: endNo.trim(),
-            bookQty: (row["Bks"] || "").trim(),
-            receivingBranch: (row["Delivery Branch"] || "")
+            bookQty: (row["bks"] || "").trim(),
+            receivingBranch: (row["delivery branch"] || "")
               .trim()
               .toUpperCase(),
-            distributionPointName: (row["Delivery Branch"] || "").trim(),
+            distributionPointName: (row["delivery branch"] || "").trim(),
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             requestDate:
-              row["Request Date"] || new Date().toISOString().slice(0, 10),
+              row["request date"] || new Date().toISOString().slice(0, 10),
             homeBranchCode: homeBranchCode,
-            deliveryBranchCode: row["Delivery Branch"] || "",
+            deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "General",
+            accFlag: "CONV",
           });
           startNoNum = nextEnd + 1;
           startNo = startNoNum.toString().padStart(7, "0");
@@ -1239,7 +1258,7 @@ const processFile = async () => {
           if (chequeType == "MTDR" || chequeType == "FDR") {
             accNo = "0000000000104";
             trCode = 12;
-            routingNo = "1234567";
+            routingNo = row["routing_no"] || "1234567";
           } else {
             accNo = (row["account_no"] || "").trim();
             trCode = row["tr_code"] || 0;
@@ -1311,7 +1330,7 @@ const processFile = async () => {
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            accFlag: "General",
+            accFlag: "CONV",
             requestDate:
               row["request date"] && row["request date"].trim() !== ""
                 ? row["request date"]
@@ -1388,7 +1407,9 @@ const processFile = async () => {
             branchName: (row["branch name"] || "").trim().toUpperCase(),
             routingNo: routingNo,
             accountNo: accNo.toString().trim(),
-            accountName: row["account holder name"] || "",
+            accountName: (row["account holder name"] || "")
+              .trim()
+              .toUpperCase(),
             chequeType: chequeType,
             chequePrefix: row["type"] || "",
             micrNo: (row["micr account"] || "").toString().trim(),
@@ -1410,7 +1431,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "General",
+            accFlag: "CONV",
           });
         }
       } else if (selectedBank.value == 6) {
@@ -1501,7 +1522,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["pickup branch name"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "General",
+            accFlag: "CONV",
           });
         }
       } else if (selectedBank.value == 7) {
@@ -1572,7 +1593,7 @@ const processFile = async () => {
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: deliveryBranchCode,
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "General",
+            accFlag: "CONV",
           });
         }
       } else if (selectedBank.value == 8) {
@@ -1774,7 +1795,7 @@ const processFile = async () => {
             homeBranchCode: "0004",
             deliveryBranchCode: "0000",
             isAgent: selectedType.value === true ? "True" : "False",
-            accFlag: "general",
+            accFlag: "CONV",
             distId: row["dist. id"] || "",
             qrId: row["id"] || "",
             securityCode: row["security code"] || "",

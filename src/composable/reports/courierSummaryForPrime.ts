@@ -53,7 +53,7 @@ export interface ReportItemForPrime {
   prio10: number;
   prio20: number;
   prio50: number;
-  po100: number;
+  conpo100: number;
   total: number;
 }
 
@@ -69,7 +69,7 @@ interface Totals {
   prio10: number;
   prio20: number;
   prio50: number;
-  po100: number;
+  conpo100: number;
   grandTotal: number;
 }
 
@@ -91,7 +91,7 @@ const totals = computed((): Totals => {
     prio10: data.reduce((sum, item) => sum + item.prio10, 0),
     prio20: data.reduce((sum, item) => sum + item.prio20, 0),
     prio50: data.reduce((sum, item) => sum + item.prio50, 0),
-    po100: data.reduce((sum, item) => sum + item.po100, 0),
+    conpo100: data.reduce((sum, item) => sum + item.conpo100, 0),
     grandTotal: data.reduce((sum, item) => sum + item.total, 0),
   };
 });
@@ -108,7 +108,7 @@ type ReportColumnKey =
   | "prio10"
   | "prio20"
   | "prio50"
-  | "po100";
+  | "conpo100";
 const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "conv5", label: "Conv(5)" },
   { key: "conv10", label: "Conv(10)" },
@@ -121,7 +121,7 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "prio10", label: "Prio(10)" },
   { key: "prio20", label: "Prio(20)" },
   { key: "prio50", label: "Prio(50)" },
-  { key: "po100", label: "PO(100)" },
+  { key: "conpo100", label: "PO(100)" },
 ];
 
 const activeColumns = computed(() => {
