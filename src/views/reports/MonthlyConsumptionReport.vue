@@ -610,8 +610,12 @@ const downloadExcel = async () => {
 
     if (start && end) {
       const sameMonth = start.isSame(end, "month");
+      const sameDay = start.isSame(end, "day");
 
-      if (sameMonth) {
+      if (sameDay) {
+        dateRange = start.format("D MMMM YYYY");
+        dateRangeLabel = start.format("DD-MM-YYYY");
+      } else if (sameMonth) {
         // একই মাসের মধ্যে হলে, তারিখসহ দেখাবে
         dateRange = `${start.format("MMMM D")}–${end.format("D, YYYY")}`;
         dateRangeLabel = `${start.format("MMMM_D")}_to_${end.format("D_YYYY")}`;
@@ -837,6 +841,18 @@ const downloadExcel = async () => {
           "conAwca100",
           "conPo50",
         ],
+      },
+      "Shimanto Bank PLC": {
+        mainHeaders: [
+          "SL",
+          "Date",
+          "SB-10",
+          "CD-25",
+          "PO-100",
+          "Total Books",
+          "Total Leaves",
+        ],
+        dataKeys: ["conSb10", "conCd25", "conPo100"],
       },
       // Default configuration for other banks
       default: {
@@ -1212,10 +1228,23 @@ const downloadExcel = async () => {
         horizontal: "center",
         vertical: "middle",
       };
-      let workORderRef =
-        bankName === "IBBL"
-          ? "IBBPLC/HO/CSD/PSSD/2025/1659"
-          : "BGCB-GSD-TIO-2024/101";
+      let workORderRef;
+
+      const normalizedBankName = bankName?.trim().toLowerCase();
+
+      switch (normalizedBankName) {
+        case "ibbl":
+          workORderRef = "IBBPLC/HO/CSD/PSSD/2025/1659";
+          break;
+
+        case "shimanto bank plc":
+          workORderRef = "SMBL/HO/IDP/Fintera Solutions-MICR Cheque/2025/998";
+          break;
+
+        default:
+          workORderRef = "BGCB-GSD-TIO-2024/101";
+          break;
+      }
 
       sheet.mergeCells(`A4:${titleCol}4`);
       sheet.getCell("A4").value = `Work Order Ref: ${workORderRef}`;

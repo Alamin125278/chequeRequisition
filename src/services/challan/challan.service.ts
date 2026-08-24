@@ -19,6 +19,7 @@ export interface ChallanItem {
   leaves: number;
   serverity: number;
   branchName: string;
+  branchCode: string;
   accFlag: string;
 }
 
@@ -33,6 +34,7 @@ export interface FetchChallanParams {
   challanNumber: string;
   branchName: string;
   agentNum?: string | null;
+  DeliveryBranchCode?: string | null;
   reDate: string;
   isAgent: boolean;
   items: ChallanItem[];

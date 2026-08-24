@@ -12,6 +12,7 @@ interface ChallanItem {
   serverity: number;
   branchName?: string;
   accFlag?: string;
+  branchCode?: string;
 }
 
 interface Challan {
@@ -26,6 +27,7 @@ interface Challan {
   branchName: string;
   cusAddress?: string | null;
   agentNum?: string | null;
+  deliveryBranchCode?: string | null;
   reDate: string;
   isAgent: boolean;
   items?: ChallanItem[];
@@ -252,7 +254,7 @@ export const generateChallanPdf = async (
           width: 140,
           height: 70,
         });
-        if (bankId === 6) {
+        if (bankId === 6 || bankId === 7) {
           page.drawText(`Challan Date: ${formatDate(challan.challanDate)}`, {
             x: pageWidth - marginX - 150,
             y: y - 15,
@@ -283,12 +285,21 @@ export const generateChallanPdf = async (
         // }
 
         let contentY = pageHeight - marginY - 20;
-        page.drawText(challan.receivingBranchName, {
-          x: marginX + 8,
-          y: contentY,
-          font: fontBold,
-          size: 11,
-        });
+        if (bankId === 7) {
+          page.drawText(`Delivery Branch: ${challan.deliveryBranchCode}`, {
+            x: marginX + 8,
+            y: contentY,
+            font: fontBold,
+            size: 11,
+          });
+        } else {
+          page.drawText(challan.receivingBranchName, {
+            x: marginX + 8,
+            y: contentY,
+            font: fontBold,
+            size: 11,
+          });
+        }
         contentY -= 18;
         page.drawText(challan.bankName, {
           x: marginX + 8,
@@ -310,7 +321,7 @@ export const generateChallanPdf = async (
           size: 10,
         });
         contentY -= 16;
-        if (bankId === 6) {
+        if (bankId === 6 || bankId === 7) {
           page.drawText(`Request Date: ${formatDate(challan.reDate)}`, {
             x: marginX + 8,
             y: contentY,
@@ -325,7 +336,7 @@ export const generateChallanPdf = async (
             size: 9,
           });
         }
-        if (bankId !== 8) {
+        if (bankId !== 8 && bankId !== 7) {
           contentY -= 15;
           page.drawText(`Courier: ${challan.courierName || "N/A"}`, {
             x: marginX + 8,
@@ -437,7 +448,9 @@ export const generateChallanPdf = async (
           item.serverity === 1 ? "Urgent" : "Normal",
           challan.isAgent && bankId == 2
             ? `B-${item.branchName}`
-            : item.branchName,
+            : bankId == 7
+              ? item.branchCode
+              : item.branchName,
         ];
         let cx = marginX;
         colWidths.forEach((w, i) => {

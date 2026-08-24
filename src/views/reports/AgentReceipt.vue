@@ -760,20 +760,39 @@ const downloadChallan = async () => {
 
   const bankName = selectedBankName.value || "BANK NAME";
   const dateStr = formatDate();
+  challanGroups.value.forEach((group) => {
+    group.items.sort((a, b) => {
+      const leavesCompare = Number(a.leaves || 0) - Number(b.leaves || 0);
+
+      if (leavesCompare !== 0) {
+        return leavesCompare;
+      }
+
+      return Number(a.startNo || 0) - Number(b.startNo || 0);
+    });
+  });
+
   challanGroups.value.sort((a, b) => {
-    // 1. deliveryBranch
-    const branchCompare = a.deliveryBranch.localeCompare(b.deliveryBranch);
-    if (branchCompare !== 0) {
-      return branchCompare;
-    }
+    const branchCompare = a.deliveryBranch.localeCompare(
+      b.deliveryBranch,
+      undefined,
+      { sensitivity: "base" },
+    );
 
-    // 2. distId (e.g. 123-007)
-    const [aPrefix, aSuffix] = a.distId.split("-").map(Number);
-    const [bPrefix, bSuffix] = b.distId.split("-").map(Number);
+    if (branchCompare !== 0) return branchCompare;
 
-    if (aPrefix !== bPrefix) {
-      return aPrefix - bPrefix;
-    }
+    const distA = (a.distId ?? "").trim();
+    const distB = (b.distId ?? "").trim();
+
+    if (!distA && distB) return 1;
+    if (distA && !distB) return -1;
+
+    if (!distA && !distB) return 0;
+
+    const [aPrefix, aSuffix] = distA.split("-").map(Number);
+    const [bPrefix, bSuffix] = distB.split("-").map(Number);
+
+    if (aPrefix !== bPrefix) return aPrefix - bPrefix;
 
     return aSuffix - bSuffix;
   });

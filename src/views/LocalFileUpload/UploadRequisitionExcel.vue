@@ -1566,6 +1566,15 @@ const processFile = async () => {
           //     chequeType = "Payment Order";
           //     break;
           // }
+          let chequeType = "";
+          let TransactionCode = (row["tr_code"] || "").trim();
+          if (TransactionCode == 10) {
+            chequeType = "Savings";
+          } else if (TransactionCode == 11) {
+            chequeType = "Current";
+          } else if (TransactionCode == 19) {
+            chequeType = "Payment Order";
+          }
           processedData.push({
             key: index.toString(),
             bankName: selectedBankName.value,
@@ -1574,7 +1583,7 @@ const processFile = async () => {
             routingNo: routingNo,
             accountNo: accNo.toString().trim(),
             accountName: (row["account_name"] || "").trim().toUpperCase(),
-            chequeType: (row["series"] || "").trim().toUpperCase(),
+            chequeType: chequeType,
             chequePrefix: (row["series"] || "").trim().toUpperCase(),
             micrNo: micrNo,
             series: (row["series"] || "").trim().toUpperCase(),
@@ -1796,7 +1805,7 @@ const processFile = async () => {
             deliveryBranchCode: "0000",
             isAgent: selectedType.value === true ? "True" : "False",
             accFlag: "CONV",
-            distId: row["dist. id"] || "",
+            distId: (row["dist. id"] || "").trim(),
             qrId: row["id"] || "",
             securityCode: row["security code"] || "",
             tokenText: row["token text"] || "",
@@ -1865,6 +1874,36 @@ const handleSubmit = async () => {
       tokenText: item.tokenText,
       coverText: item.coverText,
     }));
+    items.sort((a, b) => {
+      // 1. Receiving Branch A-Z
+      const branchCompare = (a.receivingBranchName ?? "").localeCompare(
+        b.receivingBranchName ?? "",
+        undefined,
+        { sensitivity: "base" },
+      );
+
+      if (branchCompare !== 0) {
+        return branchCompare;
+      }
+
+      // 2. StartNo ascending
+      const startNoCompare = Number(a.startNo || 0) - Number(b.startNo || 0);
+
+      if (startNoCompare !== 0) {
+        return startNoCompare;
+      }
+
+      // 3. DistId ascending
+      return String(a.distId ?? "").localeCompare(
+        String(b.distId ?? ""),
+        undefined,
+        {
+          numeric: true,
+          sensitivity: "base",
+        },
+      );
+    });
+
     const result = await saveBulkLocalFileUploadService(items);
     if (result.data.isSuccess) {
       await localFileImportLogService(selectedBank.value ?? 0, fileName.value);

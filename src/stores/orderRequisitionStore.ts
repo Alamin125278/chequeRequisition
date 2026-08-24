@@ -32,6 +32,7 @@ export interface OrderRequisition {
   branchCode?: string;
   deliveryBranchCode?: string;
   accFlag?: string;
+  distId?: string;
   qrId?: string;
   securityCode?: string;
   tokenText?: string;
@@ -87,9 +88,42 @@ export const useOrderRequisitionStore = defineStore("orderRequisition", () => {
         courierCode: courierCode.value ?? undefined,
       });
       orderRequisitionForExport.value = res;
-      orderRequisitionForExport.value.sort((a, b) =>
-        a.receivingBranchName.localeCompare(b.receivingBranchName),
-      );
+      // orderRequisitionForExport.value.sort((a, b) =>
+      //   a.receivingBranchName.localeCompare(b.receivingBranchName),
+      // );
+
+      orderRequisitionForExport.value.sort((a, b) => {
+        // 1. Receiving Branch A-Z
+        const branchCompare = (a.receivingBranchName ?? "").localeCompare(
+          b.receivingBranchName ?? "",
+          undefined,
+          { sensitivity: "base" },
+        );
+
+        if (branchCompare !== 0) return branchCompare;
+
+        // 2. Leaves ascending
+        const leavesCompare = Number(a.leaves || 0) - Number(b.leaves || 0);
+
+        if (leavesCompare !== 0) return leavesCompare;
+
+        // 3. DistId ascending, empty values last
+        const distA = String(a.distId ?? "").trim();
+        const distB = String(b.distId ?? "").trim();
+
+        if (!distA && distB) return 1;
+        if (distA && !distB) return -1;
+
+        const distCompare = distA.localeCompare(distB, undefined, {
+          numeric: true,
+          sensitivity: "base",
+        });
+
+        if (distCompare !== 0) return distCompare;
+
+        // 4. StartNo ascending
+        return Number(a.startNo || 0) - Number(b.startNo || 0);
+      });
     } catch (e) {
       console.error("Error fetching orderRequisitions", e);
     } finally {

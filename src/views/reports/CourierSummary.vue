@@ -420,6 +420,7 @@ interface ReportItem {
   courierName: string;
   branchAddress: string;
   branchPhone: string;
+  branchCode: string;
   requestDate: string;
   isAgent: boolean;
   consb10: number;
@@ -637,7 +638,13 @@ const conditionalHeaders: { key: ReportColumnKey; label: string }[] = [
   { key: "consb10", label: "Gen-SB(10)" },
   { key: "consb20", label: "Gen-SB(20)" },
   { key: "consb25", label: "Gen-SB(25)" },
+  { key: "conmsa10", label: "Gen-MSA(10)" },
+  { key: "conmsa20", label: "Gen-MSA(20)" },
+  { key: "consba10", label: "Gen-SBA(10)" },
+  { key: "conmsd10", label: "Gen-MSD(10)" },
+  { key: "conmsd50", label: "Gen-MSD(50)" },
   { key: "concd10", label: "Gen-CD(10)" },
+  { key: "concd20", label: "Gen-CD(20)" },
   { key: "concd25", label: "Gen-CD(25)" },
   { key: "concd50", label: "Gen-CD(50)" },
   { key: "concd100", label: "Gen-CD(100)" },
@@ -840,14 +847,16 @@ const downloadExcel = async () => {
     sheet.addRow([]);
     const hasBranchInfo =
       bankId === 2 || bankId === 4 || bankId === 6 || bankId === 8;
+    const hasBranchCode = bankId === 7;
 
     // Table Header
     const tableHeaders = [
       "Sl No",
-      "Courier Name",
+      ...(hasBranchCode ? [] : ["Courier Name"]),
       "Requestion Date",
       "Delivery Branch",
       ...(hasBranchInfo ? ["Branch Address"] : []),
+      ...(hasBranchCode ? ["Branch Code"] : []),
       "Challan No",
       "Challan Date",
       ...conditionalHeaders
@@ -870,10 +879,11 @@ const downloadExcel = async () => {
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([
         index + 1,
-        item.courierName,
+        ...(hasBranchCode ? [] : [item.courierName]),
         item.requestDate,
         item.deliveryBranch,
         ...(hasBranchInfo ? [item.branchAddress] : []),
+        ...(hasBranchCode ? [item.branchCode] : []),
         item.challanNo,
         item.challanDate,
         ...activeColumns.value.map((h) => item[h.key]),
@@ -888,9 +898,10 @@ const downloadExcel = async () => {
     // Totals row
     const totalsRow = sheet.addRow([
       "",
-      "",
+      ...(hasBranchCode ? [] : [""]),
       "",
       ...(hasBranchInfo ? [""] : []),
+      ...(hasBranchCode ? [""] : []),
       "",
       "",
       "Grand Total",
