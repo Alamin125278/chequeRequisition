@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-5 gap-6">
               <!-- Bank ID -->
               <a-form-item
                 label="Bank"
@@ -67,6 +67,18 @@
                   </a-select-option>
                 </a-select>
               </a-form-item>
+              <!-- Request Date -->
+              <a-form-item
+                label="Request Date"
+                name="requestDate"
+                :rules="[{ required: true, message: 'Please select a date' }]"
+              >
+                <a-date-picker
+                  v-model:value="formState.requestDate"
+                  format="YYYY-MM-DD"
+                  class="w-full"
+                />
+              </a-form-item>
               <!-- Agent Type -->
               <a-form-item label="AgentType" name="agentType">
                 <a-select
@@ -81,17 +93,20 @@
                   >
                 </a-select>
               </a-form-item>
-              <!-- Request Date -->
-              <a-form-item
-                label="Request Date"
-                name="requestDate"
-                :rules="[{ required: true, message: 'Please select a date' }]"
-              >
-                <a-date-picker
-                  v-model:value="formState.requestDate"
-                  format="YYYY-MM-DD"
+
+              <!-- Severity -->
+              <a-form-item label="Severity" name="severity">
+                <a-select
+                  v-model:value="formState.severity"
+                  placeholder="Select severity"
                   class="w-full"
-                />
+                >
+                  <a-select-option :value="null"
+                    >Select Severity</a-select-option
+                  >
+                  <a-select-option :value="1">Urgent</a-select-option>
+                  <a-select-option :value="2">Normal</a-select-option>
+                </a-select>
               </a-form-item>
               <!-- Courier -->
               <a-form-item label="Courier" name="courier">
@@ -245,6 +260,7 @@ const formState = reactive({
   requestDate: dayjs(),
   agentType: null as boolean | null,
   courier: null as string | null,
+  severity: null as number | null,
 });
 
 const isLoading = ref(false);
@@ -305,6 +321,7 @@ const handlePreview = async () => {
       requestDate: requestDate,
       agentType: formState.agentType,
       courier: formState.courier,
+      severity: formState.severity,
     };
     // Generate mock data
     const response = await getAgentSummaryReportService(params);

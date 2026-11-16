@@ -1,5 +1,7 @@
 const baseConfig = {
-  BaseURL: import.meta.env.VITE_APP_BASE_URL || "http://localhost:3000",
+  BaseURL:
+    `http://${window.location.hostname}:3000` ||
+    import.meta.env.VITE_APP_BASE_URL,
   LocalStorageTokenKeyName: "authToken",
   LocalStorageUserKeyName: "userInfo",
   LocalStorageThemeKeyName: "theme",

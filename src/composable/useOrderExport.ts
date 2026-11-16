@@ -234,7 +234,10 @@ export const useOrderExport = () => {
           ? `_${courier}`
           : matchingOrders[0]?.isAgent
             ? "_Agent"
-            : "";
+            : matchingOrders[0]?.serverity == 1
+              ? "_Urgent"
+              : "";
+
         fileName = `${todayDate}_${bankName}_${checkType}_${pages}${
           accFlag ? `_${accFlag}` : ""
         }${suffix}`;
@@ -243,7 +246,9 @@ export const useOrderExport = () => {
           ? `_${courier}`
           : matchingOrders[0]?.isAgent
             ? "_Agent"
-            : "";
+            : matchingOrders[0]?.serverity == 1
+              ? "_Urgent"
+              : "";
 
         fileName = `${todayDate}_${bankName}_${checkType}_${pages}${
           accFlag ? `_${accFlag}` : ""
@@ -293,14 +298,22 @@ export const useOrderExport = () => {
         .split("/")
         .join("-");
 
-      let fileName = "";
-      if (orders[0]?.isAgent) {
-        fileName = `${todayDate}_${bankName}PSI__Agent`;
-      } else if (courier != null) {
-        fileName = `${todayDate}_${bankName}_PSI_${courier}`;
-      } else {
-        fileName = `${todayDate}_${bankName}_PSI`;
+      const suffixes = [];
+
+      if (courier != null) {
+        suffixes.push(courier);
       }
+      if (orders[0]?.isAgent) {
+        suffixes.push("Agent");
+      }
+
+      if (orders[0]?.serverity === 1) {
+        suffixes.push("Urgent");
+      }
+
+      const fileName = `${todayDate}_${bankName}_PSI${
+        suffixes.length ? `_${suffixes.join("_")}` : ""
+      }`;
 
       await exportToExcel(formattedData, fileName, "PSI");
       setPsiExportState({ completed: true });

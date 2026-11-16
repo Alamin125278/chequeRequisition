@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handlePreview">
-            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+            <div class="grid grid-cols-2 md:grid-cols-6 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -75,22 +75,6 @@
                   placeholder="Select end date"
                 />
               </a-form-item>
-
-              <!-- Agent Type -->
-              <a-form-item label="AgentType" name="agentType">
-                <a-select
-                  v-model:value="formState.agentType"
-                  placeholder="Select Type"
-                  class="w-full"
-                >
-                  <a-select-option :value="null">Select Type</a-select-option>
-                  <a-select-option :value="true">Agent Type</a-select-option>
-                  <a-select-option :value="false"
-                    >Non-Agent Type</a-select-option
-                  >
-                </a-select>
-              </a-form-item>
-
               <!-- Bank ID -->
               <a-form-item
                 label="Bank"
@@ -111,6 +95,53 @@
                   >
                     {{ bank.bankName }}
                   </a-select-option>
+                </a-select>
+              </a-form-item>
+
+              <!-- Agent Type -->
+              <a-form-item label="AgentType" name="agentType">
+                <a-select
+                  v-model:value="formState.agentType"
+                  placeholder="Select Type"
+                  class="w-full"
+                >
+                  <a-select-option :value="null">Select Type</a-select-option>
+                  <a-select-option :value="true">Agent Type</a-select-option>
+                  <a-select-option :value="false"
+                    >Non-Agent Type</a-select-option
+                  >
+                </a-select>
+              </a-form-item>
+
+              <!-- Severity -->
+              <a-form-item label="Severity" name="severity">
+                <a-select
+                  v-model:value="formState.severity"
+                  placeholder="Select severity"
+                  class="w-full"
+                >
+                  <a-select-option :value="null"
+                    >Select Severity</a-select-option
+                  >
+                  <a-select-option :value="1">Urgent</a-select-option>
+                  <a-select-option :value="2">Normal</a-select-option>
+                </a-select>
+              </a-form-item>
+              <!--Acc Flag-->
+              <a-form-item label="Acc Flag" name="accFlag">
+                <a-select
+                  v-model:value="formState.accFlag"
+                  placeholder="Select flag"
+                  class="w-full"
+                >
+                  <a-select-option value="">Select Flag</a-select-option>
+                  <a-select-option value="CONV">General</a-select-option>
+                  <a-select-option value="Islamic"
+                    >Islamic Banking</a-select-option
+                  >
+                  <a-select-option value="Priority"
+                    >Priority Banking</a-select-option
+                  >
                 </a-select>
               </a-form-item>
             </div>
@@ -513,6 +544,8 @@ const formState = reactive({
   endDate: dayjs(),
   bankId: null as number | null,
   agentType: null as boolean | null,
+  accFlag: null as string | null,
+  severity: null as number | null,
 });
 
 // Modal and loading states
@@ -730,8 +763,9 @@ const handlePreview = async () => {
       bankId: formState.bankId,
       startDate: stDate,
       endDate: enDate,
-      severity: 1,
+      severity: formState.severity,
       agentType: formState.agentType,
+      accFlag: formState.accFlag,
     };
     // Generate mock data
     const response = await getSummaryReportService(params);
@@ -967,12 +1001,19 @@ const downloadExcel = async () => {
     sheet.eachRow((row) => {
       row.height = 25;
     });
-
     // Generate filename
     const filename = `${dateRangeLabel}_Branch_Wise_Bill_Report_${bankName.replace(
       /\s+/g,
       "_",
-    )}_${formState.agentType ? "Agent" : ""}.xlsx`;
+    )}${formState.agentType ? "_Agent" : ""}${
+      formState.accFlag ? `_${formState.accFlag}` : ""
+    }${
+      formState.severity === 1
+        ? "_Urgent"
+        : formState.severity === 2
+          ? "_Normal"
+          : ""
+    }.xlsx`;
 
     // Create blob
     const buffer = await workbook.xlsx.writeBuffer();

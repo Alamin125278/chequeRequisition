@@ -875,6 +875,14 @@ const downloadExcel = async () => {
       cell.alignment = { horizontal: "center", vertical: "middle" };
     });
 
+    if (bankId === 7) {
+      reportData.value.sort((a, b) => {
+        const aCode = a.branchCode || "";
+        const bCode = b.branchCode || "";
+        return aCode.localeCompare(bCode);
+      });
+    }
+
     // Data rows
     reportData.value.forEach((item, index) => {
       const row = sheet.addRow([

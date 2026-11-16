@@ -125,6 +125,22 @@
                     <a-select-option :value="1">Urgent</a-select-option>
                   </a-select>
                 </div>
+                <!-- Request Date Section -->
+                <div class="w-full md:w-1/2">
+                  <div class="flex items-center mb-2">
+                    <BankOutlined class="text-accent mr-2 text-lg" />
+                    <h3 class="text-md font-medium text-primary">
+                      Select Request Date
+                    </h3>
+                  </div>
+
+                  <a-date-picker
+                    v-model:value="setRequestDate"
+                    class="w-full"
+                    placeholder="Select Challan Date"
+                    format="DD-MM-YYYY"
+                  />
+                </div>
               </div>
             </div>
 
@@ -416,6 +432,7 @@ import {
 } from "@ant-design/icons-vue";
 import { message, Upload } from "ant-design-vue";
 import { computed, onMounted, ref } from "vue";
+import dayjs, { Dayjs } from "dayjs";
 import * as XLSX from "xlsx";
 import { getBankForBranchService } from "../../services/bank/bank.service";
 import { saveBranchService } from "../../services/branch/branch.service";
@@ -677,6 +694,7 @@ const selectedBank = ref<number | null>(null);
 const selectedType = ref<boolean>(false);
 const selectedSeverity = ref<number>(2);
 const selectedBankName = ref("");
+const setRequestDate = ref<Dayjs>(dayjs());
 const file = ref<File | null>(null);
 const fileList = ref<any[]>([]);
 const isProcessing = ref(false);
@@ -1009,7 +1027,9 @@ const processFile = async () => {
               .trim()
               .toUpperCase(),
             routingNo: row["Routing_No"] ?? row["RoutingNumber"] ?? "",
-            accountNo: (row["Account_no"] ?? row["AccountNumber"] ?? "").trim(),
+            accountNo: String(
+              (row["Account_no"] ?? row["AccountNumber"] ?? "").trim(),
+            ).padStart(13, "0"),
             accountName: (
               row["Account_Name"] ??
               row["AccountHoldersName"] ??
@@ -1041,10 +1061,11 @@ const processFile = async () => {
             courierCode: courierCode,
             agentNum: row["Agent_No"] ?? row["Phone"] ?? "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["Request_Date"] ??
-              row["Date"] ??
-              new Date().toISOString().slice(0, 10),
+            // requestDate:
+            //   row["Request_Date"] ??
+            //   row["Date"] ??
+            //   new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: row["Home_Branch_Code"] ?? row["HomeBrCode"] ?? "",
             deliveryBranchCode:
               row["Delivery_Branch_Code"] ?? row["DeliveryBrCode"] ?? "",
@@ -1066,6 +1087,9 @@ const processFile = async () => {
           const printerCode = row["Printer Code"].trim();
           const leaves = row["No. of Leaves"].trim();
           let courierCode = row["Courier Code"].trim();
+          if (courierCode == "W") {
+            courierCode = "U";
+          }
 
           let chequeType = "";
           let chequePrefix = "";
@@ -1218,8 +1242,7 @@ const processFile = async () => {
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1331,15 +1354,7 @@ const processFile = async () => {
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
             accFlag: "CONV",
-            requestDate:
-              row["request date"] && row["request date"].trim() !== ""
-                ? row["request date"]
-                    .replace(/\//g, "-")
-                    .split("-")
-                    .reverse()
-                    .join("-")
-                : new Date().toISOString().slice(0, 10),
-
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery_branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1426,8 +1441,7 @@ const processFile = async () => {
             courierCode: "AS",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: row["delivery branch"] || "",
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1597,8 +1611,7 @@ const processFile = async () => {
             courierCode: "L",
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: deliveryBranchCode,
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1730,8 +1743,7 @@ const processFile = async () => {
             courierCode: courierCode,
             agentNum: agentPhone,
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: homeBranchCode,
             deliveryBranchCode: deliveryBranchCode,
             isAgent: selectedType.value === true ? "True" : "False",
@@ -1755,7 +1767,10 @@ const processFile = async () => {
             courierCode = "D";
           } else if (courierName === "WORLD RUNNER COURIER") {
             courierCode = "W";
-          } else if (courierName === "SUNDARBAN COURIER SERVICE (PVT.) LTD") {
+          } else if (
+            courierName === "SUNDARBAN COURIER SERVICE (PVT.) LTD" ||
+            courierName === "SUNDARBAN COURIER SERVICE"
+          ) {
             courierCode = "S";
           }
 
@@ -1799,8 +1814,7 @@ const processFile = async () => {
             courierCode: courierCode,
             agentNum: "",
             serverity: selectedSeverity.value === 1 ? "Urgent" : "Normal",
-            requestDate:
-              row["request date"] || new Date().toISOString().slice(0, 10),
+            requestDate: setRequestDate.value.format("YYYY-MM-DD"),
             homeBranchCode: "0004",
             deliveryBranchCode: "0000",
             isAgent: selectedType.value === true ? "True" : "False",

@@ -45,7 +45,7 @@
 
         <div class="p-6">
           <a-form :model="formState" layout="vertical" @finish="handleDownload">
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
               <!-- Start Date -->
               <a-form-item
                 label="Start Date"
@@ -98,6 +98,20 @@
                   >
                     {{ bank.bankName }}
                   </a-select-option>
+                </a-select>
+              </a-form-item>
+              <!-- Severity -->
+              <a-form-item label="Severity" name="severity">
+                <a-select
+                  v-model:value="formState.severity"
+                  placeholder="Select severity"
+                  class="w-full"
+                >
+                  <a-select-option :value="null"
+                    >Select Severity</a-select-option
+                  >
+                  <a-select-option :value="1">Urgent</a-select-option>
+                  <a-select-option :value="2">Normal</a-select-option>
                 </a-select>
               </a-form-item>
             </div>
@@ -158,6 +172,7 @@ import dayjs from "dayjs";
 import ExcelJS from "exceljs";
 import { computed, onMounted, reactive, ref } from "vue";
 import { getBankForBranchService } from "../../services/bank/bank.service";
+import logoImage from "@/assets/logo_text.png";
 
 interface Bank {
   id: number;
@@ -408,6 +423,7 @@ const formState = reactive({
   startDate: dayjs().startOf("month"), // বর্তমান মাসের প্রথম দিন
   endDate: dayjs(),
   bankId: null as number | null,
+  severity: null as number | null,
 });
 
 const disabledStartDate = (current: any) => {
@@ -564,6 +580,7 @@ const handleDownload = async () => {
       bankId: formState.bankId,
       startDate: stDate,
       endDate: enDate,
+      severity: formState.severity,
     };
     const response = await getConsumptionReportService(params);
     if (response.success == true) {
@@ -595,70 +612,88 @@ onMounted(() => {
   featchBanks();
 });
 
+const getExcelColumnLetter = (columnNumber: number): string => {
+  let column = columnNumber;
+  let result = "";
+
+  while (column > 0) {
+    const remainder = (column - 1) % 26;
+    result = String.fromCharCode(65 + remainder) + result;
+    column = Math.floor((column - 1) / 26);
+  }
+
+  return result;
+};
+
 const downloadExcel = async () => {
   try {
+    /* =========================================================
+     * 1. BANK
+     * ========================================================= */
+
     const selectedBank = banks.value.find(
       (bank) => bank.id === formState.bankId,
     );
-    const bankName = selectedBank?.bankName || "Unknown Bank";
+
+    const bankName = selectedBank?.bankName?.trim() || "Unknown Bank";
+
+    const normalizedBankName = bankName.toLowerCase();
+
+    const isPrimeBank = bankName === "Prime Bank PLC.";
+
+    const isMidlandBank = bankName === "Midland Bank PLC";
+
+    const isIBBL = formState.bankId === 9;
+
+    /* =========================================================
+     * 2. DATE RANGE
+     * ========================================================= */
 
     const start = dayjs(formState.startDate);
     const end = dayjs(formState.endDate);
 
+    if (!start.isValid() || !end.isValid()) {
+      message.error("Please select a valid date range.");
+      return;
+    }
+
+    if (start.isAfter(end)) {
+      message.error("Start date cannot be greater than end date.");
+      return;
+    }
+
     let dateRange = "";
     let dateRangeLabel = "";
 
-    if (start && end) {
-      const sameMonth = start.isSame(end, "month");
-      const sameDay = start.isSame(end, "day");
+    if (start.isSame(end, "day")) {
+      dateRange = start.format("D MMMM YYYY");
 
-      if (sameDay) {
-        dateRange = start.format("D MMMM YYYY");
-        dateRangeLabel = start.format("DD-MM-YYYY");
-      } else if (sameMonth) {
-        // একই মাসের মধ্যে হলে, তারিখসহ দেখাবে
-        dateRange = `${start.format("MMMM D")}–${end.format("D, YYYY")}`;
-        dateRangeLabel = `${start.format("MMMM_D")}_to_${end.format("D_YYYY")}`;
-      } else {
-        // ভিন্ন মাস হলে, শুধু মাস-সাল রেঞ্জ দেখাবে
-        dateRange = `${start.format("MMMM YYYY")} to ${end.format(
-          "MMMM YYYY",
-        )}`;
-        dateRangeLabel = `${start.format("MMMM_YYYY")}_to_${end.format(
-          "MMMM_YYYY",
-        )}`;
-      }
+      dateRangeLabel = start.format("DD-MM-YYYY");
+    } else if (start.isSame(end, "month")) {
+      dateRange = `${start.format("MMMM D")}–${end.format("D, YYYY")}`;
+
+      dateRangeLabel = `${start.format("MMMM_D")}_to_${end.format("D_YYYY")}`;
+    } else {
+      dateRange = `${start.format("MMMM YYYY")} to ${end.format("MMMM YYYY")}`;
+
+      dateRangeLabel = `${start.format("MMMM_YYYY")}_to_${end.format(
+        "MMMM_YYYY",
+      )}`;
     }
 
-    const workbook = new ExcelJS.Workbook();
-    const sheet = workbook.addWorksheet("Item Of Books");
+    /* =========================================================
+     * 3. BANK CONFIGURATION
+     *
+     * Business logic is kept exactly as existing.
+     * ========================================================= */
 
-    // Page setup
-    sheet.pageSetup = {
-      paperSize: 9,
-      orientation: "landscape",
-      fitToPage: true,
-      fitToWidth: 1,
-      fitToHeight: 0,
-      margins: {
-        left: 0.5,
-        right: 0.5,
-        top: 0.75,
-        bottom: 0.75,
-        header: 0.3,
-        footer: 0.3,
-      },
+    type BankConfig = {
+      mainHeaders: string[];
+      dataKeys: string[];
+      workOrderRef?: string;
     };
 
-    const borderStyle = {
-      top: { style: "thin" },
-      bottom: { style: "thin" },
-      left: { style: "thin" },
-      right: { style: "thin" },
-    } as const;
-
-    // Bank-specific header configuration
-    const bankHeaderConfig = {
+    const BANK_CONFIG: Record<string, BankConfig> = {
       "Bengal Commercial Bank PLC.": {
         mainHeaders: [
           "SL",
@@ -676,6 +711,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "conSba10",
           "conMsd10",
@@ -689,6 +725,7 @@ const downloadExcel = async () => {
           "conMtdr50",
         ],
       },
+
       "Pubali Bank PLC.": {
         mainHeaders: [
           "SL",
@@ -706,6 +743,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "conSb10",
           "conSb25",
@@ -719,6 +757,7 @@ const downloadExcel = async () => {
           "conMtdr25",
         ],
       },
+
       "Midland Bank PLC": {
         mainHeaders: [
           "SL",
@@ -733,6 +772,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "conSb20",
           "conCd10",
@@ -743,10 +783,13 @@ const downloadExcel = async () => {
           "islmCd50",
         ],
       },
+
       "Modhumoti Bank PLC.": {
         mainHeaders: ["SL", "Date", "PO-100", "Total Books", "Total Leaves"],
+
         dataKeys: ["conPo100"],
       },
+
       "Shahjalal Islami Bank PLC": {
         mainHeaders: [
           "SL",
@@ -763,6 +806,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "conMsd10",
           "conMsd50",
@@ -775,6 +819,7 @@ const downloadExcel = async () => {
           "conPo100",
         ],
       },
+
       "Jamuna Bank PLC": {
         mainHeaders: [
           "SL",
@@ -784,8 +829,10 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: ["conSb10", "conCd50"],
       },
+
       "Prime Bank PLC.": {
         mainHeaders: [
           "SL",
@@ -805,6 +852,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "csbcd5",
           "csbcd10",
@@ -817,9 +865,10 @@ const downloadExcel = async () => {
           "psbcd10",
           "psbcd20",
           "psbcd50",
-          "po100",
+          "conPo100",
         ],
       },
+
       IBBL: {
         mainHeaders: [
           "SL",
@@ -833,6 +882,7 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: [
           "conMsa10",
           "conMsa20",
@@ -842,6 +892,7 @@ const downloadExcel = async () => {
           "conPo50",
         ],
       },
+
       "Shimanto Bank PLC": {
         mainHeaders: [
           "SL",
@@ -852,9 +903,12 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: ["conSb10", "conCd25", "conPo100"],
+
+        workOrderRef: "SMBL/HO/IDP/Fintera Solutions-MICR Cheque/2025/998",
       },
-      // Default configuration for other banks
+
       default: {
         mainHeaders: [
           "SL",
@@ -865,451 +919,715 @@ const downloadExcel = async () => {
           "Total Books",
           "Total Leaves",
         ],
+
         dataKeys: ["conSb10", "conSb25", "conCd25"],
       },
     };
-    const config =
-      bankHeaderConfig[bankName as keyof typeof bankHeaderConfig] ||
-      bankHeaderConfig.default;
-    const mainHeaders = config.mainHeaders;
+
+    const config = BANK_CONFIG[bankName] ?? BANK_CONFIG.default;
+
     const dataKeys = config.dataKeys;
 
-    // Create header structure
-    let currentCol = 1;
+    /* =========================================================
+     * 4. WORKBOOK
+     * ========================================================= */
 
-    if (selectedBank?.bankName === "Prime Bank PLC.") {
-      // SL No column (A6 - merged vertically)
-      sheet.mergeCells(`A6:A8`);
-      sheet.getCell("A6").value = "SL";
-      sheet.getCell("A6").font = { bold: true };
-      sheet.getCell("A6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("A6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" },
-      };
-      sheet.getCell("A6").border = borderStyle;
+    const workbook = new ExcelJS.Workbook();
 
-      // Date column (B7 - merged vertically)
-      sheet.mergeCells(`B6:B8`);
-      sheet.getCell("B6").value = "Date";
-      sheet.getCell("B6").font = { bold: true };
-      sheet.getCell("B6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("B6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" },
-      };
-      sheet.getCell("B6").border = borderStyle;
-    } else {
-      // SL No column (A7 - merged vertically)
-      sheet.mergeCells(`A7:A8`);
-      sheet.getCell("A7").value = "SL";
-      sheet.getCell("A7").font = { bold: true };
-      sheet.getCell("A7").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("A7").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" },
-      };
-      sheet.getCell("A7").border = borderStyle;
-      // Date column (B7 - merged vertically)
-      sheet.mergeCells(`B7:B8`);
-      sheet.getCell("B7").value = "Date";
-      sheet.getCell("B7").font = { bold: true };
-      sheet.getCell("B7").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("B7").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" },
-      };
-      sheet.getCell("B7").border = borderStyle;
-    }
+    const sheet = workbook.addWorksheet("Item Of Books");
 
-    currentCol = 3; // Start from column C
+    /* =========================================================
+     * 5. COMMON STYLES
+     * ========================================================= */
 
-    // Dynamic book type columns
+    const borderStyle = {
+      top: { style: "thin" as const },
+      bottom: { style: "thin" as const },
+      left: { style: "thin" as const },
+      right: { style: "thin" as const },
+    };
+
+    const centerAlignment = {
+      horizontal: "center" as const,
+      vertical: "middle" as const,
+    };
+
+    const yellowFill = {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: {
+        argb: "FFFF00",
+      },
+    };
+
+    const subHeaderFill = {
+      type: "pattern" as const,
+      pattern: "solid" as const,
+      fgColor: {
+        argb: "D9E8F5",
+      },
+    };
+
+    const applyHeaderStyle = (cell: ExcelJS.Cell, fill = yellowFill) => {
+      cell.font = {
+        bold: true,
+      };
+
+      cell.alignment = centerAlignment;
+
+      cell.fill = fill;
+
+      cell.border = borderStyle;
+    };
+
+    /* =========================================================
+     * 6. PAGE SETUP
+     * ========================================================= */
+
+    sheet.pageSetup = {
+      paperSize: 9,
+
+      orientation: isIBBL ? "portrait" : "landscape",
+
+      fitToPage: true,
+
+      fitToWidth: 1,
+
+      fitToHeight: 0,
+
+      margins: {
+        left: 0.5,
+        right: 0.5,
+        top: 0.75,
+        bottom: 0.75,
+        header: 0.3,
+        footer: 0.3,
+      },
+    };
+
+    /* =========================================================
+     * 7. HEADER ROW DEFINITIONS
+     *
+     * IMPORTANT:
+     *
+     * Normal:
+     * Row 6 = Item Of Books
+     * Row 7 = Main Header
+     * Row 8 = Books / Leaves
+     *
+     * Prime:
+     * Row 5 = Item Of Books
+     * Row 6 = Account Groups
+     * Row 7 = Main Header
+     * Row 8 = Books / Leaves
+     * ========================================================= */
+
+    const mainHeaderRow = 7;
+    const subHeaderRow = 8;
+
+    const slDateHeaderRow = isPrimeBank ? 6 : 7;
+
+    const titleRow = isPrimeBank ? 5 : 6;
+
+    /* =========================================================
+     * 8. SL COLUMN
+     * ========================================================= */
+
+    sheet.mergeCells(slDateHeaderRow, 1, subHeaderRow, 1);
+
+    const slCell = sheet.getCell(slDateHeaderRow, 1);
+
+    slCell.value = "SL";
+
+    applyHeaderStyle(slCell);
+
+    /* =========================================================
+     * 9. DATE COLUMN
+     * ========================================================= */
+
+    sheet.mergeCells(slDateHeaderRow, 2, subHeaderRow, 2);
+
+    const dateCell = sheet.getCell(slDateHeaderRow, 2);
+
+    dateCell.value = "Date";
+
+    applyHeaderStyle(dateCell);
+
+    /* =========================================================
+     * 10. DYNAMIC BOOK TYPE HEADERS
+     * ========================================================= */
+
+    let currentCol = 3;
+
     dataKeys.forEach((key, index) => {
-      // Merge main header for this book type
-      sheet.mergeCells(7, currentCol, 7, currentCol + 1);
-      const mainHeaderCell = sheet.getCell(7, currentCol);
-      mainHeaderCell.value = mainHeaders[index + 2]; // +2 because SL and Date are first two
-      mainHeaderCell.font = { bold: true };
-      mainHeaderCell.alignment = { horizontal: "center", vertical: "middle" };
-      mainHeaderCell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "FFFF00" },
-      };
-      mainHeaderCell.border = borderStyle;
+      const headerText = config.mainHeaders[index + 2];
 
-      // Books sub-header
-      const booksCell = sheet.getCell(8, currentCol);
+      /*
+       * Main Book Type Header
+       *
+       * C:D
+       * E:F
+       * G:H
+       * ...
+       */
+
+      sheet.mergeCells(
+        mainHeaderRow,
+        currentCol,
+        mainHeaderRow,
+        currentCol + 1,
+      );
+
+      const mainHeaderCell = sheet.getCell(mainHeaderRow, currentCol);
+
+      mainHeaderCell.value = headerText;
+
+      applyHeaderStyle(mainHeaderCell);
+
+      /*
+       * Books
+       */
+
+      const booksCell = sheet.getCell(subHeaderRow, currentCol);
+
       booksCell.value = "Books";
-      booksCell.font = { bold: true };
-      booksCell.alignment = { horizontal: "center", vertical: "middle" };
-      booksCell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "D9E8F5" },
-      };
-      booksCell.border = borderStyle;
 
-      // Leaves sub-header
-      const leavesCell = sheet.getCell(8, currentCol + 1);
+      applyHeaderStyle(booksCell, subHeaderFill);
+
+      /*
+       * Leaves
+       */
+
+      const leavesCell = sheet.getCell(subHeaderRow, currentCol + 1);
+
       leavesCell.value = "Leaves";
-      leavesCell.font = { bold: true };
-      leavesCell.alignment = { horizontal: "center", vertical: "middle" };
-      leavesCell.fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "D9E8F5" },
-      };
-      leavesCell.border = borderStyle;
+
+      applyHeaderStyle(leavesCell, subHeaderFill);
 
       currentCol += 2;
     });
 
-    // Total Books column
-    const rowStart = selectedBank?.bankName === "Prime Bank PLC." ? 6 : 7;
-    sheet.mergeCells(rowStart, currentCol, 8, currentCol);
-    sheet.getCell(rowStart, currentCol).value = "Total Books";
-    sheet.getCell(rowStart, currentCol).font = { bold: true };
-    sheet.getCell(rowStart, currentCol).alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    sheet.getCell(rowStart, currentCol).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    sheet.getCell(rowStart, currentCol).border = borderStyle;
+    /* =========================================================
+     * 11. TOTAL BOOKS
+     * ========================================================= */
 
-    // Total Leaves column
-    const totalLeavesCol = String.fromCharCode(64 + currentCol + 1);
-    sheet.mergeCells(rowStart, currentCol + 1, 8, currentCol + 1);
-    sheet.getCell(rowStart, currentCol + 1).value = "Total Leaves";
-    sheet.getCell(rowStart, currentCol + 1).font = { bold: true };
-    sheet.getCell(rowStart, currentCol + 1).alignment = {
-      horizontal: "center",
-      vertical: "middle",
-    };
-    sheet.getCell(rowStart, currentCol + 1).fill = {
-      type: "pattern",
-      pattern: "solid",
-      fgColor: { argb: "FFFF00" },
-    };
-    sheet.getCell(rowStart, currentCol + 1).border = borderStyle;
-    let totalPositivePayCol = totalLeavesCol;
+    const totalBooksCol = currentCol;
 
-    if (selectedBank?.bankName === "Midland Bank PLC") {
-      totalPositivePayCol = String.fromCharCode(64 + currentCol + 2);
-      sheet.mergeCells(`${totalPositivePayCol}7:${totalPositivePayCol}8`);
-      sheet.getCell(`${totalPositivePayCol}7`).value = "Total Positive Pay";
-      sheet.getCell(`${totalPositivePayCol}7`).font = { bold: true };
-      sheet.getCell(`${totalPositivePayCol}7`).alignment = {
-        horizontal: "center",
-        vertical: "middle",
+    sheet.mergeCells(
+      slDateHeaderRow,
+      totalBooksCol,
+      subHeaderRow,
+      totalBooksCol,
+    );
+
+    const totalBooksCell = sheet.getCell(slDateHeaderRow, totalBooksCol);
+
+    totalBooksCell.value = "Total Books";
+
+    applyHeaderStyle(totalBooksCell);
+
+    /* =========================================================
+     * 12. TOTAL LEAVES
+     * ========================================================= */
+
+    const totalLeavesCol = currentCol + 1;
+
+    sheet.mergeCells(
+      slDateHeaderRow,
+      totalLeavesCol,
+      subHeaderRow,
+      totalLeavesCol,
+    );
+
+    const totalLeavesCell = sheet.getCell(slDateHeaderRow, totalLeavesCol);
+
+    totalLeavesCell.value = "Total Leaves";
+
+    applyHeaderStyle(totalLeavesCell);
+
+    /* =========================================================
+     * 13. MIDLAND - POSITIVE PAY
+     * ========================================================= */
+
+    let positivePayCol: number | null = null;
+
+    if (isMidlandBank) {
+      positivePayCol = currentCol + 2;
+
+      sheet.mergeCells(
+        slDateHeaderRow,
+        positivePayCol,
+        subHeaderRow,
+        positivePayCol,
+      );
+
+      const positivePayCell = sheet.getCell(slDateHeaderRow, positivePayCol);
+
+      positivePayCell.value = "Total Positive Pay";
+
+      applyHeaderStyle(positivePayCell);
+    }
+
+    /* =========================================================
+     * 14. LAST COLUMN
+     * ========================================================= */
+
+    const lastColumn = positivePayCol ?? totalLeavesCol;
+
+    const lastColumnLetter = getExcelColumnLetter(lastColumn);
+
+    /* =========================================================
+     * 15. PRIME BANK ACCOUNT GROUP HEADER
+     *
+     * IMPORTANT:
+     *
+     * C:J  = Conventional
+     * K:R  = Islamic
+     * S:X  = Priority
+     * Y:Z  = Pay Order
+     *
+     * AA   = Total Books
+     * AB   = Total Leaves
+     * ========================================================= */
+
+    if (isPrimeBank) {
+      const primeGroups = [
+        {
+          startCol: 3,
+          endCol: 10,
+          title: "Conventional Books",
+          color: "16365C",
+        },
+
+        {
+          startCol: 11,
+          endCol: 18,
+          title: "Islamic Banking",
+          color: "4F6228",
+        },
+
+        {
+          startCol: 19,
+          endCol: 24,
+          title: "Priority Banking",
+          color: "A82323",
+        },
+
+        {
+          startCol: 25,
+          endCol: 26,
+          title: "Pay Order",
+          color: "70AD47",
+        },
+      ];
+
+      primeGroups.forEach((group) => {
+        const startLetter = getExcelColumnLetter(group.startCol);
+
+        const endLetter = getExcelColumnLetter(group.endCol);
+
+        sheet.mergeCells(`${startLetter}6:${endLetter}6`);
+
+        const cell = sheet.getCell(`${startLetter}6`);
+
+        cell.value = group.title;
+
+        cell.font = {
+          bold: true,
+          size: 14,
+          color: {
+            argb: "FFFFFF",
+          },
+        };
+
+        cell.fill = {
+          type: "pattern",
+          pattern: "solid",
+          fgColor: {
+            argb: group.color,
+          },
+        };
+
+        cell.alignment = centerAlignment;
+
+        cell.border = borderStyle;
+      });
+    }
+
+    /* =========================================================
+     * 16. TITLE / REPORT HEADER
+     * ========================================================= */
+
+    if (isPrimeBank) {
+      /*
+       * ---------------------------
+       * PRIME BANK
+       * ---------------------------
+       */
+
+      sheet.mergeCells(`A2:${lastColumnLetter}2`);
+
+      const bankTitle = sheet.getCell("A2");
+
+      bankTitle.value = bankName;
+
+      bankTitle.font = {
+        bold: true,
+        size: 16,
       };
-      sheet.getCell(`${totalPositivePayCol}7`).fill = {
+
+      bankTitle.alignment = centerAlignment;
+
+      /*
+       * Work Order
+       */
+
+      let workOrderRef = "BGCB-GSD-TIO-2024/101";
+
+      if (normalizedBankName === "ibbl") {
+        workOrderRef = "IBBPLC/HO/CSD/PSSD/2025/1659";
+      }
+
+      sheet.mergeCells(`A3:${lastColumnLetter}3`);
+
+      const workOrderCell = sheet.getCell("A3");
+
+      workOrderCell.value = `Work Order Ref: ${workOrderRef}`;
+
+      workOrderCell.font = {
+        bold: true,
+        size: 12,
+      };
+
+      workOrderCell.alignment = centerAlignment;
+
+      /*
+       * Date
+       */
+
+      sheet.mergeCells(`A4:${lastColumnLetter}4`);
+
+      const dateRangeCell = sheet.getCell("A4");
+
+      dateRangeCell.value = `Date: ${dateRange}`;
+
+      dateRangeCell.font = {
+        bold: true,
+        size: 12,
+      };
+
+      dateRangeCell.alignment = centerAlignment;
+
+      /*
+       * Main Title
+       */
+
+      sheet.mergeCells(`A5:${lastColumnLetter}5`);
+
+      const titleCell = sheet.getCell("A5");
+
+      titleCell.value = "Item Of Books";
+
+      titleCell.font = {
+        bold: true,
+        size: 14,
+        color: {
+          argb: "FFFFFF",
+        },
+      };
+
+      titleCell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: "FFFF00" },
+        fgColor: {
+          argb: "E26B0A",
+        },
       };
-      sheet.getCell(`${totalPositivePayCol}7`).border = borderStyle;
+
+      titleCell.alignment = centerAlignment;
+
+      titleCell.border = borderStyle;
+    } else {
+      /*
+       * ---------------------------
+       * OTHER BANKS
+       * ---------------------------
+       */
+
+      sheet.mergeCells(`A3:${lastColumnLetter}3`);
+
+      const bankTitle = sheet.getCell("A3");
+
+      bankTitle.value = bankName;
+
+      bankTitle.font = {
+        bold: true,
+        size: 16,
+      };
+
+      bankTitle.alignment = centerAlignment;
+
+      /* =======================================================
+       * IBBL LOGO
+       * ======================================================= */
+
+      if (isIBBL) {
+        const logoImageBase64 = await toBase64(logoImage);
+
+        const logoId = workbook.addImage({
+          base64: logoImageBase64,
+
+          extension: "png",
+        });
+
+        sheet.addImage(logoId, {
+          tl: {
+            col: 1,
+            row: 0,
+          },
+
+          ext: {
+            width: 300,
+            height: 75,
+          },
+        });
+      }
+
+      /*
+       * Work Order
+       */
+
+      let workOrderRef = config.workOrderRef ?? "BGCB-GSD-TIO-2024/101";
+
+      if (normalizedBankName === "ibbl") {
+        workOrderRef = "IBBPLC/HO/CSD/PSSD/2025/1659";
+      }
+
+      sheet.mergeCells(`A4:${lastColumnLetter}4`);
+
+      const workOrderCell = sheet.getCell("A4");
+
+      workOrderCell.value = `Work Order Ref: ${workOrderRef}`;
+
+      workOrderCell.font = {
+        bold: true,
+        size: 12,
+      };
+
+      workOrderCell.alignment = centerAlignment;
+
+      /*
+       * Date
+       */
+
+      sheet.mergeCells(`A5:${lastColumnLetter}5`);
+
+      const dateCellHeader = sheet.getCell("A5");
+
+      dateCellHeader.value = `Date: ${dateRange}`;
+
+      dateCellHeader.font = {
+        bold: true,
+        size: 12,
+      };
+
+      dateCellHeader.alignment = centerAlignment;
+
+      /*
+       * Item Of Books
+       */
+
+      sheet.mergeCells(`A6:${lastColumnLetter}6`);
+
+      const titleCell = sheet.getCell("A6");
+
+      titleCell.value = "Item Of Books";
+
+      titleCell.font = {
+        bold: true,
+        size: 14,
+        color: {
+          argb: "FFFFFF",
+        },
+      };
+
+      titleCell.fill = {
+        type: "pattern",
+        pattern: "solid",
+        fgColor: {
+          argb: "70AD47",
+        },
+      };
+
+      titleCell.alignment = centerAlignment;
+
+      titleCell.border = borderStyle;
     }
-    // Data rows
-    let rowIndex = 7;
+
+    /* =========================================================
+     * 17. DATA ROWS
+     * ========================================================= */
+
     reportData.value.forEach((item, index) => {
-      const rowData: any[] = [
+      const rowData: (string | number)[] = [
         index + 1,
+
         dayjs(item.requestDate).format("DD-MMM-YY"),
       ];
 
-      // Add book type data (Books and Leaves for each type)
+      /*
+       * Book Type Data
+       */
+
       dataKeys.forEach((key) => {
-        rowData.push(item[`${key}Books` as keyof ReportItem] || 0);
-        rowData.push(item[`${key}Leaves` as keyof ReportItem] || 0);
+        const booksKey = `${key}Books` as keyof ReportItem;
+
+        const leavesKey = `${key}Leaves` as keyof ReportItem;
+
+        rowData.push(Number(item[booksKey] ?? 0));
+
+        rowData.push(Number(item[leavesKey] ?? 0));
       });
 
-      // Add totals
-      rowData.push(item.totalBooks);
-      rowData.push(item.totalLeaves);
-      if (selectedBank?.bankName === "Midland Bank PLC") {
-        rowData.push(item.totalBooks * 10);
+      /*
+       * Total Books
+       */
+
+      rowData.push(Number(item.totalBooks ?? 0));
+
+      /*
+       * Total Leaves
+       */
+
+      rowData.push(Number(item.totalLeaves ?? 0));
+
+      /*
+       * Midland Positive Pay
+       */
+
+      if (isMidlandBank) {
+        rowData.push(Number(item.totalBooks ?? 0) * 10);
       }
 
       const row = sheet.addRow(rowData);
+
       row.eachCell((cell) => {
         cell.border = borderStyle;
-        cell.alignment = { horizontal: "center", vertical: "middle" };
+
+        cell.alignment = centerAlignment;
+
         cell.numFmt = "0";
       });
-      rowIndex++;
     });
 
-    // Grand total row - FIXED: Use array instead of addCell
-    const grandTotalData: any[] = ["", "Grand Total"];
+    /* =========================================================
+     * 18. GRAND TOTAL
+     * ========================================================= */
 
-    // Add grand totals for each book type
+    const grandTotalData: (string | number)[] = ["", "Grand Total"];
+
     dataKeys.forEach((key) => {
-      grandTotalData.push(
-        totals.value[`${key}Books` as keyof typeof totals.value] || 0,
-      );
-      grandTotalData.push(
-        totals.value[`${key}Leaves` as keyof typeof totals.value] || 0,
-      );
+      const booksKey = `${key}Books` as keyof typeof totals.value;
+
+      const leavesKey = `${key}Leaves` as keyof typeof totals.value;
+
+      grandTotalData.push(Number(totals.value[booksKey] ?? 0));
+
+      grandTotalData.push(Number(totals.value[leavesKey] ?? 0));
     });
 
-    // Add grand totals
-    grandTotalData.push(totals.value.totalBooks);
-    grandTotalData.push(totals.value.totalLeaves);
-    if (selectedBank?.bankName === "Midland Bank PLC") {
-      grandTotalData.push(totals.value.totalBooks * 10);
+    /*
+     * Total Books
+     */
+
+    grandTotalData.push(Number(totals.value.totalBooks ?? 0));
+
+    /*
+     * Total Leaves
+     */
+
+    grandTotalData.push(Number(totals.value.totalLeaves ?? 0));
+
+    /*
+     * Midland Positive Pay
+     */
+
+    if (isMidlandBank) {
+      grandTotalData.push(Number(totals.value.totalBooks ?? 0) * 10);
     }
 
     const grandTotalRow = sheet.addRow(grandTotalData);
 
     grandTotalRow.eachCell((cell) => {
-      cell.font = { bold: true, color: { argb: "FFFFFF" } };
+      cell.font = {
+        bold: true,
+        color: {
+          argb: "FFFFFF",
+        },
+      };
+
       cell.fill = {
         type: "pattern",
         pattern: "solid",
-        fgColor: { argb: "70AD47" },
+        fgColor: {
+          argb: "70AD47",
+        },
       };
+
       cell.border = borderStyle;
-      cell.alignment = { horizontal: "center", vertical: "middle" };
+
+      cell.alignment = centerAlignment;
+
       cell.numFmt = "0";
     });
 
-    // Header Section
-    const titleCol = totalPositivePayCol;
-    if (selectedBank?.bankName === "Prime Bank PLC.") {
-      sheet.mergeCells(`A2:AE2`);
-      sheet.getCell("A2").value = bankName;
-      sheet.getCell("A2").font = { bold: true, size: 16 };
-      sheet.getCell("A2").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
+    /* =========================================================
+     * 19. COLUMN WIDTH
+     * ========================================================= */
 
-      let workORderRef =
-        bankName === "IBBL"
-          ? "IBBPLC/HO/CSD/PSSD/2025/1659"
-          : "BGCB-GSD-TIO-2024/101";
-
-      sheet.mergeCells(`A3:AD3`);
-      sheet.getCell("A3").value = `Work Order Ref: ${workORderRef}`;
-      sheet.getCell("A3").font = { bold: true, size: 12 };
-      sheet.getCell("A3").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-
-      sheet.mergeCells(`A4:AE4`);
-      sheet.getCell("A4").value = `Date: ${dateRange}`;
-      sheet.getCell("A4").font = { bold: true, size: 12 };
-      sheet.getCell("A4").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-
-      // Main Title
-
-      sheet.mergeCells(`A5:AD5`);
-      sheet.getCell("A5").value = "Item Of Books";
-      sheet.getCell("A5").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("A5").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "E26B0A" },
-      };
-      sheet.getCell("A5").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("A5").border = borderStyle;
-      // Main Account Flag Title
-      // conventional books
-      sheet.mergeCells(`C6:J6`);
-      sheet.getCell("C6").value = "Conventional Books";
-      sheet.getCell("C6").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("C6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "16365C" },
-      };
-      sheet.getCell("C6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("C6").border = borderStyle;
-
-      // Islamic Banking
-      sheet.mergeCells(`K6:R6`);
-      sheet.getCell("K6").value = "Islamic Banking";
-      sheet.getCell("K6").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("K6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "4F6228" },
-      };
-      sheet.getCell("K6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("K6").border = borderStyle;
-      // Priority Banking
-      sheet.mergeCells(`S6:Z6`);
-      sheet.getCell("S6").value = "Priority Banking";
-      sheet.getCell("S6").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("S6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "A82323" },
-      };
-      sheet.getCell("S6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("S6").border = borderStyle;
-      // Pay Order
-      sheet.mergeCells(`AA6:AB6`);
-      sheet.getCell("AA6").value = "Pay Order";
-      sheet.getCell("AA6").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("AA6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "70AD47" },
-      };
-      sheet.getCell("AA6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("AA6").border = borderStyle;
-    } else {
-      sheet.mergeCells(`A3:${titleCol}3`);
-      sheet.getCell("A3").value = bankName;
-      sheet.getCell("A3").font = { bold: true, size: 16 };
-      sheet.getCell("A3").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      let workORderRef;
-
-      const normalizedBankName = bankName?.trim().toLowerCase();
-
-      switch (normalizedBankName) {
-        case "ibbl":
-          workORderRef = "IBBPLC/HO/CSD/PSSD/2025/1659";
-          break;
-
-        case "shimanto bank plc":
-          workORderRef = "SMBL/HO/IDP/Fintera Solutions-MICR Cheque/2025/998";
-          break;
-
-        default:
-          workORderRef = "BGCB-GSD-TIO-2024/101";
-          break;
-      }
-
-      sheet.mergeCells(`A4:${titleCol}4`);
-      sheet.getCell("A4").value = `Work Order Ref: ${workORderRef}`;
-      sheet.getCell("A4").font = { bold: true, size: 12 };
-      sheet.getCell("A4").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-
-      sheet.mergeCells(`A5:${titleCol}5`);
-      sheet.getCell("A5").value = `Date: ${dateRange}`;
-      sheet.getCell("A5").font = { bold: true, size: 12 };
-      sheet.getCell("A5").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-
-      // Main Title
-
-      sheet.mergeCells(`A6:${titleCol}6`);
-      sheet.getCell("A6").value = "Item Of Books";
-      sheet.getCell("A6").font = {
-        bold: true,
-        size: 14,
-        color: { argb: "FFFFFF" },
-      };
-      sheet.getCell("A6").fill = {
-        type: "pattern",
-        pattern: "solid",
-        fgColor: { argb: "70AD47" },
-      };
-      sheet.getCell("A6").alignment = {
-        horizontal: "center",
-        vertical: "middle",
-      };
-      sheet.getCell("A6").border = borderStyle;
-    }
-
-    // Set column widths
-    const columns = sheet.columns;
-    columns.forEach((col, index) => {
-      col.width = 12;
+    sheet.columns.forEach((column) => {
+      column.width = 12;
     });
 
-    // Adjust specific column widths
-    sheet.getColumn(1).width = 8; // SL No
-    sheet.getColumn(2).width = 12; // Date
+    sheet.getColumn(1).width = 8;
 
-    const filename = `Consumption_Report_${dateRangeLabel}_${bankName.replace(
-      /\s+/g,
-      "_",
-    )}.xlsx`;
+    sheet.getColumn(2).width = 12;
+
+    /* =========================================================
+     * 20. ROW HEIGHT
+     * ========================================================= */
+
+    const rowHeight = isIBBL ? 35 : 25;
+
+    sheet.eachRow((row) => {
+      row.height = rowHeight;
+    });
+
+    /* =========================================================
+     * 21. FILE NAME
+     * ========================================================= */
+
+    const safeBankName = bankName.replace(/\s+/g, "_");
+
+    const filename = `Consumption_Report_${dateRangeLabel}_${safeBankName}.xlsx`;
+
+    /* =========================================================
+     * 22. GENERATE & DOWNLOAD
+     * ========================================================= */
 
     const buffer = await workbook.xlsx.writeBuffer();
+
     const blob = new Blob([buffer], {
       type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
     });
 
     fallbackDownload(blob, filename);
   } catch (error) {
-    message.error("Failed to download Excel file");
     console.error("Excel download error:", error);
+
+    message.error("Failed to download Excel file");
   }
 };
-
 const fallbackDownload = (blob: Blob, filename: string) => {
   const url = window.URL.createObjectURL(blob);
   const link = document.createElement("a");
@@ -1325,6 +1643,20 @@ const fallbackDownload = (blob: Blob, filename: string) => {
     document.body.removeChild(link);
     window.URL.revokeObjectURL(url);
   }, 100);
+};
+// To Base 64 function
+const toBase64 = async (filePath: string) => {
+  return fetch(filePath)
+    .then((res) => res.blob())
+    .then(
+      (blob) =>
+        new Promise<string>((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.onerror = reject;
+          reader.readAsDataURL(blob);
+        }),
+    );
 };
 
 const resetForm = () => {

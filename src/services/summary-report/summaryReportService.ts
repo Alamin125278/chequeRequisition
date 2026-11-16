@@ -5,20 +5,23 @@ export interface FetchSummaryParams {
   bankId: number;
   startDate: string;
   endDate: string;
-  severity: number;
+  severity?: number | null;
   agentType?: boolean | null;
   courierCode?: string;
+  accFlag?: string | null;
 }
 export interface FetchConsumptionParams {
   bankId: number;
   startDate: string;
   endDate: string;
+  severity?: number | null;
 }
 export interface FetchAgentChallanParams {
   bankId: number;
   requestDate: string;
   agentType?: boolean | null;
   courier?: string | null;
+  severity?: number | null;
 }
 // interface SummaryReport {
 //   homeBranch: string;
@@ -52,7 +55,6 @@ export const getCourierSummaryReportService = async (
   const response = await baseHttp().get(constant.APIs.courierSummaryReport, {
     params,
   });
-  console.log(response.data);
   return response.data;
 };
 export const getmonthlyConsumptionReportService = async (
